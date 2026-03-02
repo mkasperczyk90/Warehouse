@@ -1,0 +1,12 @@
+sources:
+  postgres_docker_logs:
+    type: docker_logs
+    include_containers: ["postgres-16"]
+
+sinks:
+  seq_output:
+    type: http
+    inputs: ["postgres_docker_logs"]
+    uri: "http://seq:5341/api/events/raw?clef"
+    encoding:
+      codec: json

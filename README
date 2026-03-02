@@ -1,0 +1,36 @@
+# .NET Distributed Warehouse System
+
+A proof-of-concept distributed system built with **.NET**, demonstrating event-driven architecture, clean code principles, and resilient message processing.
+
+## 🏗 Architecture & Tech Stack
+
+The project follows **Clean Architecture** (API -> Application -> Domain -> Infrastructure) and uses:
+
+* **Communication:** Wolverine (Message Bus)
+* **Security:** JWT Authentication with Role-Based Access Control (**RBAC**)
+* **Persistence:** EF Core with PostgreSQL
+* **DevOps:** Docker Compose
+* **Testing:** xUnit, TestContainers, WebApplicationFactory
+
+## 🚀 Services
+
+1.  **InventoryService**: 
+    * Handles `POST /inventory` (requires `write` role).
+    * Persists stock entries and publishes `ProductInventoryAddedEvent`.
+2.  **ProductService**:
+    * Handles `POST /products` (`write`) and `GET /products` (`read`).
+    * Consumes events to update product stock with **idempotency logic** to prevent duplicate updates.
+
+## ✨ Key Features
+
+* **Event-Driven Consistency**: Asynchronous communication between services.
+* **Resilience**: Ensuring message processing is idempotent and traceable.
+* **Secure API**: JWT-based authorization with specific `read` and `write` roles.
+* **E2E Testing**: Automated tests using **TestContainers** to spin up real infrastructure (DB & Message Bus).
+
+## 🛠 Getting Started
+
+To run the entire system (services + infrastructure) locally:
+
+```bash
+docker-compose up -d

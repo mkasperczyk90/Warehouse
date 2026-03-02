@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <PackageReference Include="MediatR" Version="14.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
+      <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+      <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Common\Warehouse.Contracts\Warehouse.Contracts.csproj" />
+      <ProjectReference Include="..\..\..\Common\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+      <ProjectReference Include="..\Warehouse.Inventory.Application\Warehouse.Inventory.Application.csproj" />
+      <ProjectReference Include="..\Warehouse.Inventory.Domain\Warehouse.Inventory.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore">
+        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\10.0.3\Microsoft.AspNetCore.dll</HintPath>
+      </Reference>
+      <Reference Include="Warehouse.Inventory.Infrastructure">
+        <HintPath>..\Warehouse.Inventory.Api\bin\Debug\net10.0\Warehouse.Inventory.Infrastructure.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

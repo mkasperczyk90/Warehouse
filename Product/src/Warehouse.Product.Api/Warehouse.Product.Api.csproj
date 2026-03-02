@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+      <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
+      <PackageReference Include="FluentValidation" Version="12.1.1" />
+      <PackageReference Include="MediatR" Version="14.0.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.16.0" />
+      <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Common\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+      <ProjectReference Include="..\Warehouse.Product.Application\Warehouse.Product.Application.csproj" />
+      <ProjectReference Include="..\Warehouse.Product.Infrastructure\Warehouse.Product.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,49 @@
+@apiUrl = https://localhost:7031
+@keycloakUrl = http://localhost:8080
+@realm = Warehouse.Identity
+@clientId = test-client
+
+@usernameRead = bob.reader
+@usernameWrite = johny.writer
+@password = test1234
+
+
+### Get token from Keycloaka (read)
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{clientId}}&username={{usernameRead}}&password={{password}}&grant_type=password&scope=openid profile email roles
+> {%
+    client.test("Login successfully", function() {
+        client.assert(response.status === 200, "Problem with logging");
+    });
+    client.global.set("auth_token", response.body.access_token);
+%}
+
+
+### Get token from Keycloaka (read + write)
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{clientId}}&username={{usernameWrite}}&password={{password}}&grant_type=password&scope=openid profile email roles
+> {%
+    client.test("Login successfully", function() {
+        client.assert(response.status === 200, "Problem with logging");
+    });
+    client.global.set("auth_token", response.body.access_token);
+%}
+
+### Adding inventory (Required role 'write')
+# @name CreateInventory
+POST {{apiUrl}}/inventories
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+    "productId": "e51e17cc-a728-45dd-a252-7578e235c14d",
+    "quantity": 15
+}
+
+### Ger inventories
+GET {{apiUrl}}/inventories
+Authorization: Bearer {{auth_token}}

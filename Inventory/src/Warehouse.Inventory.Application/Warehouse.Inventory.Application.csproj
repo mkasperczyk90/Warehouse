@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="12.1.1" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+      <PackageReference Include="MediatR" Version="14.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
+      <PackageReference Include="WolverineFx" Version="5.16.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Common\Warehouse.Contracts\Warehouse.Contracts.csproj" />
+      <ProjectReference Include="..\..\..\Common\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+      <ProjectReference Include="..\Warehouse.Inventory.Domain\Warehouse.Inventory.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

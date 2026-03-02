@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <PreserveCompilationContext>true</PreserveCompilationContext>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+        <_Parameter1>Inventory.Api.IntegrationTests</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+  
+    <ItemGroup>
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+        <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="OpenTelemetry" Version="1.15.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+        <PackageReference Include="WolverineFx" Version="5.16.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Warehouse.Inventory.Application\Warehouse.Inventory.Application.csproj" />
+      <ProjectReference Include="..\Warehouse.Inventory.Infrastructure\Warehouse.Inventory.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+</Project>
