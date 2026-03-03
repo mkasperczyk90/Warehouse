@@ -40,7 +40,7 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-    "productId": "e51e17cc-a728-45dd-a252-7578e235c14d",
+    "productId": "7e41c0ce-3edd-4961-9e7b-1a2d57af0e6e",
     "quantity": 15
 }
 

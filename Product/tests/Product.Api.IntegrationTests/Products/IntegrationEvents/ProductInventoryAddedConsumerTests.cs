@@ -31,7 +31,7 @@ public class ProductInventoryAddedConsumerTests : IClassFixture<ProductsTestAppF
 	    var eventId = Guid.NewGuid();
 	    const int quantityToAdd = 15;
 
-	    var duplicateEvent = new ProductInventoryAddedEvent(eventId, product.Id, quantityToAdd, DateTime.UtcNow);
+	    var duplicateEvent = new ProductInventoryAddedEvent(eventId, product.Id.Value, quantityToAdd, DateTime.UtcNow);
 	    var host = _factory.HostInstance ?? throw new InvalidOperationException("Host nie został zainicjalizowany.");
 
 	    using (var setupScope = _factory.Services.CreateScope())

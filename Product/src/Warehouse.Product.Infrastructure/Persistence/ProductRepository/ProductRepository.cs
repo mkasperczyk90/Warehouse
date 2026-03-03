@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Product.Domain.Interfaces;
+using Warehouse.Product.Domain.Products.Entities;
 using DomainProduct = Warehouse.Product.Domain.Products.Entities.Product;
 
 namespace Warehouse.Product.Infrastructure.Persistence.ProductRepository;
@@ -20,7 +21,7 @@ public class ProductRepository(ProductDbContext context) : IProductRepository
 		return Task.CompletedTask;
 	}
 
-	public async Task<DomainProduct?> Get(Guid productId, CancellationToken ct = default) =>
+	public async Task<DomainProduct?> Get(ProductId productId, CancellationToken ct = default) =>
 		await _context.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
 
 	public async Task<IReadOnlyList<DomainProduct>> ListAsync(CancellationToken ct = default) =>

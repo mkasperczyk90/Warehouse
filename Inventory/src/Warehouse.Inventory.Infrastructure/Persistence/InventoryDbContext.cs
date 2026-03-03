@@ -8,7 +8,7 @@ public class InventoryDbContext: DbContext
 	{
 	}
 
-	public DbSet<Domain.Inventory> Inventory => Set<Domain.Inventory>();
+	public DbSet<Domain.Entities.Inventory> Inventory => Set<Domain.Entities.Inventory>();
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

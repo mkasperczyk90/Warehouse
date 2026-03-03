@@ -11,7 +11,7 @@ public sealed class ListProductsQueryHandler(IProductRepository productRepositor
 	{
 		var products = (await productRepository
 				.ListAsync(cancellationToken))
-			.Select(p => new ProductResponse(p.Id, p.Name, p.Price, p.Description,p.Amount, p.CreatedAt, p.UpdatedAt));
+			.Select(p => new ProductResponse(p.Id.Value, p.Name, p.Price, p.Description,p.Amount, p.CreatedAt, p.UpdatedAt));
 
 		var result = new ListProductsResponse(products.ToList());
 		return Result.Success(result);

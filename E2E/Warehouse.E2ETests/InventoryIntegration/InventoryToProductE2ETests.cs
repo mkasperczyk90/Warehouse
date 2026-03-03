@@ -35,7 +35,7 @@ public class InventoryToProductE2ETests
         inventoryClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Test", "read,write");
 
-        var request = new CreateInventoryRequest { ProductId = productId, Quantity = quantityToAdd };
+        var request = new CreateInventoryRequest { ProductId = productId.Value, Quantity = quantityToAdd };
 
         // Act
         var response = await inventoryClient.PostAsJsonAsync("/inventories", request);
