@@ -37,12 +37,12 @@ public class CreateProductCommandHandler(
 			request.Description
 		);
 
-		product.Raise(new ProductCreatedDomainEvent(product.Id));
+		product.Raise(new ProductCreatedDomainEvent(product.Id.Value));
 
 		await productRepository.InsertAsync(product, cancellationToken);
 		await unitOfWork.CommitAsync(cancellationToken);
 
 		logger.LogInformation("Product {ProductId} successfully created with name {ProductName}", product.Id, product.Name);
-		return Result.Success(product.Id);
+		return Result.Success(product.Id.Value);
 	}
 }

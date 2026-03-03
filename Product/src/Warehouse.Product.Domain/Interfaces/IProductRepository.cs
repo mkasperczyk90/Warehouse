@@ -1,3 +1,4 @@
+using Warehouse.Product.Domain.Products.Entities;
 using DomainProduct = Warehouse.Product.Domain.Products.Entities.Product;
 
 namespace Warehouse.Product.Domain.Interfaces;
@@ -12,5 +13,5 @@ public interface IProductRepository
 
 	Task<IReadOnlyList<DomainProduct>> ListAsync(CancellationToken ct = default);
 
-	Task<DomainProduct?> Get(Guid productId, CancellationToken ct = default);
+	Task<DomainProduct?> Get(ProductId productId, CancellationToken ct = default);
 }

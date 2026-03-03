@@ -3,12 +3,12 @@ using Warehouse.Product.Domain.Products.Exceptions;
 using Warehouse.SharedKernel;
 using Warehouse.SharedKernel.Constants;
 
-namespace Warehouse.Inventory.Domain;
+namespace Warehouse.Inventory.Domain.Entities;
 
 public class Inventory: Entity
 {
-	public Guid Id { get; private set; }
-	public Guid ProductId { get; private set; }
+	public InventoryId Id { get; private set; }
+	public ProductId ProductId { get; private set; }
 	public int Quantity { get; private set; }
 	public DateTime AddedAt { get; private set; }
 	public string AddedBy { get; private set; }
@@ -22,8 +22,8 @@ public class Inventory: Entity
 		if (quantity < 0) throw new NegativeInventoryQuantityException(quantity);
 		if (productId == Guid.Empty) throw new ProductMustExistsException();
 
-		Id = Guid.NewGuid();
-		ProductId = productId;
+		Id = new(Guid.NewGuid());
+		ProductId = new(productId);
 		Quantity = quantity;
 		AddedAt = DateTime.UtcNow;
 		AddedBy = string.IsNullOrWhiteSpace(addedBy) ? UserConstants.SystemName : addedBy;

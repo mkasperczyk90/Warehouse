@@ -13,7 +13,7 @@ public sealed class GetProductQueryHandler(ILogger<GetProductQueryHandler> logge
 
 		var product = (await productRepository
 				.ListAsync(cancellationToken))
-			.FirstOrDefault(p => p.Id == request.Id);
+			.FirstOrDefault(p => p.Id.Value == request.Id);
 
 		if (product is null)
 		{
@@ -28,7 +28,7 @@ public sealed class GetProductQueryHandler(ILogger<GetProductQueryHandler> logge
 
 		return Result.Success(
 			new ProductResponse(
-				product.Id,
+				product.Id.Value,
 				product.Name,
 				product.Price,
 				product.Description,

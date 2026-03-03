@@ -43,7 +43,7 @@ public class CreateInventoryCommandHandler(
 				ErrorType.NotFound));
 		}
 
-		var inventory = Domain.Inventory.Create(
+		var inventory = Domain.Entities.Inventory.Create(
 			request.ProductId,
 			request.Quantity,
 			userContext.Username
@@ -60,7 +60,7 @@ public class CreateInventoryCommandHandler(
 		logger.LogInformation("Successfully created inventory {InventoryId} for Product {ProductId} - with quantity {quantity}. Recorded by user {Username}",
 			inventory.Id, request.ProductId, userContext.Username, request.Quantity);
 
-		return Result.Success(inventory.Id);
+		return Result.Success(inventory.Id.Value);
 	}
 
 	private async Task SendProductInventoryAddedEvent(CreateInventoryCommand request, CancellationToken cancellationToken)

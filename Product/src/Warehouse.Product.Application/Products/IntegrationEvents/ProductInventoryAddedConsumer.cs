@@ -24,7 +24,7 @@ public class ProductInventoryAddedConsumer(
 			return;
 		}
 
-		var product = await productRepository.Get(message.ProductId, cancellationToken);
+		var product = await productRepository.Get(new(message.ProductId), cancellationToken);
 		if (product == null)
 		{
 			logger.LogInformation("Product not found with id {productId}", message.EventId);

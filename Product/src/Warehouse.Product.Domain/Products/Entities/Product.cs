@@ -15,7 +15,7 @@ public class Product: Entity
 		if (string.IsNullOrWhiteSpace(name)) throw new ProductNameRequireException();
 		if (price < 0) throw new NegativeProductPriceException(price);
 
-		Id = Guid.NewGuid();
+		Id = new(Guid.NewGuid());
 		Name = name;
 		Price = price;
 		Amount = 0;
@@ -23,7 +23,7 @@ public class Product: Entity
 		Description = description;
 	}
 
-	public Guid Id { get; private set; }
+	public ProductId Id { get; private set; }
 	public string Name { get; private set; }
 	public string Description { get; private set; }
 	public decimal Price { get; private set; }
