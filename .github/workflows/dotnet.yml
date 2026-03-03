@@ -24,5 +24,11 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Run Architeture Tests
+      run: |
+        dotnet test Inventory\tests\Inventory.ArchitectureTests\Inventory.ArchitectureTests.csproj --no-build
+        dotnet test Product\tests\Product.ArchitectureTests\Product.ArchitectureTests.csproj --no-build
+    - name: Run Integration Tests
+      run: |
+        dotnet test Inventory\tests\Inventory.Api.IntegrationTests\Inventory.Api.IntegrationTests.csproj --no-build
+        dotnet test Product\tests\Product.Api.IntegrationTests\Product.Api.IntegrationTests.csproj --no-build
