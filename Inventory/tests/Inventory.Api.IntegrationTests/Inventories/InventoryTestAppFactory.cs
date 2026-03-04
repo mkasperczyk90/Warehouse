@@ -45,7 +45,6 @@ public class InventoryTestAppFactory : WebApplicationFactory<Program>
 			var mockClient = Substitute.For<IProductServiceClient>();
 			mockClient.ExistsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(true);
 
-
 			services.AddSingleton(mockClient);
 		});
 	}

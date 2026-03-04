@@ -20,8 +20,6 @@
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
       <PackageReference Include="Mediator.Net.MicrosoftDependencyInjection" Version="4.9.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
       <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
     </ItemGroup>
