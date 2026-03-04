@@ -13,7 +13,6 @@
     <ItemGroup>
       <PackageReference Include="MediatR" Version="14.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
-      <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
       <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
       <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
@@ -29,9 +28,6 @@
     <ItemGroup>
       <Reference Include="Microsoft.AspNetCore">
         <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\10.0.3\Microsoft.AspNetCore.dll</HintPath>
-      </Reference>
-      <Reference Include="Warehouse.Inventory.Infrastructure">
-        <HintPath>..\Warehouse.Inventory.Api\bin\Debug\net10.0\Warehouse.Inventory.Infrastructure.dll</HintPath>
       </Reference>
     </ItemGroup>
 

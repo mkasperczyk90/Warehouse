@@ -53,6 +53,7 @@ public class CreateInventoryCommandHandler(
 
 		await inventoryRepository.InsertAsync(inventory, cancellationToken);
 
+		// To keep consistency - outbox pattern needed
 		await SendProductInventoryAddedEvent(request, cancellationToken);
 
 		await unitOfWork.CommitAsync(cancellationToken);

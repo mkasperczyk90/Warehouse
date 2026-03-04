@@ -12,7 +12,6 @@
       <ProjectReference Include="..\..\..\Common\Warehouse.Contracts\Warehouse.Contracts.csproj" />
       <ProjectReference Include="..\..\src\Warehouse.Inventory.Api\Warehouse.Inventory.Api.csproj" />
       <ProjectReference Include="..\..\src\Warehouse.Inventory.Infrastructure\Warehouse.Inventory.Infrastructure.csproj" />
-      <ProjectReference Include="..\Inventory\src\Warehouse.Inventory.Api\Warehouse.Inventory.Api.csproj" />
     </ItemGroup>
   
     <ItemGroup>
@@ -25,6 +24,7 @@
         <PackageReference Include="Shouldly" Version="4.3.0" />
         <PackageReference Include="WolverineFx" Version="5.16.4" />
         <PackageReference Include="WolverineFx.Http" Version="5.16.4" />
+        <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
         <PackageReference Include="xunit" Version="2.9.3"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"/>
     </ItemGroup>
