@@ -14,13 +14,13 @@ public class ProductInventoryAddedConsumer(
 {
 	public async ValueTask ConsumeAsync(ProductInventoryAddedEvent message, CancellationToken cancellationToken)
 	{
-		logger.LogInformation("Product inventory update for {eventId} already processed for product {productId}", message.EventId, message.ProductId);
+		logger.LogInformation("Product inventory update for {eventId} start processing {productId}", message.EventId, message.ProductId);
 
 		var alreadyProcessed = await processedEventRepository.Exists(message.EventId, cancellationToken);
 
 		if (alreadyProcessed)
 		{
-			logger.LogInformation("Product inventory update for {eventId} already processed", message.EventId);
+			logger.LogInformation("Product inventory update for {eventId}", message.EventId);
 			return;
 		}
 

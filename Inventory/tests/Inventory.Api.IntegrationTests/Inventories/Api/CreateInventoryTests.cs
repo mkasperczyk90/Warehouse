@@ -7,14 +7,14 @@ using Warehouse.Inventory.Infrastructure.Persistence;
 using Wolverine;
 using Wolverine.Tracking;
 
-namespace Inventory.Api.IntegrationTests.Inventories;
+namespace Inventory.Api.IntegrationTests.Inventories.Api;
 
-public class InventoryProducerTests : IClassFixture<InventoryTestAppFactory>
+public class CreateInventoryTests : IClassFixture<InventoryTestAppFactory>
 {
     private readonly InventoryTestAppFactory _factory;
     private readonly HttpClient _client;
 
-    public InventoryProducerTests(InventoryTestAppFactory factory)
+    public CreateInventoryTests(InventoryTestAppFactory factory)
     {
 	    _factory = factory;
 	    _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -27,7 +27,7 @@ public class InventoryProducerTests : IClassFixture<InventoryTestAppFactory>
     }
 
     [Fact]
-    public async Task PostInventories_ShouldReturn201_AndPublishEvent()
+    public async Task PostInventories_WhenValidRequestAndProductExists_ShouldReturn201_AndPublishEvent()
     {
 	    using (var scope = _factory.Services.CreateScope())
 	    {
@@ -57,5 +57,30 @@ public class InventoryProducerTests : IClassFixture<InventoryTestAppFactory>
         publishedEvent.Quantity.ShouldBe(request.Quantity);
         publishedEvent.EventId.ShouldNotBe(Guid.Empty);
         publishedEvent.OccurredAt.ShouldBeGreaterThan(DateTime.UtcNow.AddSeconds(-5));
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void PostInventories_WhenValidRequest_ShouldSaveToDatabase_AndCommitUnitOfWork()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void PostInventories_WhenProductDoesNotExist_ShouldReturn400_WithProductNotFoundErrorCode()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void PostInventories_WhenValidationFails_ShouldThrowValidationException()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void PostInventories_WhenUserNotAuthenticated_ShouldReturn401()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void PostInventories_WhenUserLacksWriteRole_ShouldReturn403()
+    {
     }
 }
