@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Warehouse.Product.Infrastructure.Persistence;
@@ -15,18 +16,15 @@ public class ProductsTestAppFactory : WebApplicationFactory<Program>
 	{
 		builder.UseEnvironment("Testing");
 
-		builder.ConfigureServices(services =>
+		builder.ConfigureTestServices(services =>
 		{
+			services.DisableAllExternalWolverineTransports();
+
 			services.AddAuthentication("Test")
 				.AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
 
 			services.RemoveAll(typeof(DbContextOptions<ProductDbContext>));
 			services.RemoveAll(typeof(ProductDbContext));
-
-			services.PostConfigure<WolverineOptions>(opts =>
-			{
-				opts.StubAllExternalTransports();
-			});
 
 			var efInternalServiceProvider = new ServiceCollection()
 				.AddEntityFrameworkInMemoryDatabase()
@@ -43,6 +41,10 @@ public class ProductsTestAppFactory : WebApplicationFactory<Program>
 	protected override IHost CreateHost(IHostBuilder builder)
 	{
 		HostInstance = base.CreateHost(builder);
+		builder.UseWolverine(opts =>
+		{
+			opts.StubAllExternalTransports();
+		});
 		return HostInstance;
 	}
 }

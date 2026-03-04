@@ -25,7 +25,7 @@ public class ProductInventoryAddedConsumerTests : IClassFixture<ProductsTestAppF
     }
 
     [Fact]
-    public async Task PostInventories_ShouldReturn201_AndPublishEvent()
+    public async Task ConsumeAsync_IsIdempotent_RegardlessOfMultipleDeliveries()
     {
 	    var product = DomainProduct.Create("prod_1", 5, "description");
 	    var eventId = Guid.NewGuid();
@@ -60,5 +60,20 @@ public class ProductInventoryAddedConsumerTests : IClassFixture<ProductsTestAppF
 
 	    createdProduct.Amount.ShouldBe(quantityToAdd,
 		    "because the handler must be idempotent and ignore duplicate events.");
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void ConsumeAsync_WhenEventIsNewAndProductExists_ShouldIncreaseStock_AndCommitTransaction()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void ConsumeAsync_WhenProductDoesNotExist_ShouldReturnEarly_AndNotIncreaseStock()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet")]
+    public void ConsumeAsync_WhenProductDoesNotExist_ShouldNotCommitTransaction()
+    {
     }
 }
