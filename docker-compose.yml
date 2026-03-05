@@ -18,7 +18,7 @@ services:
             - RabbitMq__Password=${RABBITMQ_PASSWORD}
             - Services__ProductApi__BaseUrl=http://warehouse.product.api:8080
             - OTEL_EXPORTER_OTLP_ENDPOINT=http://seq:5341
-            - Authentication__Keycloak__Authority=http://localhost:8080/realms/Warehouse.Identity
+            - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
             - Authentication__Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
             - Authentication__Keycloak__RequireHttpsMetadata=false
         healthcheck:
@@ -49,7 +49,7 @@ services:
             - RabbitMq__HostName=rabbitmq
             - RabbitMq__UserName=warehouse_admin
             - RabbitMq__Password=warehouse_password123
-            - Authentication__Keycloak__Authority=http://localhost:8080/realms/Warehouse.Identity
+            - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
             - Authentication__Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
             - Authentication__Keycloak__RequireHttpsMetadata=false
         healthcheck:

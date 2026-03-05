@@ -10,6 +10,9 @@ public class KeyCloakOptions
 	[Url(ErrorMessage = "Keycloak Authority must be a valid URL.")]
 	public string Authority { get; init; } = string.Empty;
 
+	[Required]
+	public string ValidIssuer { get; init; } = string.Empty;
+
 	public bool RequireHttpsMetadata { get; init; } = true;
 
 	[Required]

@@ -16,15 +16,16 @@ public static class KeyCloakAuthenticationExtensions
 			{
 				options.Authority = keycloak.Authority;
 				options.RequireHttpsMetadata = keycloak.RequireHttpsMetadata;
-				options.MetadataAddress = keycloak.MetadataAddress;
 				options.MapInboundClaims = false;
+
 				options.TokenValidationParameters = new TokenValidationParameters
 				{
 					ValidateIssuer = true,
-					ValidIssuer = keycloak.Authority,
-					ValidateAudience = false,
+					ValidIssuer = keycloak.ValidIssuer,
+					ValidAudience = keycloak.Audience,
+					ValidateAudience = true,
 					ValidateLifetime = true,
-					NameClaimType = "email",
+					NameClaimType = "preferred_username",
 					RoleClaimType = ClaimTypes.Role
 				};
 

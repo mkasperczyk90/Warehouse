@@ -10,7 +10,7 @@
       },
       {
         "name": "write",
-        "description": "Rola for write"
+        "description": "Role for write"
       }
     ]
   },
@@ -58,20 +58,12 @@
       "clientId": "ProductService",
       "enabled": true,
       "bearerOnly": true,
-      "standardFlowEnabled": false,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "publicClient": false,
       "protocol": "openid-connect"
     },
     {
       "clientId": "InventoryService",
       "enabled": true,
       "bearerOnly": true,
-      "standardFlowEnabled": false,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "publicClient": false,
       "protocol": "openid-connect"
     },{
       "clientId": "test-client",
@@ -79,7 +71,30 @@
       "publicClient": true,
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
-      "protocol": "openid-connect"
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "aud-inventory",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "InventoryService",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "aud-product",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "ProductService",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ]
 }

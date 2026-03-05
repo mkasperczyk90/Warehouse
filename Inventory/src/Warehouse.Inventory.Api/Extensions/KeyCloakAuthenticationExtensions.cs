@@ -20,8 +20,9 @@ public static class KeyCloakAuthenticationExtensions
 				options.TokenValidationParameters = new TokenValidationParameters
 				{
 					ValidateIssuer = true,
-					ValidIssuer = keycloak.Authority,
-					ValidateAudience = false,
+					ValidIssuer = keycloak.ValidIssuer,
+					ValidAudience = keycloak.Audience,
+					ValidateAudience = true,
 					ValidateLifetime = true,
 					NameClaimType = "preferred_username",
 					RoleClaimType = ClaimTypes.Role
