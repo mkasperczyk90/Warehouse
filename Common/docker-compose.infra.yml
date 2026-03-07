@@ -44,9 +44,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-      RABBITMQ_OTEL_EXPORTER_OTLP_ENDPOINT: "http://seq:5341"
-      RABBITMQ_OTEL_METRICS_ENABLED: "true"
-      RABBITMQ_LOGS: "console,otel"
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -77,8 +74,12 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://seq:5341
-      OTEL_TRACES_EXPORTER: otlp
+      KC_FEATURES: opentelemetry
+      KC_TRACING_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_TELEMETRY_ENDPOINT: "http://aspire-dashboard:18889"
+      KC_TELEMETRY_PROTOCOL: "grpc"
+      KC_TELEMETRY_SERVICE_NAME: "keycloak"
     ports:
       - "8080:8080"
     networks:
@@ -89,38 +90,22 @@ services:
       postgres:
         condition: service_healthy
 
-  seq:
-    image: datalust/seq:latest
-    container_name: seq
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: aspire-dashboard
     restart: unless-stopped
-    environment:
-      - ACCEPT_EULA=Y
-      - SEQ_FIRSTRUN_ADMINPASSWORD=Admin123!
     ports:
-      - "8081:80" # UI
-      - "5341:5341" # OTLP Ingestion gRPC/HTTP
+        - "18888:18888"
+        - "18889:18889"
+    environment:
+        - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
     networks:
-      - warehouse-net
-    volumes:
-      - seq_data:/data
-
-  vector:
-    image: timberio/vector:latest-alpine
-    container_name: vector
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./vector.yaml:/etc/vector/vector.yaml:ro
-    networks:
-      - warehouse-net
-    depends_on:
-      - seq
-volumes:
-  postgres_data:
-  rabbitmq_data:
-  seq_data:
-
+        - warehouse-net
 
 networks:
   warehouse-net:
     driver: bridge
+
+volumes:
+    postgres_data:
+    rabbitmq_data:

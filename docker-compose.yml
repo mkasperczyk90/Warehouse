@@ -17,7 +17,8 @@ services:
             - RabbitMq__UserName=${RABBITMQ_USER}
             - RabbitMq__Password=${RABBITMQ_PASSWORD}
             - Services__ProductApi__BaseUrl=http://warehouse.product.api:8080
-            - OTEL_EXPORTER_OTLP_ENDPOINT=http://seq:5341
+            - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
+            - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
             - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
             - Authentication__Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
             - Authentication__Keycloak__RequireHttpsMetadata=false
@@ -45,7 +46,8 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Development
             - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=productdb;Username=admin;Password=AdminTest!234%
-            - OTEL_EXPORTER_OTLP_ENDPOINT=http://seq:5341
+            - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
+            - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
             - RabbitMq__HostName=rabbitmq
             - RabbitMq__UserName=warehouse_admin
             - RabbitMq__Password=warehouse_password123
