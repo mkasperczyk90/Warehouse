@@ -1,4 +1,4 @@
-@apiUrl = https://localhost:7031
+@apiUrl = http://localhost:5001
 @keycloakUrl = http://localhost:8080
 @realm = Warehouse.Identity
 @clientId = test-client
@@ -40,7 +40,7 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-    "productId": "7e41c0ce-3edd-4961-9e7b-1a2d57af0e6e",
+    "productId": "19c55574-d4c7-4bff-95cb-cd0221182bac",
     "quantity": 15
 }
 

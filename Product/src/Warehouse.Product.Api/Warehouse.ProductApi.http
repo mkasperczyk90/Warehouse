@@ -1,4 +1,4 @@
-@apiUrl = https://localhost:7248
+@apiUrl = http://localhost:5002
 @keycloakUrl = http://localhost:8080
 @realm = Warehouse.Identity
 @clientId = test-client
@@ -56,8 +56,4 @@ Content-Type: application/json
 
 ### Ger product by id
 GET {{apiUrl}}/products/{{createdProductId}}
-
-### h
-GET http://localhost:5002/health
-Authorization: Bearer {{auth_token}}
 
