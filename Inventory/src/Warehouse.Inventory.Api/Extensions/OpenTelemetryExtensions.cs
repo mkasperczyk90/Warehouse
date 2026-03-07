@@ -1,3 +1,4 @@
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -10,10 +11,12 @@ internal static class OpenTelemetryExtensions
 {
 	internal static void AddOpenTelemetryLogging(this IHostApplicationBuilder applicationBuilder)
 	{
-
 		var applicationSettings = applicationBuilder.Configuration
 			.GetSection(ApplicationSettings.SectionName)
 			.Get<ApplicationSettings>()!;
+
+		applicationBuilder.Logging.ClearProviders();
+		var otlpEndpoint = applicationBuilder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
 
 		applicationBuilder.Services.AddOpenTelemetry()
 			.ConfigureResource(resource => resource.AddService(applicationSettings.Name))
@@ -30,11 +33,21 @@ internal static class OpenTelemetryExtensions
 				metrics.AddRuntimeInstrumentation();
 				metrics.AddOtlpExporter();
 			});
-		applicationBuilder.Logging.AddOpenTelemetry(logging =>
+
+		applicationBuilder.Logging.AddOpenTelemetry(options =>
 			{
-				logging.IncludeFormattedMessage = true;
-				logging.IncludeScopes = true;
-				logging.AddOtlpExporter();
+				options.IncludeFormattedMessage = true;
+				options.IncludeScopes = true;
+
+				options.SetResourceBuilder(ResourceBuilder.CreateDefault()
+					.AddService(applicationSettings.Name));
+
+				options.AddConsoleExporter();
+
+				if (!string.IsNullOrEmpty(otlpEndpoint))
+				{
+					options.AddOtlpExporter();
+				}
 			});
 	}
 }

@@ -17,7 +17,8 @@ services:
             - RabbitMq__UserName=${RABBITMQ_USER}
             - RabbitMq__Password=${RABBITMQ_PASSWORD}
             - Services__ProductApi__BaseUrl=http://warehouse.product.api:8080
-            - OTEL_EXPORTER_OTLP_ENDPOINT=http://seq:5341
+            - OTEL_EXPORTER_OTLP_ENDPOINT=http://seq:80/ingest/otlp
+            - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
             - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
             - Authentication__Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
             - Authentication__Keycloak__RequireHttpsMetadata=false
