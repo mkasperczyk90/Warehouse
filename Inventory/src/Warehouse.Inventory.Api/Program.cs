@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Inventory.Api.Extensions;
 using Warehouse.Inventory.Api.Settings;
@@ -41,6 +42,24 @@ builder.Services.AddHealthChecks()
 		}.CreateConnectionAsync(),
 		name: "rabbitmq"
 	);
+
+builder.Services.AddApiVersioning(options =>
+	{
+		options.AssumeDefaultVersionWhenUnspecified = true;
+		options.DefaultApiVersion = new ApiVersion(1, 0);
+
+		options.ReportApiVersions = true;
+
+		options.ApiVersionReader = ApiVersionReader.Combine(
+			new UrlSegmentApiVersionReader(),
+			new HeaderApiVersionReader("x-api-version"),
+			new MediaTypeApiVersionReader("x-api-version")
+		);
+	}).AddApiExplorer(options =>
+	{
+		options.GroupNameFormat = "'v'VVV";
+		options.SubstituteApiVersionInUrl = true;
+	});
 
 var app = builder.Build();
 

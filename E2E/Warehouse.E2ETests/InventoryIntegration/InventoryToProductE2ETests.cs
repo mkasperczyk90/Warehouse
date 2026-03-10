@@ -31,14 +31,13 @@ public class InventoryToProductE2ETests
         var productId = (await SetProductDatabase())!.Id;
         const int quantityToAdd = 15;
 
-
         inventoryClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Test", "read,write");
 
         var request = new CreateInventoryRequest { ProductId = productId.Value, Quantity = quantityToAdd };
 
         // Act
-        var response = await inventoryClient.PostAsJsonAsync("/inventories", request);
+        var response = await inventoryClient.PostAsJsonAsync("/api/v1/inventories", request);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -85,6 +84,7 @@ public class InventoryToProductE2ETests
     private async Task<DomainProduct?> SetProductDatabase()
     {
         DomainProduct? product = null;
+        var timeProvider = _env.TimeProvider;
 
         using var scope = _env.ProductFactory.Services.CreateScope();
         var productDb = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
@@ -93,7 +93,7 @@ public class InventoryToProductE2ETests
         await productDb.Database.EnsureDeletedAsync();
         await productDb.Database.EnsureCreatedAsync();
 
-        product = DomainProduct.Create("E2E Test Product", 0, "description");
+        product = DomainProduct.Create("E2E Test Product", 0, "description", timeProvider);
         productDb.Products.Add(product);
         await productDb.SaveChangesAsync();
 

@@ -9,6 +9,7 @@ public class ProductInventoryAddedConsumer(
 	ILogger<ProductInventoryAddedConsumer> logger,
 	IProcessedEventRepository processedEventRepository,
 	IProductRepository productRepository,
+	TimeProvider timeProvider,
 	IUnitOfWork unitOfWork
 	)
 {
@@ -30,7 +31,7 @@ public class ProductInventoryAddedConsumer(
 			logger.LogInformation("Product not found with id {productId}", message.EventId);
 			return;
 		}
-		product.IncreaseStock(message.Quantity);
+		product.IncreaseStock(message.Quantity, timeProvider);
 
 		await processedEventRepository.InsertAsync(new(message.EventId), cancellationToken);
 

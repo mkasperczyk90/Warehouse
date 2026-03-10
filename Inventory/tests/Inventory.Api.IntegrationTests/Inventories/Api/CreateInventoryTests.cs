@@ -44,7 +44,7 @@ public class CreateInventoryTests : IClassFixture<InventoryTestAppFactory>
 	        .Timeout(TimeSpan.FromSeconds(30))
 	        .ExecuteAndWaitAsync((Func<IMessageContext, Task>)(async _ =>
 	        {
-		        var response = await _client.PostAsJsonAsync("/inventories", request);
+		        var response = await _client.PostAsJsonAsync("/api/v1/inventories", request);
 		        response.StatusCode.ShouldBe(HttpStatusCode.Created);
 	        }));
 

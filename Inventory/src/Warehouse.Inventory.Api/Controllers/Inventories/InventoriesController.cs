@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -5,10 +6,11 @@ using Warehouse.Inventory.Api.Controllers.Inventory.CreateInventory;
 using Warehouse.Inventory.Application.Inventory.Commands.CreateInventory;
 using Warehouse.Inventory.Application.Inventory.Queries.ListInventories;
 
-namespace Warehouse.Inventory.Api.Controllers.Inventory;
+namespace Warehouse.Inventory.Api.Controllers.Inventories;
 
 [ApiController]
-[Route("[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class InventoriesController(IMediator mediator) : ControllerBase
 {
@@ -36,7 +38,7 @@ public class InventoriesController(IMediator mediator) : ControllerBase
 			command.Quantity), cancellationToken);
 
 		// TODO: create extension for Result
-		if (result.IsSuccess) return Created($"/inventories/{command.ProductId}", result.Value);
+		if (result.IsSuccess) return Created($"/api/v1/inventories/{command.ProductId}", result.Value);
 
 		return BadRequest(new {
 			error = result.Error.Code,

@@ -14,7 +14,12 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Attributes\" />
       <Folder Include="Extensions\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Attributes\RabbitListenerAttribute.cs" />
     </ItemGroup>
 
 </Project>

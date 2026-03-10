@@ -19,11 +19,7 @@ public sealed class GetProductQueryHandler(ILogger<GetProductQueryHandler> logge
 		{
 			logger.LogInformation("Product not found with id {productId}", request.Id);
 			return Result<ProductResponse>.ValidationFailure(
-				new Error( // TODO: Create ProductErrors
-					"Product.NotFound",
-					"Missing Prodct",
-					ErrorType.NotFound
-					));
+				ProductErrors.NotFound(request.Id));
 		}
 
 		return Result.Success(

@@ -1,4 +1,4 @@
-@apiUrl = http://localhost:5001
+@apiUrl = https://localhost:7031
 @keycloakUrl = http://localhost:8080
 @realm = Warehouse.Identity
 @clientId = test-client
@@ -35,15 +35,15 @@ client_id={{clientId}}&username={{usernameWrite}}&password={{password}}&grant_ty
 
 ### Adding inventory (Required role 'write')
 # @name CreateInventory
-POST {{apiUrl}}/inventories
+POST {{apiUrl}}/api/v1.0/inventories
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-    "productId": "19c55574-d4c7-4bff-95cb-cd0221182bac",
+    "productId": "2b2e246d-2d89-4f1c-a73c-a712876006ae",
     "quantity": 15
 }
 
 ### Ger inventories
-GET {{apiUrl}}/inventories
+GET {{apiUrl}}/api/v1.0/inventories
 Authorization: Bearer {{auth_token}}

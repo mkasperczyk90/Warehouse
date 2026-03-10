@@ -37,10 +37,7 @@ public class CreateInventoryCommandHandler(
 		{
 			logger.LogWarning("Inventory creation aborted: Product {ProductId} does not exist in Product Service",
 				request.ProductId);
-			return Result.Failure<Guid>(new Error(
-				"Inventory.ProductNotFound",
-				$"Product does not exists id: ({request.ProductId})",
-				ErrorType.NotFound));
+			return Result.Failure<Guid>(InventoryErrors.ProductNotFound(request.ProductId));
 		}
 
 		var inventory = Domain.Entities.Inventory.Create(

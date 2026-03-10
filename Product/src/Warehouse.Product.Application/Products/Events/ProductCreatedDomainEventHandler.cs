@@ -9,7 +9,7 @@ public class ProductCreatedDomainEventHandler(ILogger<ProductCreatedDomainEventH
 {
 	public Task Handle(ProductCreatedDomainEvent notification, CancellationToken cancellationToken)
 	{
-		logger.LogInformation("Domain Event Handled: Inventory added with ID {Id}", notification.productId);
+		logger.LogInformation("Domain Event Handled: Inventory added with ID {Id}", notification.ProductId);
 
 		return Task.CompletedTask;
 	}

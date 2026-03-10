@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,8 @@ using Warehouse.Product.Application.Products.Queries.ListProducts;
 namespace Warehouse.Product.Api.Controllers.Products;
 
 [ApiController]
-[Route("[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Authorize]
 public class ProductsController(IMediator mediator) : ControllerBase
 {

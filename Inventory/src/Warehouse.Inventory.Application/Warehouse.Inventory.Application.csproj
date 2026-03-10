@@ -20,4 +20,8 @@
       <ProjectReference Include="..\Warehouse.Inventory.Domain\Warehouse.Inventory.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Contracts\" />
+    </ItemGroup>
+
 </Project>
