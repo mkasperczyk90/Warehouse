@@ -21,7 +21,7 @@ public class CreateInventoryTests : IClassFixture<InventoryTestAppFactory>
 	    {
 		    BaseAddress = new Uri("https://localhost")
 	    });
-	    // TODO: inmemory RabbitMQ
+
 	    _client.DefaultRequestHeaders.Authorization =
 		    new System.Net.Http.Headers.AuthenticationHeaderValue("Test");
     }

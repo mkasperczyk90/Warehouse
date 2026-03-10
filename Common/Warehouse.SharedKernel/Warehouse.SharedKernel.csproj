@@ -11,6 +11,8 @@
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
+      <PackageReference Include="WolverineFx" Version="5.16.4" />
+      <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
     </ItemGroup>
 
     <ItemGroup>

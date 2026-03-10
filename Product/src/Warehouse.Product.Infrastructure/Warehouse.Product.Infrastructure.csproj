@@ -24,4 +24,9 @@
       <PackageReference Include="WolverineFx.RabbitMQ" Version="5.16.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="EventsRegistration\ProductInventoryExtension.cs" />
+      <Compile Remove="EventsRegistration\EventsDefinition.cs" />
+    </ItemGroup>
+
 </Project>

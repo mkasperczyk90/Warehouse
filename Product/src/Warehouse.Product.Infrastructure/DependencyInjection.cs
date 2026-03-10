@@ -9,9 +9,11 @@ using Warehouse.SharedKernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Product.Application.Products.IntegrationEvents;
+using Warehouse.Product.Infrastructure.EventRegistration;
 using Warehouse.Product.Infrastructure.Persistence.ProcessedEventRepository;
 using Warehouse.Product.Infrastructure.Settings;
 using Warehouse.SharedKernel.Behavior;
+using Warehouse.SharedKernel.EventMessages;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.RabbitMQ;
@@ -62,10 +64,9 @@ public static class DependencyInjection
 
 			opts.Discovery.IncludeAssembly(typeof(ProductInventoryAddedConsumer).Assembly);
 
-			opts.ListenToRabbitQueue("product-inventory-updates").ConfigureQueue(cx =>
-				{
-					cx.BindExchange("product-inventory-events") ;
-				});
+			opts.Include(new RabbitEventMessageExtension(
+				EventMessageConfiguration.PublisherBindings,
+				EventMessageConfiguration.ListingBindings));
 
 			opts.OnException<Npgsql.NpgsqlException>()
 				.RetryTimes(3)
