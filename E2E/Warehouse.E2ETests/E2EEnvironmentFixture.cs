@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 using Warehouse.Inventory.Application.Http;
@@ -17,6 +18,7 @@ public class E2EEnvironmentFixture : IAsyncLifetime
 	public PostgreSqlContainer ProductDbPostgresql { get; }
     public PostgreSqlContainer InventoryDbPostgresql { get; }
     public RabbitMqContainer RabbitMq { get; }
+    public TimeProvider TimeProvider { get; }
 
     public WebApplicationFactory<InventoryProgram> InventoryFactory { get; private set; } = null!;
     public WebApplicationFactory<ProductProgram> ProductFactory { get; private set; } = null!;
@@ -39,6 +41,16 @@ public class E2EEnvironmentFixture : IAsyncLifetime
             .WithUsername("guest")
             .WithPassword("guest")
             .Build();
+
+        TimeProvider = GetTimeProvider();
+    }
+
+    private TimeProvider GetTimeProvider()
+    {
+	    var timeProvider = new FakeTimeProvider();
+	    var fixedDate = new DateTimeOffset(2026, 3, 9, 20, 0, 0, TimeSpan.Zero);
+	    timeProvider.SetUtcNow(fixedDate);
+	    return timeProvider;
     }
 
     public async Task InitializeAsync()

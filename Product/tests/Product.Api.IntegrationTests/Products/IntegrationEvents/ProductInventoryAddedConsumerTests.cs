@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Time.Testing;
 using Shouldly;
 using Warehouse.Contracts;
 using Warehouse.Product.Infrastructure.Persistence;
@@ -27,7 +28,9 @@ public class ProductInventoryAddedConsumerTests : IClassFixture<ProductsTestAppF
     [Fact]
     public async Task ConsumeAsync_IsIdempotent_RegardlessOfMultipleDeliveries()
     {
-	    var product = DomainProduct.Create("prod_1", 5, "description");
+	    var fakeTime = GetFakeTimeProvider();
+
+	    var product = DomainProduct.Create("prod_1", 5, "description", fakeTime);
 	    var eventId = Guid.NewGuid();
 	    const int quantityToAdd = 15;
 
@@ -75,5 +78,13 @@ public class ProductInventoryAddedConsumerTests : IClassFixture<ProductsTestAppF
     [Fact(Skip = "Not implemented yet")]
     public void ConsumeAsync_WhenProductDoesNotExist_ShouldNotCommitTransaction()
     {
+    }
+
+    private static FakeTimeProvider GetFakeTimeProvider()
+    {
+	    var fakeTime = new FakeTimeProvider();
+	    var fixedDate = new DateTimeOffset(2026, 3, 9, 20, 0, 0, TimeSpan.Zero);
+	    fakeTime.SetUtcNow(fixedDate);
+	    return fakeTime;
     }
 }

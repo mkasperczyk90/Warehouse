@@ -10,4 +10,12 @@
       <ProjectReference Include="..\..\..\Common\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Models\IAuditableEntity.cs" />
+    </ItemGroup>
+
 </Project>

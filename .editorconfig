@@ -39,9 +39,6 @@ end_of_line = lf
 dotnet_sort_system_directives_first = true
 
 # Prefer this.X except for _fields
-# TODO can we force _ for private fields?
-# TODO elevate severity after code cleanup to warning minimum
-# TODO use language latest
 dotnet_style_qualification_for_field = false:error
 dotnet_style_qualification_for_property = false:error
 dotnet_style_qualification_for_method = false:error

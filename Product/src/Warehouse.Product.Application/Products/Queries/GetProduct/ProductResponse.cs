@@ -6,6 +6,6 @@ public sealed record ProductResponse(
 	decimal Price,
 	string Description,
 	int Amount,
-	DateTime CreatedAt,
-	DateTime? UpdatedAt
+	DateTimeOffset CreatedAt,
+	DateTimeOffset? UpdatedAt
 	);
