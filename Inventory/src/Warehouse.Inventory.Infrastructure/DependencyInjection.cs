@@ -7,10 +7,12 @@ using Warehouse.Contracts;
 using Warehouse.Inventory.Application.Http;
 using Warehouse.SharedKernel;
 using Warehouse.Inventory.Domain.Interfaces;
+using Warehouse.Inventory.Infrastructure.EventRegistration;
 using Warehouse.Inventory.Infrastructure.Http;
 using Warehouse.Inventory.Infrastructure.Persistence;
 using Warehouse.Inventory.Infrastructure.Persistence.InventoryRepository;
 using Warehouse.Inventory.Infrastructure.Settings;
+using Warehouse.SharedKernel.EventMessages;
 using Warehouse.SharedKernel.Http;
 using Warehouse.SharedKernel.Security;
 using Wolverine;
@@ -76,9 +78,9 @@ public static class DependencyInjection
 				rabbit.Port = rabbitMqSettings.Port;
 			});
 
-			// TODO: Make more 'class configurable' instead of always remember to copy code here.
-			options.PublishMessage<ProductInventoryAddedEvent>()
-				.ToRabbitExchange("product-inventory-events");
+			options.Include(new RabbitEventMessageExtension(
+				EventMessageConfiguration.PublisherBindings,
+				EventMessageConfiguration.ListingBindings));
 		});
 
 		return services;
