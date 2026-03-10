@@ -1,6 +1,6 @@
 namespace Warehouse.Product.Domain.ProcessedEvent.Entities;
 
-// TODO: Wolverine did it after setting it
+// TODO: Wolverine have Inbox/Outbox implemented - but as case show how it works
 public class ProcessedEvent
 {
 	public Guid EventId { get; private set; }
