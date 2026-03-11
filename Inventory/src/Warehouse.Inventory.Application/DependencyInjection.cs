@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using Warehouse.SharedKernel.Behavior;
+using Warehouse.BuildingBlocks.Behavior;
 
 namespace Warehouse.Inventory.Application;
 

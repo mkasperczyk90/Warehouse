@@ -2,7 +2,7 @@ using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Warehouse.SharedKernel.Behavior;
+namespace Warehouse.BuildingBlocks.Behavior;
 
 public class LoggingBehavior<TRequest, TResponse>(
 	ILogger<LoggingBehavior<TRequest, TResponse>> logger)

@@ -1,7 +1,7 @@
 using Wolverine;
 using Wolverine.RabbitMQ;
 
-namespace Warehouse.SharedKernel.EventMessages;
+namespace Warehouse.BuildingBlocks.EventMessages;
 
 public class RabbitEventMessageExtension: IWolverineExtension
 {

@@ -1,4 +1,4 @@
-using Warehouse.SharedKernel.EventMessages;
+using Warehouse.BuildingBlocks.EventMessages;
 
 namespace Warehouse.Product.Infrastructure.EventRegistration;
 

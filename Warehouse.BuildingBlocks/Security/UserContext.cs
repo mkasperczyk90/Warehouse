@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
+using Warehouse.SharedKernel.Security;
 
-namespace Warehouse.SharedKernel.Security;
+namespace Warehouse.BuildingBlocks.Security;
 
 public class UserContext(IHttpContextAccessor httpContextAccessor) : IUserContext
 {

@@ -6,6 +6,7 @@ using Warehouse.Product.Api.Controllers.Products.CreateProduct;
 using Warehouse.Product.Application.Products.Commands.CreateProduct;
 using Warehouse.Product.Application.Products.Queries.GetProduct;
 using Warehouse.Product.Application.Products.Queries.ListProducts;
+using Warehouse.Product.Application.Products.Queries.StreamProducts;
 
 namespace Warehouse.Product.Api.Controllers.Products;
 
@@ -27,6 +28,20 @@ public class ProductsController(IMediator mediator) : ControllerBase
 		return BadRequest(new {
 			error = result.Error.Code,
 			message = result.Error.Description
+		});
+	}
+
+	[HttpGet("stream")]
+	[Authorize(Roles = "read")]
+	public async Task<IActionResult> StreamProducts(CancellationToken cancellationToken)
+	{
+		var response = await mediator.Send(new StreamProductsQuery(), cancellationToken);
+
+		if (response.IsSuccess) return Ok(response.Value);
+
+		return BadRequest(new {
+			error = response.Error.Code,
+			message = response.Error.Description
 		});
 	}
 

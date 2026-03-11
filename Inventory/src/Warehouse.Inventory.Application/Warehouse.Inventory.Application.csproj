@@ -17,11 +17,8 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\Common\Warehouse.Contracts\Warehouse.Contracts.csproj" />
       <ProjectReference Include="..\..\..\Common\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+      <ProjectReference Include="..\..\..\Warehouse.BuildingBlocks\Warehouse.BuildingBlocks.csproj" />
       <ProjectReference Include="..\Warehouse.Inventory.Domain\Warehouse.Inventory.Domain.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Contracts\" />
     </ItemGroup>
 
 </Project>

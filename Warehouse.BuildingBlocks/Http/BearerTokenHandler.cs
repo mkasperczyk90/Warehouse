@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Warehouse.SharedKernel.Http;
+namespace Warehouse.BuildingBlocks.Http;
 
 public class BearerTokenHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {

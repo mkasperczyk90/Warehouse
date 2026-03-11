@@ -5,7 +5,7 @@ using Warehouse.Product.Api.Settings;
 using Warehouse.Product.Infrastructure;
 using Warehouse.Product.Infrastructure.Persistence;
 using Warehouse.Product.Infrastructure.Settings;
-using Warehouse.SharedKernel.Middleware;
+using Warehouse.BuildingBlocks.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 

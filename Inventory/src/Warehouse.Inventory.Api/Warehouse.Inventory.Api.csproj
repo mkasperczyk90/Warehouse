@@ -36,6 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\Warehouse.BuildingBlocks\Warehouse.BuildingBlocks.csproj" />
       <ProjectReference Include="..\Warehouse.Inventory.Application\Warehouse.Inventory.Application.csproj" />
       <ProjectReference Include="..\Warehouse.Inventory.Infrastructure\Warehouse.Inventory.Infrastructure.csproj" />
     </ItemGroup>

@@ -6,7 +6,7 @@ using Warehouse.Inventory.Application;
 using Warehouse.Inventory.Infrastructure;
 using Warehouse.Inventory.Infrastructure.Persistence;
 using Warehouse.Inventory.Infrastructure.Settings;
-using Warehouse.SharedKernel.Middleware;
+using Warehouse.BuildingBlocks.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
