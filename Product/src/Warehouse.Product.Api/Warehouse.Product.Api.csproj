@@ -31,7 +31,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Warehouse.BuildingBlocks\Warehouse.BuildingBlocks.csproj" />
       <ProjectReference Include="..\Warehouse.Product.Application\Warehouse.Product.Application.csproj" />
       <ProjectReference Include="..\Warehouse.Product.Infrastructure\Warehouse.Product.Infrastructure.csproj" />
     </ItemGroup>

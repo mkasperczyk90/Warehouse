@@ -4,8 +4,25 @@ include:
     - Common/docker-compose.infra.yml
         
 services:
-    warehouse.inventory.api:
-        image: warehouse.inventory.api
+    warehouse-gateway:
+        build:
+            context: ./Gateways/Warehouse.Gateway
+        ports:
+            - "5000:8080"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
+            - Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
+            - ReverseProxy__Clusters__product-cluster__Destinations__dest1__Address=http://warehouse.product.api:8080
+            - ReverseProxy__Clusters__inventory-cluster__Destinations__dest1__Address=http://warehouse.inventory.api:8080
+        depends_on:
+            - keycloak
+            - product-api
+            - inventory-api
+        networks:
+            - warehouse-net
+    inventory-api:
+        image: warehouse-inventory-api
         ports:
             - "5001:8080"
         networks:
@@ -16,7 +33,7 @@ services:
             - RabbitMq__HostName=rabbitmq
             - RabbitMq__UserName=${RABBITMQ_USER}
             - RabbitMq__Password=${RABBITMQ_PASSWORD}
-            - Services__ProductApi__BaseUrl=http://warehouse.product.api:8080
+            - Services__ProductApi__BaseUrl=http://product-api:8080
             - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
             - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
             - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
@@ -37,8 +54,8 @@ services:
             context: .
             dockerfile: Inventory/src/Warehouse.Inventory.Api/Dockerfile
 
-    warehouse.product.api:
-        image: warehouse.product.api
+    product-api:
+        image: warehouse-product-api
         ports:
             - "5002:8080"
         networks:
@@ -49,8 +66,8 @@ services:
             - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
             - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
             - RabbitMq__HostName=rabbitmq
-            - RabbitMq__UserName=warehouse_admin
-            - RabbitMq__Password=warehouse_password123
+            - RabbitMq__UserName=${RABBITMQ_USER}
+            - RabbitMq__Password=${RABBITMQ_PASSWORD}
             - Authentication__Keycloak__Authority=http://keycloak:8080/realms/Warehouse.Identity
             - Authentication__Keycloak__MetadataAddress=http://keycloak:8080/realms/Warehouse.Identity/.well-known/openid-configuration
             - Authentication__Keycloak__RequireHttpsMetadata=false

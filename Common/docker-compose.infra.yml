@@ -59,7 +59,7 @@ services:
       start_period: 20s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:26.5
     container_name: dev-keycloak
     command: start-dev --import-realm
     environment:
@@ -91,7 +91,7 @@ services:
         condition: service_healthy
 
   aspire-dashboard:
-    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13
     container_name: aspire-dashboard
     restart: unless-stopped
     ports:

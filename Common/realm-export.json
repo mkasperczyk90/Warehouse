@@ -95,6 +95,49 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "Warehouse.Gateway",
+      "name": "Warehouse Backend For Frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "aebdf55f036113aad0d040b9cabc2fb1",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "rootUrl": "http://localhost:5000",
+      "baseUrl": "http://localhost:5000",
+      "redirectUris": [
+        "http://localhost:5000/signin-oidc"
+      ],
+      "postLogoutRedirectUris": [
+        "http://localhost:5000/signout-callback-oidc"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "protocolMappers": [
+        {
+          "name": "aud-inventory",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "InventoryService",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "aud-product",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "ProductService",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ]
 }

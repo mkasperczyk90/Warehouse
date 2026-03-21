@@ -11,7 +11,7 @@
     </ItemGroup>
   
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Warehouse.BuildingBlocks\Warehouse.BuildingBlocks.csproj" />
+      <ProjectReference Include="..\..\..\Common\Warehouse.BuildingBlocks\Warehouse.BuildingBlocks.csproj" />
       <ProjectReference Include="..\Warehouse.Product.Application\Warehouse.Product.Application.csproj" />
       <ProjectReference Include="..\Warehouse.Product.Domain\Warehouse.Product.Domain.csproj" />
     </ItemGroup>
