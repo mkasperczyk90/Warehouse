@@ -1,0 +1,157 @@
+.top {
+  position: relative;
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s-6);
+}
+
+/* Fixed width so the centred search bar doesn't shift when the breadcrumb
+   (which varies per page) changes length. Truncates the rare long crumb. */
+.crumb {
+  flex: 0 0 260px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+}
+
+.crumb b {
+  color: var(--ink);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+/* --- Dropdown plumbing ---------------------------------------------------- */
+.menuWrap {
+  position: relative;
+}
+
+.warehouse,
+.userBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  padding: 4px var(--s-2);
+  cursor: pointer;
+}
+
+.warehouse:hover,
+.userBtn:hover {
+  border-color: var(--line);
+  background: var(--canvas);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  padding: var(--s-1);
+  list-style: none;
+  z-index: 20;
+}
+
+.menuHead {
+  padding: var(--s-2) var(--s-3) var(--s-3);
+  border-bottom: 1px solid var(--line-soft);
+  margin-bottom: var(--s-1);
+}
+
+.menuName {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: var(--fs-md);
+}
+
+.menuRole {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-md);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--canvas);
+}
+
+.menuItem [role='option'] {
+  justify-content: space-between;
+}
+
+.menu li .menuItem {
+  justify-content: space-between;
+}
+
+.danger {
+  color: var(--status-blocked);
+}
+
+.langTag {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 1px 4px;
+  color: var(--ink-soft);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--fs-xs);
+}
+
+/* Invisible click-catcher that closes an open menu. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  border: none;
+  background: transparent;
+  cursor: default;
+}

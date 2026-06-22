@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Dispatch board</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--status-available); }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .who { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--status-transit); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .content { padding: var(--s-6); overflow:auto; }
+  .board { display:grid; grid-template-columns: repeat(4,1fr); gap: var(--s-4); height: calc(100% - 0px); }
+  .col { background:#eef0f4; border-radius: var(--r-md); padding: var(--s-3); display:flex; flex-direction:column; }
+  .col h3 { font-size: var(--fs-sm); text-transform:uppercase; letter-spacing:.05em; color: var(--ink-soft); padding: var(--s-2) var(--s-2) var(--s-3); display:flex; justify-content:space-between; }
+  .col h3 .n { background:var(--surface); border-radius: var(--r-pill); padding:0 8px; color: var(--ink-faint); }
+  .ship { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-4); margin-bottom: var(--s-3); box-shadow: var(--shadow-1); }
+  .ship .id { font-weight:700; font-size: var(--fs-md); }
+  .ship .cust { font-size: var(--fs-sm); color: var(--ink-soft); margin: 2px 0 var(--s-3); }
+  .ship .row { display:flex; align-items:center; justify-content:space-between; font-size: var(--fs-xs); color: var(--ink-faint); }
+  .car { display:flex; align-items:center; gap: 6px; font-weight:600; color: var(--ink-soft); }
+  .car .dot { width:18px; height:18px; border-radius:4px; background: var(--brand); color:#fff; display:grid; place-items:center; font-size:10px; }
+  .ship .track { margin-top: var(--s-3); font-size: var(--fs-xs); color: var(--status-reserved); font-weight:600; }
+  .assign { margin-top: var(--s-3); width:100%; border:1px dashed var(--line); background:var(--canvas); border-radius: var(--r-sm); padding: var(--s-2); font-size: var(--fs-sm); color: var(--ink-soft); font-weight:600; }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a>⇄ Movements</a>
+    <div class="grp">Logistics</div><a>⇩ Inbound (ASN)</a><a>↗ Outbound</a><a class="on">⊞ Dispatch</a>
+    <div class="grp">Master data</div><a>◰ Products</a><a>⌂ Topology</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Logistics / <b>Dispatch</b></div>
+      <div class="who">WH-01 Wrocław ▾ <span class="av">KL</span> K. Coordinator</div></div>
+
+    <div class="content">
+      <div class="board">
+        <div class="col"><h3>Packed — awaiting carrier <span class="n">2</span></h3>
+          <div class="ship"><div class="id">SHP-3310</div><div class="cust">Hotel Vega · 2 pkg · 28 kg</div>
+            <button class="assign">+ Assign carrier</button></div>
+          <div class="ship"><div class="id">SHP-3311</div><div class="cust">Bistro 24 · 1 pkg · 9 kg</div>
+            <button class="assign">+ Assign carrier</button></div>
+        </div>
+        <div class="col"><h3>Carrier assigned <span class="n">2</span></h3>
+          <div class="ship"><div class="id">SHP-3308</div><div class="cust">Fresh Market · 3 pkg · 41 kg</div>
+            <div class="row"><span class="car"><span class="dot">DH</span> DHL</span><span>pickup 14:00</span></div></div>
+          <div class="ship"><div class="id">SHP-3309</div><div class="cust">Resto Group · 4 pkg · 63 kg</div>
+            <div class="row"><span class="car"><span class="dot">GL</span> GLS</span><span>pickup 15:30</span></div></div>
+        </div>
+        <div class="col"><h3>Pickup notice sent <span class="n">1</span></h3>
+          <div class="ship"><div class="id">SHP-3305</div><div class="cust">Fresh Market · 2 pkg</div>
+            <div class="row"><span class="car"><span class="dot">DH</span> DHL</span><span class="badge badge--transit">Awaiting collection</span></div></div>
+        </div>
+        <div class="col"><h3>Dispatched <span class="n">2</span></h3>
+          <div class="ship"><div class="id">SHP-3302</div><div class="cust">Hotel Vega · 1 pkg</div>
+            <div class="row"><span class="car"><span class="dot">GL</span> GLS</span><span class="badge badge--available">Collected ✓</span></div>
+            <div class="track">↗ Tracking GLS-PL-99213 · waybill issued</div></div>
+          <div class="ship"><div class="id">SHP-3301</div><div class="cust">Bistro 24 · 1 pkg</div>
+            <div class="row"><span class="car"><span class="dot">DH</span> DHL</span><span class="badge badge--available">Collected ✓</span></div>
+            <div class="track">↗ Tracking DHL-PL-44188 · waybill issued</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

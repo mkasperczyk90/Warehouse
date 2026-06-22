@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Inbound (ASN)</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--status-reserved); }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .who { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--status-reserved); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .split { flex:1; display:grid; grid-template-columns: 460px 1fr; overflow:hidden; }
+  .list { border-right:1px solid var(--line); background:var(--surface); overflow:auto; }
+  .list .lh { display:flex; justify-content:space-between; align-items:center; padding: var(--s-5); border-bottom:1px solid var(--line); }
+  .list .lh b { font-size: var(--fs-lg); }
+  .btn { border:0; border-radius: var(--r-sm); font-weight:700; font-size: var(--fs-md); padding: var(--s-2) var(--s-4); }
+  .btn--primary { background: var(--brand); color:#fff; }
+  .asn { padding: var(--s-4) var(--s-5); border-bottom:1px solid var(--line-soft); cursor:pointer; }
+  .asn.on { background: var(--status-reserved-bg); border-left:3px solid var(--status-reserved); }
+  .asn .r1 { display:flex; justify-content:space-between; }
+  .asn .id { font-weight:700; font-size: var(--fs-md); }
+  .asn .sup { color: var(--ink-soft); font-size: var(--fs-sm); margin-top:2px; }
+  .asn .meta { color: var(--ink-faint); font-size: var(--fs-xs); margin-top: var(--s-2); }
+  .detail { overflow:auto; padding: var(--s-6); }
+  .dh { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: var(--s-5); }
+  .dh h2 { font-size: var(--fs-xl); } .dh .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; }
+  .grid2 { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--s-4); margin-bottom: var(--s-6); }
+  .field { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); }
+  .field .l { font-size: var(--fs-xs); color: var(--ink-faint); } .field .v { font-size: var(--fs-md); font-weight:600; margin-top:2px; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); overflow:hidden; }
+  .panel .ph { padding: var(--s-3) var(--s-5); font-size: var(--fs-sm); font-weight:700; border-bottom:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size: var(--fs-xs); text-transform:uppercase; color: var(--ink-faint); padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line); }
+  td { padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line-soft); font-size: var(--fs-md); }
+  td.num { text-align:right; font-variant-numeric: tabular-nums; }
+  .warn { color: var(--status-blocked); font-size: var(--fs-xs); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a>⇄ Movements</a><a>✓ Stocktakes</a>
+    <div class="grp">Logistics</div><a class="on">⇩ Inbound (ASN)</a><a>↗ Outbound</a><a>⊞ Dispatch</a>
+    <div class="grp">Master data</div><a>◰ Products</a><a>⌂ Topology</a><a>⚇ Partners</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Logistics / <b>Inbound (ASN)</b></div>
+      <div class="who">WH-01 Wrocław ▾ <span class="av">KL</span> K. Coordinator</div></div>
+
+    <div class="split">
+      <div class="list">
+        <div class="lh"><b>Announced deliveries</b><button class="btn btn--primary">+ New ASN</button></div>
+        <div class="asn on"><div class="r1"><span class="id">ASN-2206</span><span class="badge badge--transit">Arrived</span></div>
+          <div class="sup">Dairy Farms Ltd</div><div class="meta">Today 09:30 · Dock D-3 · 8 lines</div></div>
+        <div class="asn"><div class="r1"><span class="id">ASN-2207</span><span class="badge badge--reserved">Announced</span></div>
+          <div class="sup">Nordic Frozen AS</div><div class="meta">Today 14:00 · Dock D-5 · 12 lines</div></div>
+        <div class="asn"><div class="r1"><span class="id">ASN-2208</span><span class="badge badge--reserved">Announced</span></div>
+          <div class="sup">ACME Packaging</div><div class="meta">Tomorrow 08:00 · slot pending · 3 lines</div></div>
+        <div class="asn"><div class="r1"><span class="id">ASN-2205</span><span class="badge badge--available">Completed</span></div>
+          <div class="sup">Dairy Farms Ltd</div><div class="meta">Yesterday · received & put away</div></div>
+      </div>
+
+      <div class="detail">
+        <div class="dh"><div><h2>ASN-2206 — Dairy Farms Ltd</h2>
+          <div class="sub">Created by K. Coordinator · validated against catalog</div></div>
+          <span class="badge badge--transit">Arrived · receiving</span></div>
+        <div class="grid2">
+          <div class="field"><div class="l">Supplier</div><div class="v">Dairy Farms Ltd</div></div>
+          <div class="field"><div class="l">Target warehouse</div><div class="v">WH-01 Wrocław</div></div>
+          <div class="field"><div class="l">Dock slot</div><div class="v">D-3 · 09:30–10:30</div></div>
+        </div>
+        <div class="panel"><div class="ph">Lines (8)</div>
+          <table>
+            <thead><tr><th>SKU</th><th>Product</th><th class="num">Planned</th><th class="num">Unit</th><th>Tracking</th></tr></thead>
+            <tbody>
+              <tr><td>4006381333931</td><td>Whole milk 3.2% 1 L</td><td class="num">240</td><td class="num">ea</td><td>Batch + BBE</td></tr>
+              <tr><td>5901234123457</td><td>Greek yoghurt 400 g</td><td class="num">1,440</td><td class="num">ea</td><td>Batch + BBE</td></tr>
+              <tr><td>5900512331027</td><td>Butter block 250 g</td><td class="num">600</td><td class="num">ea</td><td>Batch + BBE</td></tr>
+              <tr><td>—</td><td class="warn">Unknown SKU 9900001 — flagged for clarification</td><td class="num">120</td><td class="num">ea</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Product master data</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid #5f3dc4; }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .who { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); }
+  .top .av { width:32px; height:32px; border-radius:50%; background:#5f3dc4; color:#fff; display:grid; place-items:center; font-weight:700; }
+  .content { padding: var(--s-6); overflow:auto; max-width: 980px; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: var(--s-5); }
+  .head h2 { font-size: var(--fs-xl); } .head .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; }
+  .btn { border:0; border-radius: var(--r-sm); font-weight:700; font-size: var(--fs-md); padding: var(--s-3) var(--s-5); }
+  .btn--primary { background:#5f3dc4; color:#fff; } .btn--ghost { background:var(--surface); border:1px solid var(--line); color: var(--ink-soft); margin-right: var(--s-3); }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); padding: var(--s-5) var(--s-6); margin-bottom: var(--s-5); }
+  .card h3 { font-size: var(--fs-md); margin-bottom: var(--s-4); padding-bottom: var(--s-3); border-bottom:1px solid var(--line-soft); }
+  .grid { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--s-4) var(--s-5); }
+  .f label { display:block; font-size: var(--fs-xs); color: var(--ink-faint); margin-bottom: var(--s-1); }
+  .f .input { border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3); font-size: var(--fs-md); color: var(--ink); background:var(--surface); }
+  .f .input.ro { background: var(--line-soft); color: var(--ink-soft); }
+  .span2 { grid-column: span 2; }
+  .toggle { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-md); }
+  .sw { width:42px; height:24px; border-radius: var(--r-pill); background: var(--status-available); position:relative; }
+  .sw::after { content:""; position:absolute; right:3px; top:3px; width:18px; height:18px; border-radius:50%; background:#fff; }
+  .sw.off { background: var(--line); } .sw.off::after { left:3px; right:auto; }
+  .temp { display:flex; align-items:center; gap: var(--s-3); }
+  .temp .input { width:90px; }
+  .note { background: var(--status-transit-bg); color: var(--status-transit); border-radius: var(--r-sm);
+          padding: var(--s-3) var(--s-4); font-size: var(--fs-sm); margin-top: var(--s-4); display:flex; gap: var(--s-2); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a>⇄ Movements</a>
+    <div class="grp">Logistics</div><a>⇩ Inbound (ASN)</a><a>↗ Outbound</a>
+    <div class="grp">Master data</div><a class="on">◰ Products</a><a>⌂ Topology</a><a>⚇ Partners</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Master data / Products / <b>Edit product</b></div>
+      <div class="who"><span class="av">KM</span> K. Manager</div></div>
+
+    <div class="content">
+      <div class="head">
+        <div><h2>Whole milk 3.2% — 1 L carton</h2>
+          <div class="sub">ProductType · SKU 4006381333931 · last edited 2026-05-30</div></div>
+        <div><button class="btn btn--ghost">Cancel</button><button class="btn btn--primary">Save product</button></div>
+      </div>
+
+      <div class="card"><h3>Identity</h3>
+        <div class="grid">
+          <div class="f"><label>SKU</label><div class="input ro">4006381333931</div></div>
+          <div class="f span2"><label>Name</label><div class="input">Whole milk 3.2% — 1 L carton</div></div>
+          <div class="f"><label>EAN / barcode</label><div class="input">4006381333931</div></div>
+          <div class="f"><label>Category</label><div class="input">Dairy ▾</div></div>
+          <div class="f"><label>Unit of measure</label><div class="input">each (ea) ▾</div></div>
+        </div>
+      </div>
+
+      <div class="card"><h3>Dimensions & weight</h3>
+        <div class="grid">
+          <div class="f"><label>Length (mm)</label><div class="input">70</div></div>
+          <div class="f"><label>Width (mm)</label><div class="input">70</div></div>
+          <div class="f"><label>Height (mm)</label><div class="input">200</div></div>
+          <div class="f"><label>Weight (g)</label><div class="input">1,030</div></div>
+          <div class="f span2"><label>Pack / unit conversions</label><div class="input">1 case = 24 ea (catalog default)</div></div>
+        </div>
+      </div>
+
+      <div class="card"><h3>Storage requirements <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-sm)">— hard invariant on put-away</span></h3>
+        <div class="grid">
+          <div class="f"><label>Temperature range</label>
+            <div class="temp"><span class="input">2</span><span>–</span><span class="input">6</span><span>°C</span>
+              <span class="badge badge--reserved">Cold room only</span></div></div>
+          <div class="f"><label>Hazardous (ADR)</label>
+            <div class="toggle"><span class="sw off"></span> No</div></div>
+          <div class="f"><label>Batch-tracked</label>
+            <div class="toggle"><span class="sw"></span> Yes</div></div>
+          <div class="f"><label>Expiry-date tracked</label>
+            <div class="toggle"><span class="sw"></span> Yes (FEFO)</div></div>
+        </div>
+        <div class="note">⚠ Changing storage requirements does not move existing stock — the system will report
+          incompatibilities for you to resolve.</div>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

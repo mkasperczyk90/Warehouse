@@ -1,0 +1,43 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/AppHost/">
+    <Project Path="src/AppHost/Warehouse.AppHost/Warehouse.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/Contracts/">
+    <Project Path="src/Contracts/Warehouse.Contracts/Warehouse.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/Warehouse.Gateway/Warehouse.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/src/ServiceDefaults/">
+    <Project Path="src/ServiceDefaults/Warehouse.ServiceDefaults/Warehouse.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Logistics/">
+    <Project Path="src/Services/Logistics/Warehouse.Logistics.Api/Warehouse.Logistics.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Logistics/Modules/">
+    <Project Path="src/Services/Logistics/Modules/Warehouse.Logistics.Core/Warehouse.Logistics.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/MasterData/">
+    <Project Path="src/Services/MasterData/Warehouse.MasterData.Api/Warehouse.MasterData.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/MasterData/Modules/">
+    <Project Path="src/Services/MasterData/Modules/Warehouse.MasterData.Catalog/Warehouse.MasterData.Catalog.csproj" />
+    <Project Path="src/Services/MasterData/Modules/Warehouse.MasterData.Partners/Warehouse.MasterData.Partners.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Warehousing/">
+    <Project Path="src/Services/Warehousing/Warehouse.Warehousing.Api/Warehouse.Warehousing.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Warehousing/Modules/">
+    <Project Path="src/Services/Warehousing/Modules/Warehouse.Warehousing.Inventory/Warehouse.Warehousing.Inventory.csproj" />
+    <Project Path="src/Services/Warehousing/Modules/Warehouse.Warehousing.Topology/Warehouse.Warehousing.Topology.csproj" />
+  </Folder>
+  <Folder Name="/src/SharedKernel/">
+    <Project Path="src/SharedKernel/Warehouse.SharedKernel/Warehouse.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Warehouse.ArchitectureTests/Warehouse.ArchitectureTests.csproj" />
+    <Project Path="tests/Warehouse.SharedKernel.Tests/Warehouse.SharedKernel.Tests.csproj" />
+  </Folder>
+</Solution>

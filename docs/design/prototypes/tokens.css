@@ -1,0 +1,95 @@
+/* ============================================================================
+   Warehouse WMS — Design tokens
+   Source of truth for the two frontends (Admin panel + Operator terminal).
+   Mirrors docs/blog/11-design-nfr-adr-and-design-system.md.
+   Colour is never decoration here — it encodes domain stock status.
+   ============================================================================ */
+
+:root {
+  /* --- Semantic status colours (must mean the same as the domain) --------- */
+  --status-available:    #2f9e44; /* on-hand, sellable        (green)  */
+  --status-available-bg: #ebfbee;
+  --status-reserved:     #1971c2; /* spoken-for soft/hard     (blue)   */
+  --status-reserved-bg:  #e7f5ff;
+  --status-blocked:      #e03131  ; /* QC hold — never shippable (red)   */
+  --status-blocked-bg:   #fff0f0;
+  --status-expired:      #a61e1e; /* past best-before     (dark red)   */
+  --status-expired-bg:   #ffe3e3;
+  --status-transit:      #f08c00; /* inter-warehouse move     (amber)  */
+  --status-transit-bg:   #fff4e6;
+
+  /* --- Neutral palette ---------------------------------------------------- */
+  --ink:        #1a1a1a;
+  --ink-soft:   #495057;
+  --ink-faint:  #868e96;
+  --line:       #dee2e6;
+  --line-soft:  #f1f3f5;
+  --surface:    #ffffff;
+  --canvas:     #f8f9fa;
+  --brand:      #364fc7; /* neutral indigo until a brand is chosen */
+  --brand-ink:  #ffffff;
+
+  /* --- Spacing scale (4px base) ------------------------------------------ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+
+  /* --- Radius / elevation ------------------------------------------------- */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.08);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.10);
+
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* --- Admin panel type scale (dense) -------------------------------------- */
+.admin {
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
+  --fs-lg: 18px; --fs-xl: 24px; --fs-2xl: 30px;
+  --tap: 36px;
+}
+
+/* --- Operator terminal type scale (large; min tap target >= 48px) -------- */
+.terminal {
+  --fs-xs: 15px; --fs-sm: 17px; --fs-md: 20px;
+  --fs-lg: 26px; --fs-xl: 34px; --fs-2xl: 44px;
+  --tap: 56px;
+}
+
+/* --- High-contrast (glare) theme — operator terminal -------------------- */
+/* A bright cold-store floor with glare washes out faint greys and the lighter
+   status hues (amber on a light tint fails WCAG). This variant darkens every
+   foreground colour so it passes AA on white, kills the faint greys, and makes
+   lines solid. Toggled in the terminal bar; remembered per device (nav.js).
+   Declared after :root so it wins on equal specificity. */
+.hc {
+  --status-available: #1b6e2e; --status-available-bg: #d6f5dd;
+  --status-reserved:  #11508f; --status-reserved-bg:  #d4e8fb;
+  --status-blocked:   #b71717; --status-blocked-bg:   #ffdede;
+  --status-expired:   #7d0f0f; --status-expired-bg:   #ffd0d0;
+  --status-transit:   #8a4d00; --status-transit-bg:   #ffe6c2;
+  --ink: #000000; --ink-soft: #1a1a1a; --ink-faint: #333333;
+  --line: #111111; --line-soft: #999999;
+  --brand: #00308f; --canvas: #ffffff;
+}
+.hc body { font-weight: 450; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+/* --- Shared primitive: StatusBadge --------------------------------------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 10px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.8;
+  white-space: nowrap;
+}
+.badge::before { content:""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.badge--available { color: var(--status-available); background: var(--status-available-bg); }
+.badge--reserved  { color: var(--status-reserved);  background: var(--status-reserved-bg); }
+.badge--blocked   { color: var(--status-blocked);   background: var(--status-blocked-bg); }
+.badge--expired   { color: var(--status-expired);   background: var(--status-expired-bg); }
+.badge--transit   { color: var(--status-transit);   background: var(--status-transit-bg); }
+
+/* --- Shared primitive: QuantityWithUnit (never a bare number) ------------ */
+.qty { font-variant-numeric: tabular-nums; font-weight: 700; }
+.qty .unit { font-weight: 500; color: var(--ink-faint); margin-left: 3px; }

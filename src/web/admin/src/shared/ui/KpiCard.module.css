@@ -1,0 +1,29 @@
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-5);
+}
+
+.label {
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+}
+
+.value {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  margin-top: var(--s-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.value small {
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.warn .value {
+  color: var(--status-blocked);
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1100, initial-scale=1" />
+<title>Warehouse WMS — prototype index</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { background: var(--canvas); padding: var(--s-8) var(--s-10); max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: var(--fs-2xl); }
+  .lead { color: var(--ink-soft); font-size: var(--fs-lg); margin: var(--s-3) 0 var(--s-8); }
+  h2 { font-size: var(--fs-lg); margin: var(--s-8) 0 var(--s-4); display:flex; align-items:center; gap: var(--s-3); }
+  h2 .tag { font-size: var(--fs-xs); font-weight:600; padding:2px 10px; border-radius: var(--r-pill); }
+  .t-term { background: var(--status-transit-bg); color: var(--status-transit); }
+  .t-admin { background: var(--status-reserved-bg); color: var(--status-reserved); }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+  a.card { display:block; background: var(--surface); border:1px solid var(--line); border-radius: var(--r-md);
+           padding: var(--s-5); text-decoration:none; color: inherit; box-shadow: var(--shadow-1); transition: transform .08s ease, box-shadow .08s ease; }
+  a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--brand); }
+  a.card .uc { font-size: var(--fs-xs); color: var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+  a.card .nm { font-size: var(--fs-md); font-weight:700; margin-top:4px; }
+  a.card .ds { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--s-2); }
+  .foot { margin-top: var(--s-10); color: var(--ink-faint); font-size: var(--fs-sm); }
+  .foot a { color: var(--brand); }
+</style>
+</head>
+<body>
+  <h1>▣ Warehouse WMS — UX prototypes</h1>
+  <p class="lead">Clickable mockups of the two front ends, built on the shared
+    <a href="tokens.css">design tokens</a>. Open any screen; the menus, task cards and back
+    arrows navigate between them.</p>
+
+  <h2>Operator terminal <span class="tag t-term">scanner-first · ≥48 px targets</span></h2>
+  <div class="grid">
+    <a class="card" href="terminal-1-hub.html"><div class="uc">Home</div><div class="nm">Task hub</div>
+      <div class="ds">The operator's landing screen: scan field + task piles.</div></a>
+    <a class="card" href="terminal-2-receive.html"><div class="uc">UC-02</div><div class="nm">Goods receipt</div>
+      <div class="ds">Scan lines vs ASN, batch/BBE, discrepancies.</div></a>
+    <a class="card" href="terminal-3-putaway.html"><div class="uc">UC-04</div><div class="nm">Put-away</div>
+      <div class="ds">Proposed location + environment hard-stop.</div></a>
+    <a class="card" href="terminal-4-pick.html"><div class="uc">UC-10</div><div class="nm">Picking</div>
+      <div class="ds">Routed pick list with FEFO batch/BBE.</div></a>
+    <a class="card" href="terminal-5-move.html"><div class="uc">UC-06</div><div class="nm">Move stock</div>
+      <div class="ds">From → To with environment/capacity checks.</div></a>
+    <a class="card" href="terminal-6-pack.html"><div class="uc">UC-11</div><div class="nm">Packing</div>
+      <div class="ds">Scan into package, weight/dims, print label.</div></a>
+  </div>
+
+  <h2>Admin panel <span class="tag t-admin">data-dense · desk</span></h2>
+  <div class="grid">
+    <a class="card" href="admin-10-worklist.html"><div class="uc">Landing</div><div class="nm">Today / Worklist</div>
+      <div class="ds">"What needs you now" — actionable queues, not BI. Cross-cutting.</div></a>
+    <a class="card" href="admin-1-stock.html"><div class="uc">UC-05</div><div class="nm">Stock view</div>
+      <div class="ds">KPIs + table with all status badges.</div></a>
+    <a class="card" href="admin-2-asn.html"><div class="uc">UC-01</div><div class="nm">Inbound (ASN)</div>
+      <div class="ds">Announce & schedule deliveries; SKU validation.</div></a>
+    <a class="card" href="admin-5-outbound.html"><div class="uc">UC-09</div><div class="nm">Outbound orders</div>
+      <div class="ds">Soft reservation against ATP, per-line status.</div></a>
+    <a class="card" href="admin-6-dispatch.html"><div class="uc">UC-12</div><div class="nm">Dispatch board</div>
+      <div class="ds">Packed → carrier → pickup → dispatched.</div></a>
+    <a class="card" href="admin-3-stocktake.html"><div class="uc">UC-07</div><div class="nm">Stocktake review</div>
+      <div class="ds">Blind-count variances, reason required to post.</div></a>
+    <a class="card" href="admin-9-adjustment.html"><div class="uc">UC-08</div><div class="nm">Stock adjustment</div>
+      <div class="ds">Reason-bearing, audited ledger correction.</div></a>
+    <a class="card" href="admin-8-qc.html"><div class="uc">UC-03</div><div class="nm">QC worklist</div>
+      <div class="ds">Quarantined batches: release / reject.</div></a>
+    <a class="card" href="admin-4-product.html"><div class="uc">UC-13</div><div class="nm">Product master data</div>
+      <div class="ds">Identity, dimensions, storage requirements.</div></a>
+    <a class="card" href="admin-7-topology.html"><div class="uc">UC-14</div><div class="nm">Warehouse topology</div>
+      <div class="ds">Warehouse → room → location tree.</div></a>
+  </div>
+
+  <p class="foot">Specs & rationale: <a href="../README.md">/docs/design</a> · design system:
+    <a href="../00-design-system.md">00-design-system.md</a></p>
+</body>
+</html>

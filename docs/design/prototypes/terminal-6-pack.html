@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="terminal">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=390, initial-scale=1" />
+<title>Terminal — Packing</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width: 390px; min-height: 844px; background: var(--canvas); display:flex; flex-direction:column; }
+  .bar { background: var(--brand); color:#fff; padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .bar .back { font-size: var(--fs-lg); }
+  .bar .ttl b { font-size: var(--fs-md); display:block; } .bar .ttl span { font-size: var(--fs-xs); opacity:.85; }
+  .pkg { margin: var(--s-5); background: var(--status-reserved-bg); border:2px solid var(--status-reserved); border-radius: var(--r-lg); padding: var(--s-5); text-align:center; }
+  .pkg .cap { font-size: var(--fs-xs); color: var(--status-reserved); text-transform:uppercase; letter-spacing:.08em; }
+  .pkg .id { font-size: var(--fs-xl); font-weight:800; color: var(--status-reserved); margin-top:2px; }
+  h1 { font-size: var(--fs-sm); color: var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin: 0 var(--s-5) var(--s-2); }
+  .items { margin: 0 var(--s-5) var(--s-4); background:var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow:hidden; }
+  .li { display:flex; align-items:center; gap: var(--s-3); padding: var(--s-4) var(--s-5); border-bottom:1px solid var(--line-soft); }
+  .li:last-child { border-bottom:0; }
+  .li .tick { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size: var(--fs-sm); }
+  .li .tick.done { background: var(--status-available-bg); color: var(--status-available); }
+  .li .tick.todo { background: var(--canvas); color: var(--ink-faint); border:1px dashed var(--line); }
+  .li .nm { flex:1; font-size: var(--fs-sm); } .li .nm small { display:block; color: var(--ink-faint); font-size: var(--fs-xs); }
+  .li .q { font-weight:800; font-variant-numeric:tabular-nums; }
+  .meas { margin: 0 var(--s-5); display:grid; grid-template-columns:1fr 1fr; gap: var(--s-3); }
+  .meas .f { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); }
+  .meas .f .l { font-size: var(--fs-xs); color: var(--ink-faint); } .meas .f .v { font-size: var(--fs-md); font-weight:700; margin-top:2px; }
+  .scan { margin: var(--s-5); background:var(--surface); border:2px solid var(--brand); border-radius: var(--r-md); padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); box-shadow: var(--shadow-1); }
+  .scan .ico { font-size:28px; color: var(--brand); } .scan input { flex:1; border:0; font-size: var(--fs-md); outline:0; }
+  .actions { margin-top:auto; padding: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); background:var(--surface); border-top:1px solid var(--line); }
+  .btn { min-height: var(--tap); border-radius: var(--r-md); border:0; font-size: var(--fs-md); font-weight:700; }
+  .btn--primary { background: var(--status-available); color:#fff; } .btn--ghost { background:transparent; color: var(--ink-soft); border:1px solid var(--line); }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="back">‹</span>
+    <div class="ttl"><b>Packing — SO-4471</b><span>Customer: Fresh Market sp. z o.o.</span></div></div>
+
+  <div class="pkg"><div class="cap">Active package</div><div class="id">PKG 1 · carton M</div></div>
+
+  <h1>Picked items — scan into package</h1>
+  <div class="items">
+    <div class="li"><span class="tick done">✓</span><span class="nm">Greek yoghurt 400 g<small>LOT-0419</small></span><span class="q">24 ea</span></div>
+    <div class="li"><span class="tick done">✓</span><span class="nm">Whole milk 3.2% 1 L<small>LOT-0425-A</small></span><span class="q">12 ea</span></div>
+    <div class="li"><span class="tick todo">3</span><span class="nm">Butter block 250 g<small>LOT-0331</small></span><span class="q">0 / 6 ea</span></div>
+  </div>
+
+  <div class="meas">
+    <div class="f"><div class="l">Weight</div><div class="v">14.8 kg</div></div>
+    <div class="f"><div class="l">Dimensions</div><div class="v">40×30×25 cm</div></div>
+  </div>
+
+  <div class="scan"><span class="ico" data-icon="scan"></span><input value="" placeholder="Scan item into package…" autofocus /></div>
+
+  <div class="actions">
+    <button class="btn btn--primary">Close package & print label <span data-icon="print" style="margin-left:4px"></span></button>
+    <button class="btn btn--ghost">+ Add another package</button>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

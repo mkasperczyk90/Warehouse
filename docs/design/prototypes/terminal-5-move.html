@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" class="terminal">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=390, initial-scale=1" />
+<title>Terminal — Move stock</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width: 390px; min-height: 844px; background: var(--canvas); display:flex; flex-direction:column; }
+  .bar { background: #5f3dc4; color:#fff; padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .bar .back { font-size: var(--fs-lg); }
+  .bar .ttl b { font-size: var(--fs-md); display:block; }
+  .bar .ttl span { font-size: var(--fs-xs); opacity:.85; }
+  .flow { margin: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); }
+  .leg { background:var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: var(--s-4) var(--s-5); }
+  .leg .cap { font-size: var(--fs-xs); color: var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; }
+  .leg .addr { font-size: var(--fs-xl); font-weight:800; margin-top:2px; }
+  .leg.from { border-left:4px solid var(--status-transit); }
+  .leg.to   { border-left:4px solid var(--status-available); }
+  .leg.to .addr { color: var(--ink-faint); font-weight:600; }
+  .arrow { text-align:center; font-size: 28px; color: var(--ink-faint); }
+  .item { margin: 0 var(--s-5); background:var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: var(--s-5); }
+  .item .sku { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .item b { font-size: var(--fs-md); display:block; margin:2px 0 var(--s-3); }
+  .item .chips { display:flex; gap: var(--s-2); }
+  .chip { font-size: var(--fs-xs); background: var(--canvas); border:1px solid var(--line); border-radius: var(--r-pill); padding:3px 10px; }
+  .chip.cold { background: var(--status-reserved-bg); color: var(--status-reserved); border-color:transparent; }
+  .qtyrow { display:flex; align-items:center; justify-content:space-between; margin-top: var(--s-4); }
+  .qtyrow .lbl { font-size: var(--fs-sm); color: var(--ink-soft); }
+  .stepper { display:flex; align-items:center; gap: var(--s-3); }
+  .stepper button { width: var(--tap); height: var(--tap); border-radius: var(--r-md); border:1px solid var(--line); background:var(--canvas); font-size: var(--fs-lg); font-weight:700; }
+  .stepper .num { font-size: var(--fs-xl); font-weight:800; min-width:64px; text-align:center; font-variant-numeric:tabular-nums; }
+  .checks { margin: var(--s-5); display:flex; flex-direction:column; gap: var(--s-2); }
+  .checks .c { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); color: var(--ink-soft); }
+  .checks .c .ok { color: var(--status-available); font-weight:800; }
+  .scan { margin: 0 var(--s-5); background:var(--surface); border:2px solid #5f3dc4; border-radius: var(--r-md); padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); box-shadow: var(--shadow-1); }
+  .scan .ico { font-size:28px; color:#5f3dc4; } .scan input { flex:1; border:0; font-size: var(--fs-md); outline:0; }
+  .actions { margin-top:auto; padding: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); background:var(--surface); border-top:1px solid var(--line); }
+  .btn { min-height: var(--tap); border-radius: var(--r-md); border:0; font-size: var(--fs-md); font-weight:700; }
+  .btn--primary { background:#5f3dc4; color:#fff; } .btn--ghost { background:transparent; color: var(--status-transit); border:1px solid var(--status-transit); }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="back">‹</span>
+    <div class="ttl"><b>Move stock</b><span>Replenishment task 2 of 5</span></div></div>
+
+  <div class="flow">
+    <div class="leg from"><div class="cap">From</div><div class="addr">CR1-A03-R2-S1</div></div>
+    <div class="arrow">↓</div>
+    <div class="leg to"><div class="cap">To — scan destination</div><div class="addr">CR1-PICKFACE-12</div></div>
+  </div>
+
+  <div class="item">
+    <span class="sku">SKU 4006381333931 · LOT-0425-A</span>
+    <b>Whole milk 3.2% — 1 L</b>
+    <div class="chips"><span class="chip cold">❄ 2–6 °C</span><span class="chip">BBE 2026-07-02</span></div>
+    <div class="qtyrow"><span class="lbl">Move quantity</span>
+      <div class="stepper"><button>−</button><span class="num">48</span><button>+</button></div></div>
+  </div>
+
+  <div class="checks">
+    <div class="c"><span class="ok">✓</span> Destination is a cold room (2–6 °C compatible)</div>
+    <div class="c"><span class="ok">✓</span> Capacity & load limit OK at destination</div>
+  </div>
+
+  <div class="scan"><span class="ico" data-icon="scan"></span><input value="" placeholder="Scan destination location…" autofocus /></div>
+
+  <div class="actions">
+    <button class="btn btn--primary">Confirm move ✓</button>
+    <button class="btn btn--ghost">Inter-warehouse transfer → in-transit</button>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

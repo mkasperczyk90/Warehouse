@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Outbound orders</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--status-transit); }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .who { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--status-transit); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .split { flex:1; display:grid; grid-template-columns: 420px 1fr; overflow:hidden; }
+  .list { border-right:1px solid var(--line); background:var(--surface); overflow:auto; }
+  .lh { display:flex; justify-content:space-between; align-items:center; padding: var(--s-5); border-bottom:1px solid var(--line); }
+  .lh b { font-size: var(--fs-lg); }
+  .btn { border:0; border-radius: var(--r-sm); font-weight:700; font-size: var(--fs-md); padding: var(--s-2) var(--s-4); }
+  .btn--primary { background: var(--brand); color:#fff; } .btn--ghost { background:var(--surface); border:1px solid var(--line); color: var(--ink-soft); margin-right: var(--s-3); }
+  .so { padding: var(--s-4) var(--s-5); border-bottom:1px solid var(--line-soft); cursor:pointer; }
+  .so.on { background: var(--status-transit-bg); border-left:3px solid var(--status-transit); }
+  .so .r1 { display:flex; justify-content:space-between; } .so .id { font-weight:700; }
+  .so .cust { color: var(--ink-soft); font-size: var(--fs-sm); margin-top:2px; }
+  .so .meta { color: var(--ink-faint); font-size: var(--fs-xs); margin-top: var(--s-2); }
+  .detail { overflow:auto; padding: var(--s-6); }
+  .dh { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: var(--s-5); }
+  .dh h2 { font-size: var(--fs-xl); } .dh .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; }
+  .atp { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--s-4); margin-bottom: var(--s-5); }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); padding: var(--s-4) var(--s-5); }
+  .card .l { font-size: var(--fs-xs); color: var(--ink-faint); } .card .v { font-size: var(--fs-xl); font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); overflow:hidden; }
+  .panel .ph { padding: var(--s-3) var(--s-5); font-weight:700; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .panel .ph small { font-weight:500; color: var(--ink-faint); font-size: var(--fs-sm); }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size: var(--fs-xs); text-transform:uppercase; color: var(--ink-faint); padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line); }
+  td { padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line-soft); font-size: var(--fs-md); }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .note { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--s-4); background: var(--status-reserved-bg); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a>⇄ Movements</a>
+    <div class="grp">Logistics</div><a>⇩ Inbound (ASN)</a><a class="on">↗ Outbound</a><a>⊞ Dispatch</a>
+    <div class="grp">Master data</div><a>◰ Products</a><a>⌂ Topology</a><a>⚇ Partners</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Logistics / <b>Outbound</b></div>
+      <div class="who">WH-01 Wrocław ▾ <span class="av">KL</span> K. Coordinator</div></div>
+
+    <div class="split">
+      <div class="list">
+        <div class="lh"><b>Outbound orders</b><button class="btn btn--primary">+ New order</button></div>
+        <div class="so on"><div class="r1"><span class="id">SO-4471</span><span class="badge badge--reserved">Reserved</span></div>
+          <div class="cust">Fresh Market sp. z o.o.</div><div class="meta">Required 2026-06-16 · 3 lines</div></div>
+        <div class="so"><div class="r1"><span class="id">SO-4472</span><span class="badge badge--transit">Partially reserved</span></div>
+          <div class="cust">Bistro 24</div><div class="meta">Required 2026-06-16 · 5 lines</div></div>
+        <div class="so"><div class="r1"><span class="id">SO-4470</span><span class="badge badge--available">Picking</span></div>
+          <div class="cust">Hotel Vega</div><div class="meta">Wave W-2206 · 4 lines</div></div>
+        <div class="so"><div class="r1"><span class="id">SO-4469</span><span class="badge badge--reserved">Created</span></div>
+          <div class="cust">Fresh Market sp. z o.o.</div><div class="meta">Required 2026-06-18 · 2 lines</div></div>
+      </div>
+
+      <div class="detail">
+        <div class="dh"><div><h2>SO-4471 — Fresh Market sp. z o.o.</h2>
+          <div class="sub">Soft reservation against ATP · batch+location pinned later by FEFO at wave release</div></div>
+          <span class="badge badge--reserved">Reserved</span></div>
+
+        <div class="atp">
+          <div class="card"><div class="l">Lines fully reserved</div><div class="v">3 / 3</div></div>
+          <div class="card"><div class="l">Reserved units</div><div class="v">42</div></div>
+          <div class="card"><div class="l">Ship-to</div><div class="v" style="font-size:var(--fs-md)">Wrocław, Powstańców 12</div></div>
+        </div>
+
+        <div class="panel"><div class="ph"><span>Order lines</span><small>ATP = OnHand − Allocated − soft reservations</small></div>
+          <table>
+            <thead><tr><th>SKU</th><th>Product</th><th class="num">Ordered</th><th class="num">ATP at order</th><th class="num">Reserved</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>5901234123457</td><td>Greek yoghurt 400 g</td><td class="num">24</td><td class="num">960</td><td class="num">24</td><td><span class="badge badge--reserved">Reserved</span></td></tr>
+              <tr><td>4006381333931</td><td>Whole milk 3.2% 1 L</td><td class="num">12</td><td class="num">216</td><td class="num">12</td><td><span class="badge badge--reserved">Reserved</span></td></tr>
+              <tr><td>5900512331027</td><td>Butter block 250 g</td><td class="num">6</td><td class="num">8</td><td class="num">6</td><td><span class="badge badge--reserved">Reserved</span></td></tr>
+            </tbody>
+          </table>
+          <div class="note">Insufficient availability would create a <b>partial / waiting</b> order — the coordinator decides whether to split or hold.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>
