@@ -37,10 +37,11 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
     public static Shipment CreateFor(OrderId orderId, PartyRoleRef carrier) =>
         new(ShipmentId.New(), orderId, carrier);
 
-    public Package AddPackage(Weight weight, string? description = null)
+    public Package AddPackage(Weight weight, PackageDimensions dimensions, string? description = null)
     {
+        ArgumentNullException.ThrowIfNull(dimensions);
         EnsureStatus(ShipmentStatus.Packing, "add a package");
-        var package = new Package(_packages.Count + 1, weight, description);
+        var package = new Package(_packages.Count + 1, weight, dimensions, description);
         _packages.Add(package);
         return package;
     }
@@ -84,10 +85,12 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
 
 public sealed class Package
 {
-    internal Package(int number, Weight weight, string? description)
+    internal Package(int number, Weight weight, PackageDimensions dimensions, string? description)
     {
+        ArgumentNullException.ThrowIfNull(dimensions);
         Number = number;
         Weight = weight;
+        Dimensions = dimensions;
         Description = description;
     }
 
@@ -99,5 +102,35 @@ public sealed class Package
 
     public Weight Weight { get; }
 
+    public PackageDimensions Dimensions { get; } = null!;
+
     public string? Description { get; }
+}
+
+/// <summary>Outer dimensions of a package in centimetres (UC-11 records weight and dimensions).</summary>
+public sealed record PackageDimensions
+{
+    private PackageDimensions(decimal lengthCm, decimal widthCm, decimal heightCm)
+    {
+        LengthCm = lengthCm;
+        WidthCm = widthCm;
+        HeightCm = heightCm;
+    }
+
+    public decimal LengthCm { get; }
+
+    public decimal WidthCm { get; }
+
+    public decimal HeightCm { get; }
+
+    public static PackageDimensions Of(decimal lengthCm, decimal widthCm, decimal heightCm)
+    {
+        return lengthCm <= 0 || widthCm <= 0 || heightCm <= 0
+            ? throw new DomainException(
+                "package_dimensions_invalid",
+                $"Package dimensions must be positive, got {lengthCm}×{widthCm}×{heightCm} cm.")
+            : new PackageDimensions(lengthCm, widthCm, heightCm);
+    }
+
+    public override string ToString() => $"{LengthCm}×{WidthCm}×{HeightCm} cm";
 }

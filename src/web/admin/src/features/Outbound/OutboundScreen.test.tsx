@@ -10,7 +10,8 @@ describe('OutboundScreen', () => {
     renderWithProviders(<OutboundScreen />);
 
     expect(await screen.findByText('SO-4471')).toBeInTheDocument();
-    expect(await screen.findByText('Greek yoghurt 400 g')).toBeInTheDocument();
+    // The backend deals in product codes, not names (shown in the SKU and Product columns).
+    expect((await screen.findAllByText('5901234123457')).length).toBeGreaterThan(0);
     // The partial/waiting rule note is always surfaced.
     expect(screen.getByText(/partial \/ waiting order/)).toBeInTheDocument();
   });
@@ -18,7 +19,7 @@ describe('OutboundScreen', () => {
   it('swaps to a partially-reserved order on selection', async () => {
     const user = userEvent.setup();
     renderWithProviders(<OutboundScreen />);
-    await screen.findByText('Greek yoghurt 400 g');
+    await screen.findAllByText('5901234123457');
 
     await user.click(screen.getByText('SO-4472'));
 
@@ -92,10 +93,10 @@ describe('OutboundScreen', () => {
     await screen.findByText('SO-4471');
 
     await user.click(screen.getByText('SO-4471'));
-    await screen.findByText('Greek yoghurt 400 g');
+    await screen.findAllByText('5901234123457');
 
-    // Click the line → ATP breakdown by location for that SKU.
-    await user.click(screen.getByText('Greek yoghurt 400 g'));
+    // Click the line → ATP breakdown by location for that SKU (code shows in SKU + Product cells).
+    await user.click(screen.getAllByText('5901234123457')[0]);
 
     expect(await screen.findByText('A2-A07-R3-S2')).toBeInTheDocument();
   });

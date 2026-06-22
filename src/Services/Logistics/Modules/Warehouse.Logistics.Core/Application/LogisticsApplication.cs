@@ -2,11 +2,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Warehouse.Logistics.Core.Application.AnnounceDelivery;
 using Warehouse.Logistics.Core.Application.AssignDockSlot;
 using Warehouse.Logistics.Core.Application.CancelDelivery;
+using Warehouse.Logistics.Core.Application.CancelOrder;
+using Warehouse.Logistics.Core.Application.ConfirmDispatch;
+using Warehouse.Logistics.Core.Application.ConfirmPick;
 using Warehouse.Logistics.Core.Application.ConfirmReceipt;
+using Warehouse.Logistics.Core.Application.CreateOutboundOrder;
 using Warehouse.Logistics.Core.Application.GetDelivery;
+using Warehouse.Logistics.Core.Application.GetOrder;
+using Warehouse.Logistics.Core.Application.GetPickList;
 using Warehouse.Logistics.Core.Application.ListDeliveries;
+using Warehouse.Logistics.Core.Application.ListOrders;
+using Warehouse.Logistics.Core.Application.MarkPacked;
+using Warehouse.Logistics.Core.Application.ReportShortPick;
 using Warehouse.Logistics.Core.Application.RecordReceiptLine;
 using Warehouse.Logistics.Core.Application.RegisterArrival;
+using Warehouse.Logistics.Core.Application.StartPicking;
 using Warehouse.Logistics.Core.Application.StartReceiving;
 
 namespace Warehouse.Logistics.Core.Application;
@@ -28,6 +38,20 @@ public static class LogisticsApplication
         services.AddScoped<CancelDeliveryHandler>();
         services.AddScoped<GetDeliveryHandler>();
         services.AddScoped<ListDeliveriesHandler>();
+
+        // Outbound (UC-09…UC-12)
+        services.AddScoped<CreateOutboundOrderHandler>();
+        services.AddScoped<StartPickingHandler>();
+        services.AddScoped<MarkPackedHandler>();
+        services.AddScoped<ConfirmDispatchHandler>();
+        services.AddScoped<CancelOrderHandler>();
+        services.AddScoped<GetOrderHandler>();
+        services.AddScoped<ListOrdersHandler>();
+
+        // Picking (UC-10)
+        services.AddScoped<ConfirmPickHandler>();
+        services.AddScoped<ReportShortPickHandler>();
+        services.AddScoped<GetPickListHandler>();
         return services;
     }
 }

@@ -876,6 +876,51 @@ function deliveryDto(d: AsnDetail) {
   };
 }
 
+// --- Outbound: adapt the view-model seed to the Logistics order DTOs ------------------------
+const ORDER_STATUS: Record<string, string> = {
+  Created: 'Created',
+  'Partially reserved': 'PartiallyReserved',
+  Waiting: 'PartiallyReserved',
+  Reserved: 'Reserved',
+  Picking: 'Picking',
+  Packed: 'Packed',
+  Dispatched: 'Dispatched',
+  Cancelled: 'Cancelled',
+};
+const toOrderStatus = (statusLabel: string) => ORDER_STATUS[statusLabel] ?? 'Created';
+const requiredAtOf = (meta: string) => {
+  const m = meta.match(/(\d{4}-\d{2}-\d{2})/);
+  return m ? `${m[1]}T00:00:00.000Z` : '2026-06-16T00:00:00.000Z';
+};
+
+function orderSummaryDto(s: SoSummary) {
+  const d = orderDetails[s.id];
+  return {
+    id: s.id,
+    warehouseCode: whOf(s.id),
+    requiredAt: requiredAtOf(s.meta),
+    status: toOrderStatus(s.statusLabel),
+    lineCount: d?.lines.length ?? 0,
+  };
+}
+
+function shipToDto(shipTo: string) {
+  const parts = shipTo.split(',').map((p) => p.trim());
+  return { street: parts.slice(1).join(', ') || parts[0] || '—', city: parts[0] || '—', postalCode: '00-000', countryCode: 'PL' };
+}
+
+function orderDto(d: SoDetail) {
+  return {
+    id: d.id,
+    customerRoleId: d.customer,
+    warehouseCode: whOf(d.id),
+    requiredAt: '2026-06-16T00:00:00.000Z',
+    status: toOrderStatus(d.statusLabel),
+    shipTo: shipToDto(d.shipTo),
+    lines: d.lines.map((l) => ({ lineNo: Number(l.id), productCode: l.sku, quantity: l.ordered, unit: 'ea' })),
+  };
+}
+
 export const handlers = [
   http.get('/api/warehouses', () => HttpResponse.json(warehouses)),
   http.post('/api/auth/login', async ({ request }) => {
@@ -1025,51 +1070,53 @@ export const handlers = [
   }),
   // Inert resolve stub — the backend rejects unknown SKUs at announce time, so lines are never flagged.
   http.post('/api/logistics/deliveries/:id/lines/:lineId/resolve', () => new HttpResponse(null, { status: 204 })),
-  http.get('/api/orders', ({ request }) =>
-    HttpResponse.json(orderList.filter((o) => whOf(o.id) === wh(request))),
+  // --- Outbound orders (Logistics service: logistics/orders/...) ---
+  http.get('/api/logistics/orders', ({ request }) =>
+    HttpResponse.json(orderList.filter((o) => whOf(o.id) === wh(request)).map(orderSummaryDto)),
   ),
-  http.get('/api/orders/:id', ({ params }) => {
+  http.get('/api/logistics/orders/:id', ({ params }) => {
     const detail = orderDetails[params.id as string];
-    return detail ? HttpResponse.json(detail) : new HttpResponse(null, { status: 404 });
+    return detail ? HttpResponse.json(orderDto(detail)) : new HttpResponse(null, { status: 404 });
   }),
-  http.post('/api/orders', async ({ request }) => {
+  http.post('/api/logistics/orders', async ({ request }) => {
     const body = (await request.json()) as {
-      customer: string;
-      shipTo: string;
-      requiredDate: string;
-      lines: { sku: string; product: string; ordered: number }[];
+      customerRoleId: string;
+      shipTo: { street: string; city: string };
+      warehouseCode: string;
+      requiredAt: string;
+      lines: { productCode: string; quantity: number; unit: string }[];
     };
     const id = `SO-${++orderCounter}`;
     orderList.unshift({
       id,
-      customer: body.customer,
+      customer: body.customerRoleId,
       status: 'reserved',
       statusLabel: 'Created',
-      meta: `Required ${body.requiredDate || '—'} · ${body.lines.length} lines`,
+      meta: `Required ${body.requiredAt.slice(0, 10)} · ${body.lines.length} lines`,
     });
     orderDetails[id] = {
       id,
-      customer: body.customer,
+      customer: body.customerRoleId,
       status: 'reserved',
       statusLabel: 'Created',
       subtitle: 'Created · not yet reserved against ATP',
       linesReserved: `0 / ${body.lines.length}`,
       reservedUnits: 0,
-      shipTo: body.shipTo || '—',
+      shipTo: `${body.shipTo.city}, ${body.shipTo.street}`,
       lines: body.lines.map((l, i) => ({
         id: String(i + 1),
-        sku: l.sku,
-        product: l.product,
-        ordered: l.ordered,
+        sku: l.productCode,
+        product: l.productCode,
+        ordered: l.quantity,
         atpAtOrder: 0,
         reserved: 0,
         status: 'reserved',
         statusLabel: 'Created',
       })),
     };
-    return HttpResponse.json({ id });
+    return HttpResponse.json({ id }, { status: 201 });
   }),
-  http.post('/api/orders/:id/decision', async ({ params, request }) => {
+  http.post('/api/logistics/orders/:id/decision', async ({ params, request }) => {
     const { decision } = (await request.json()) as { decision: 'split' | 'hold' };
     const d = orderDetails[params.id as string];
     if (!d) return new HttpResponse(null, { status: 404 });
@@ -1089,7 +1136,7 @@ export const handlers = [
     }
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('/api/orders/:id/release', ({ params }) => {
+  http.post('/api/logistics/orders/:id/picking', ({ params }) => {
     const d = orderDetails[params.id as string];
     if (!d) return new HttpResponse(null, { status: 404 });
     d.status = 'available';
@@ -1102,7 +1149,7 @@ export const handlers = [
     }
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('/api/orders/:id/cancel', ({ params }) => {
+  http.post('/api/logistics/orders/:id/cancel', ({ params }) => {
     const d = orderDetails[params.id as string];
     if (!d) return new HttpResponse(null, { status: 404 });
     d.status = 'blocked';

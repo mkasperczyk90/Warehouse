@@ -34,10 +34,14 @@ builder.AddWarehouseMessaging("warehouse", (opts, rabbit) =>
     opts.ListenToRabbitQueue("warehousing.catalog");
     opts.ListenToRabbitQueue("warehousing.logistics");
 
-    // Reply to Logistics: stock is on hand in the buffer, and (later) put-away is complete.
+    // Reply to Logistics: goods received, put-away complete (inbound), and stock reserved (outbound).
     opts.PublishMessage<GoodsReceivedV1>()
         .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
     opts.PublishMessage<PutAwayCompletedV1>()
+        .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<StockReservedV1>()
+        .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<PicksPlannedV1>()
         .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
 
     // Inventory handlers (consumers + slices) live in the Inventory module assembly.

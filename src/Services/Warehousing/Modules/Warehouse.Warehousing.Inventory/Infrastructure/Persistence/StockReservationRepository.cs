@@ -19,4 +19,12 @@ internal sealed class StockReservationRepository(InventoryDbContext context) : I
         await context.StockReservations
             .Where(r => r.OrderRef == orderRef)
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyCollection<StockReservation>> ListOutstandingAsync(
+        Sku sku, WarehouseCode warehouse, CancellationToken cancellationToken = default) =>
+        await context.StockReservations
+            .Where(r => r.Sku == sku
+                && r.Warehouse == warehouse
+                && (r.Status == ReservationStatus.Open || r.Status == ReservationStatus.PartiallyAllocated))
+            .ToListAsync(cancellationToken);
 }

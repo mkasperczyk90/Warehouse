@@ -29,8 +29,18 @@ builder.AddWarehouseMessaging("logistics", (opts, rabbit) =>
     opts.ListenToRabbitQueue("logistics.catalog");
     opts.ListenToRabbitQueue("logistics.inventory");
 
-    // Announce confirmed goods receipts to Inventory.
+    // Announce inbound goods receipts and outbound order/dispatch facts to Inventory.
     opts.PublishMessage<GoodsReceiptConfirmedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<OutboundOrderPlacedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<OutboundOrderCancelledV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<ShipmentDispatchedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<PickingReleasedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<PickConfirmedV1>()
         .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
 
     // Handlers (slice + consumers) live in the Core module assembly.
@@ -51,6 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapInboundEndpoints();
+app.MapOutboundEndpoints();
 
 app.MapGet("/", () => "Warehouse Logistics API");
 

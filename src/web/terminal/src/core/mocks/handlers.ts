@@ -4,7 +4,6 @@ import type { CurrentOperator } from '@/features/Auth';
 import type { LookupRow } from '@/features/Lookup';
 import type { MoveTask } from '@/features/Movement';
 import type { PackJob } from '@/features/Packing';
-import type { PickStep } from '@/features/Picking';
 import type { Receipt } from '@/features/Receiving';
 import type { Operator, TaskKind } from '@/features/Tasks';
 
@@ -73,23 +72,12 @@ const receipt: Receipt = {
 };
 
 // --- Picking (terminal-4-pick · UC-10) -------------------------------------
-// A short pick replans onto the next FEFO-eligible batch/location (§ Outbound).
-const pickPlans: Pick<PickStep, 'location' | 'fefo' | 'fefoStatus' | 'qty'>[] = [
-  { location: 'WH01-A2-A07-R3-S2', fefo: 'FEFO · BBE 2026-06-28 · LOT-0419', fefoStatus: 'reserved', qty: 24 },
-  { location: 'WH01-A2-A09-R1-S2', fefo: 'FEFO · BBE 2026-07-05 · LOT-0511', fefoStatus: 'available', qty: 24 },
+// The order's routed pick list (Logistics service). Confirm marks a task picked; short records it.
+const pickListTasks = [
+  { sequence: 1, location: 'WH01-A2-A07-R3-S2', productCode: '5901234123457', batchNumber: 'LOT-0419', quantity: 24, unit: 'ea', status: 'Picked' },
+  { sequence: 2, location: 'WH01-A2-A09-R1-S2', productCode: '4006381333931', batchNumber: 'LOT-0425-A', quantity: 12, unit: 'ea', status: 'Pending' },
+  { sequence: 3, location: 'WH01-CR1-A01-R1-S4', productCode: '5900512331027', batchNumber: 'LOT-0331', quantity: 6, unit: 'ea', status: 'Pending' },
 ];
-let pickPlan = 0;
-
-const pickStep = (): PickStep => ({
-  wave: 'W-2206',
-  order: 'SO-4471',
-  picked: 12,
-  total: 31,
-  sku: '5901234123457',
-  product: 'Greek yoghurt 400 g',
-  unit: 'ea',
-  ...pickPlans[pickPlan],
-});
 
 // --- Move / replenish (terminal-5-move · UC-06) ----------------------------
 const moveTask = (): MoveTask => ({
@@ -269,14 +257,25 @@ export const handlers = [
   }),
 
   // Picking — confirm picks the line; "short pick" replans onto the next FEFO batch.
-  http.get('/api/wave/W-2206/next', () => HttpResponse.json(pickStep())),
-  http.post('/api/wave/W-2206/next/confirm', () => {
-    drop('pick', pickPlans[pickPlan].qty);
-    pickPlan = 0;
+  http.get('/api/logistics/orders/SO-4471/pick-list', () =>
+    HttpResponse.json({
+      orderId: 'SO-4471',
+      picked: pickListTasks.filter((t) => t.status === 'Picked').length,
+      total: pickListTasks.length,
+      tasks: pickListTasks,
+    }),
+  ),
+  http.post('/api/logistics/orders/SO-4471/picks/:seq/confirm', ({ params }) => {
+    const task = pickListTasks.find((t) => t.sequence === Number(params.seq));
+    if (!task || task.status !== 'Pending') return new HttpResponse(null, { status: 409 });
+    task.status = 'Picked';
+    drop('pick', task.quantity);
     return noContent();
   }),
-  http.post('/api/wave/W-2206/next/short', () => {
-    pickPlan = (pickPlan + 1) % pickPlans.length;
+  http.post('/api/logistics/orders/SO-4471/picks/:seq/short', ({ params }) => {
+    const task = pickListTasks.find((t) => t.sequence === Number(params.seq));
+    if (!task || task.status !== 'Pending') return new HttpResponse(null, { status: 409 });
+    task.status = 'ShortPick';
     return noContent();
   }),
 

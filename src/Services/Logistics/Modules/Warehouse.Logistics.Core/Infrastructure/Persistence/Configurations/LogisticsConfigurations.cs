@@ -169,6 +169,13 @@ internal sealed class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
                 .HasConversion(w => w.Kilograms, d => Weight.FromKilograms(d))
                 .HasColumnName("weight_kg").HasPrecision(12, 3);
             p.Property(x => x.Description).HasColumnName("description").HasMaxLength(256);
+            p.OwnsOne(x => x.Dimensions, dim =>
+            {
+                dim.Property(d => d.LengthCm).HasColumnName("length_cm").HasPrecision(10, 2);
+                dim.Property(d => d.WidthCm).HasColumnName("width_cm").HasPrecision(10, 2);
+                dim.Property(d => d.HeightCm).HasColumnName("height_cm").HasPrecision(10, 2);
+            });
+            p.Navigation(x => x.Dimensions).IsRequired();
         });
 
         builder.Property<uint>("xmin").HasColumnType("xid").ValueGeneratedOnAddOrUpdate().IsConcurrencyToken();
