@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — QC worklist</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--status-blocked); }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--status-blocked); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .content { padding: var(--s-6); overflow:auto; }
+  .head { margin-bottom: var(--s-5); } .head h2 { font-size: var(--fs-xl); } .head .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); overflow:hidden; }
+  .panel .ph { padding: var(--s-4) var(--s-5); font-weight:700; border-bottom:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size: var(--fs-xs); text-transform:uppercase; color: var(--ink-faint); padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line); }
+  td { padding: var(--s-4) var(--s-5); border-bottom:1px solid var(--line-soft); font-size: var(--fs-md); vertical-align:middle; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  .sku { color: var(--ink-faint); font-size: var(--fs-xs); }
+  .acts { display:flex; gap: var(--s-2); justify-content:flex-end; }
+  .btn { border:0; border-radius: var(--r-sm); font-weight:700; font-size: var(--fs-sm); padding: var(--s-2) var(--s-4); }
+  .btn--release { background: var(--status-available); color:#fff; }
+  .btn--reject { background:var(--surface); color: var(--status-blocked); border:1px solid var(--status-blocked); }
+  .reason { color: var(--ink-soft); font-size: var(--fs-sm); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a class="on">⚑ Quality holds</a><a>⇄ Movements</a>
+    <div class="grp">Logistics</div><a>⇩ Inbound (ASN)</a><a>↗ Outbound</a>
+    <div class="grp">Master data</div><a>◰ Products</a><a>⌂ Topology</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Inventory / <b>Quality holds</b></div>
+      <div class="who"><span class="av">QC</span> Quality Inspector</div></div>
+
+    <div class="content">
+      <div class="head"><h2>Batches in quarantine</h2>
+        <div class="sub">Blocked stock is invisible to reservations and picking until released (UC-03). Every decision is audited.</div></div>
+
+      <div class="panel"><div class="ph">Awaiting decision — 4 batches</div>
+        <table>
+          <thead><tr><th>Batch · product</th><th>From receipt</th><th>Location</th><th class="num">Qty</th>
+            <th>Status</th><th>Decision</th></tr></thead>
+          <tbody>
+            <tr><td>LOT-0402 · Cheese wheel 5 kg<div class="sku">5902860004417</div></td>
+              <td>GR-2206 · Dairy Farms</td><td>QC-HOLD-02</td><td class="num">48</td>
+              <td><span class="badge badge--blocked">Quarantine</span></td>
+              <td><div class="acts"><button class="btn btn--release">Release</button><button class="btn btn--reject">Reject</button></div></td></tr>
+            <tr><td>LOT-0331 · Butter block 250 g<div class="sku">5900512331027</div></td>
+              <td>GR-2205 · Dairy Farms</td><td>QC-HOLD-01</td><td class="num">120</td>
+              <td><span class="badge badge--blocked">Quarantine</span></td>
+              <td><div class="acts"><button class="btn btn--release">Release</button><button class="btn btn--reject">Reject</button></div></td></tr>
+            <tr><td>LOT-0419 · Greek yoghurt 400 g<div class="sku">5901234123457</div></td>
+              <td>GR-2206 · Dairy Farms</td><td>QC-HOLD-02</td><td class="num">48</td>
+              <td><span class="badge badge--blocked">Quarantine</span></td>
+              <td><div class="acts"><button class="btn btn--release">Release</button><button class="btn btn--reject">Reject</button></div></td></tr>
+            <tr><td>LOT-0288 · Frozen berries 1 kg<div class="sku">5601012009873</div></td>
+              <td>GR-2204 · Nordic Frozen</td><td>QC-HOLD-03</td><td class="num">20</td>
+              <td><span class="badge badge--expired">Damaged on receipt</span></td>
+              <td><div class="acts"><button class="btn btn--release">Release</button><button class="btn btn--reject">Reject</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" class="terminal">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=390, initial-scale=1" />
+<title>Terminal — Picking</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width: 390px; min-height: 844px; background: var(--canvas); display:flex; flex-direction:column; }
+  .bar { background: var(--brand); color:#fff; padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .bar .back { font-size: var(--fs-lg); }
+  .bar .ttl b { font-size: var(--fs-md); display:block; }
+  .bar .ttl span { font-size: var(--fs-xs); opacity:.85; }
+  .prog { background:var(--surface); padding: var(--s-3) var(--s-5); display:flex; align-items:center; gap: var(--s-3); border-bottom:1px solid var(--line); }
+  .prog .track { flex:1; height:8px; background: var(--line); border-radius: var(--r-pill); overflow:hidden; }
+  .prog .track i { display:block; height:100%; width:38%; background: var(--status-transit); }
+  .prog .lbl { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .goloc { margin: var(--s-5); background: var(--status-transit-bg); border:2px solid var(--status-transit);
+           border-radius: var(--r-lg); padding: var(--s-6) var(--s-5); text-align:center; }
+  .goloc .cap { font-size: var(--fs-xs); color: var(--status-transit); text-transform:uppercase; letter-spacing:.08em; }
+  .goloc .addr { font-size: var(--fs-2xl); font-weight:800; color: var(--status-transit); margin-top: var(--s-2); }
+  .item { margin: 0 var(--s-5) var(--s-5); background:var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow:hidden; }
+  .item .head { padding: var(--s-5); }
+  .item .head .sku { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .item .head b { font-size: var(--fs-md); display:block; margin-top:2px; }
+  .item .fefo { display:inline-flex; margin-top: var(--s-3); }
+  .pickrow { display:flex; align-items:center; justify-content:space-between; padding: var(--s-4) var(--s-5); border-top:1px solid var(--line-soft); }
+  .pickrow .lbl { font-size: var(--fs-sm); color: var(--ink-soft); }
+  .pickrow .big { font-size: var(--fs-2xl); font-weight:800; color: var(--brand); font-variant-numeric: tabular-nums; }
+  .scan { margin: 0 var(--s-5); background:var(--surface); border:2px solid var(--brand); border-radius: var(--r-md);
+          padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); box-shadow: var(--shadow-1); }
+  .scan .ico { font-size:28px; color: var(--brand); }
+  .scan input { flex:1; border:0; font-size: var(--fs-md); outline:0; }
+  .actions { margin-top:auto; padding: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); background:var(--surface); border-top:1px solid var(--line); }
+  .btn { min-height: var(--tap); border-radius: var(--r-md); border:0; font-size: var(--fs-md); font-weight:700; }
+  .btn--primary { background: var(--brand); color:#fff; }
+  /* exception path is routine, not danger — neutral, not red */
+  .btn--ghost { background:transparent; color: var(--ink-soft); border:1px solid var(--line); }
+  .btn[disabled] { opacity:.45; }
+  /* the scan IS the commit: location then product must be scanned before confirm */
+  .scanseq { margin: 0 var(--s-5) var(--s-4); display:flex; flex-direction:column; gap: var(--s-2); }
+  .step { display:flex; align-items:center; gap: var(--s-3); background:var(--surface); border:1px solid var(--line);
+          border-radius: var(--r-md); padding: var(--s-3) var(--s-4); }
+  .step .dot { width:28px; height:28px; border-radius:50%; background: var(--canvas); border:1px solid var(--line);
+               display:grid; place-items:center; font-weight:800; font-size: var(--fs-sm); color: var(--ink-faint); flex:0 0 auto; }
+  .step .tx { flex:1; } .step .tx b { font-size: var(--fs-sm); display:block; } .step .tx span { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .step .st { font-size: var(--fs-lg); color: var(--ink-faint); }
+  .step.active { border-color: var(--brand); box-shadow: 0 0 0 2px var(--status-reserved-bg); }
+  .step.done { border-color: var(--status-available); }
+  .step.done .dot { background: var(--status-available); border-color: var(--status-available); color:#fff; }
+  .step.done .st { color: var(--status-available); }
+  .scan { cursor:pointer; }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="back">‹</span>
+    <div class="ttl"><b>Picking — Wave W-2206</b><span>Order SO-4471</span></div></div>
+  <div class="prog"><span class="lbl">12/31</span><div class="track"><i></i></div><span class="lbl">19 left</span></div>
+
+  <div class="goloc"><div class="cap">Go to</div><div class="addr">WH01-A2-A07-R3-S2</div></div>
+
+  <div class="item">
+    <div class="head"><span class="sku">SKU 5901234123457</span>
+      <b>Greek yoghurt 400 g</b>
+      <span class="badge badge--reserved fefo">FEFO · BBE 2026-06-28 · LOT-0419</span></div>
+    <div class="pickrow"><span class="lbl">Pick quantity</span><span class="big">24 <span class="unit" style="font-size:16px;color:var(--ink-faint)">ea</span></span></div>
+  </div>
+
+  <div class="scanseq" id="scanseq">
+    <div class="step"><span class="dot">1</span>
+      <div class="tx"><b>Scan location</b><span>WH01-A2-A07-R3-S2</span></div><span class="st">◯</span></div>
+    <div class="step"><span class="dot">2</span>
+      <div class="tx"><b>Scan product</b><span>SKU 5901234123457</span></div><span class="st">◯</span></div>
+  </div>
+
+  <div class="scan"><span class="ico" data-icon="scan"></span><input id="scanfield" value="" placeholder="Scan location…" readonly /></div>
+
+  <div class="actions">
+    <button class="btn btn--primary" id="confirm" disabled>Scan to confirm</button>
+    <button class="btn btn--ghost">Short pick</button>
+  </div>
+
+  <script src="nav.js"></script>
+  <script>
+  (function(){
+    var steps   = Array.prototype.slice.call(document.querySelectorAll('#scanseq .step'));
+    var field   = document.getElementById('scanfield');
+    var confirm = document.getElementById('confirm');
+    var scan    = document.querySelector('.scan');
+    var prompts = ['Scan location…', 'Scan product…'];
+    var i = 0;
+    function refresh(){ steps.forEach(function(s,n){ s.classList.toggle('active', n===i); }); field.placeholder = i < steps.length ? prompts[i] : ''; }
+    function advance(){
+      if (i >= steps.length) return;                    // already fully scanned
+      var s = steps[i];
+      s.classList.remove('active'); s.classList.add('done');
+      s.querySelector('.st').textContent = '✓';
+      i++;
+      if (i >= steps.length){                            // both scanned — the scan is the commit
+        field.value = 'Scanned ✓';
+        confirm.removeAttribute('disabled');
+        confirm.textContent = 'Confirm pick ✓';
+      }
+      refresh();
+    }
+    scan.addEventListener('click', advance);             // prototype: tap the scan box to simulate a scan
+    refresh();
+  })();
+  </script>
+</body>
+</html>

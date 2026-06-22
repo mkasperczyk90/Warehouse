@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Versioned integration events shared between services.
+    Additive-only policy: never change a published Vn contract - add Vn+1 instead.
+    Primitives only: no dependencies, so every service can reference it safely.
+  -->
+
+</Project>

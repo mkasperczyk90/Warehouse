@@ -1,0 +1,141 @@
+.head {
+  margin-bottom: var(--s-5);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.sub {
+  color: var(--ink-faint);
+  font-size: var(--fs-sm);
+  margin-top: 4px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.panelHead {
+  padding: var(--s-4) var(--s-5);
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+
+.sku {
+  color: var(--ink-faint);
+  font-size: var(--fs-xs);
+}
+
+.acts {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: flex-end;
+}
+
+.release {
+  border: 0;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  padding: var(--s-2) var(--s-4);
+  background: var(--status-available);
+  color: #fff;
+}
+
+.reject {
+  border: 1px solid var(--status-blocked);
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  padding: var(--s-2) var(--s-4);
+  background: var(--surface);
+  color: var(--status-blocked);
+}
+
+.release:disabled,
+.reject:disabled {
+  opacity: 0.5;
+}
+
+.state {
+  padding: var(--s-6) var(--s-5);
+  font-size: var(--fs-md);
+  color: var(--ink-faint);
+}
+
+/* --- Decision dialog ----------------------------------------------------- */
+.dialogText {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--s-4);
+}
+
+.dialogField {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--s-4);
+}
+
+.dialogLabel {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  margin-bottom: var(--s-1);
+}
+
+.dialogInput {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-3);
+  font-size: var(--fs-md);
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.ghost {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: var(--s-2) var(--s-5);
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+.confirmRelease {
+  border: 0;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: var(--s-2) var(--s-5);
+  background: var(--status-available);
+  color: #fff;
+}
+
+.confirmReject {
+  border: 0;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: var(--s-2) var(--s-5);
+  background: var(--status-blocked);
+  color: #fff;
+}
+
+.confirmRelease:disabled,
+.confirmReject:disabled {
+  opacity: 0.5;
+}

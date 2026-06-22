@@ -1,0 +1,9 @@
+node_modules
+dist
+.expo
+web-build
+*.local
+*.log
+.git
+Dockerfile
+.dockerignore

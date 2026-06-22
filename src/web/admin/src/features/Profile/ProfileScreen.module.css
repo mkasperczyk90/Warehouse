@@ -1,0 +1,151 @@
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--fs-lg);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.role {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s-5);
+  align-items: start;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-5);
+}
+
+.panelTitle {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  margin-bottom: var(--s-4);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--fs-md);
+}
+
+.facts dt {
+  color: var(--ink-soft);
+}
+
+.facts dd {
+  font-weight: 600;
+  text-align: right;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-bottom: var(--s-4);
+}
+
+.label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-md);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-3);
+}
+
+.saved {
+  font-size: var(--fs-sm);
+  color: var(--status-available);
+  font-weight: 600;
+}
+
+.save {
+  background: var(--brand);
+  color: var(--brand-ink);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-5);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lastLogin {
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+  margin-bottom: var(--s-3);
+}
+
+.sessions {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.session {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.sub {
+  color: var(--ink-faint);
+}
+
+.state {
+  color: var(--ink-soft);
+  font-size: var(--fs-md);
+}

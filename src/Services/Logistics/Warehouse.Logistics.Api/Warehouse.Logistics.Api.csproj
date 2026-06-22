@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="WolverineFx" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+    <PackageReference Include="WolverineFx.Postgresql" />
+    <PackageReference Include="WolverineFx.RabbitMQ" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ServiceDefaults\Warehouse.ServiceDefaults\Warehouse.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Modules\Warehouse.Logistics.Core\Warehouse.Logistics.Core.csproj" />
+  </ItemGroup>
+
+</Project>

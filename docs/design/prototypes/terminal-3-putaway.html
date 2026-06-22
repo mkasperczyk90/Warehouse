@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="terminal">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=390, initial-scale=1" />
+<title>Terminal — Put-away</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width: 390px; min-height: 844px; background: var(--canvas); display:flex; flex-direction:column; }
+  .bar { background: var(--brand); color:#fff; padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .bar .back { font-size: var(--fs-lg); }
+  .bar .ttl b { font-size: var(--fs-md); display:block; }
+  .bar .ttl span { font-size: var(--fs-xs); opacity:.85; }
+  .pallet { margin: var(--s-5); background:var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: var(--s-5); }
+  .pallet .lpn { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .pallet b { font-size: var(--fs-md); display:block; margin: 2px 0 var(--s-3); }
+  .pallet .chips { display:flex; gap: var(--s-2); flex-wrap:wrap; }
+  .chip { font-size: var(--fs-xs); background: var(--canvas); border:1px solid var(--line); border-radius: var(--r-pill); padding: 3px 10px; }
+  .chip.cold { background: var(--status-reserved-bg); color: var(--status-reserved); border-color: transparent; }
+  .propose { margin: 0 var(--s-5); }
+  .propose .cap { font-size: var(--fs-xs); color: var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-bottom: var(--s-2); }
+  .loc { background: var(--status-available-bg); border:2px solid var(--status-available); border-radius: var(--r-lg);
+         padding: var(--s-6) var(--s-5); text-align:center; }
+  .loc .addr { font-size: var(--fs-2xl); font-weight:800; color: var(--status-available); letter-spacing:.02em; }
+  .loc .why { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--s-2); }
+  .checks { margin: var(--s-5); display:flex; flex-direction:column; gap: var(--s-2); }
+  .checks .c { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); color: var(--ink-soft); }
+  .checks .c .ok { color: var(--status-available); font-weight:800; }
+  .scan { margin: 0 var(--s-5); background:var(--surface); border:2px dashed var(--brand); border-radius: var(--r-md);
+          padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .scan .ico { font-size:28px; color: var(--brand); }
+  .scan input { flex:1; border:0; font-size: var(--fs-md); outline:0; }
+  .actions { margin-top:auto; padding: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); background:var(--surface); border-top:1px solid var(--line); }
+  .btn { min-height: var(--tap); border-radius: var(--r-md); border:0; font-size: var(--fs-md); font-weight:700; }
+  .btn--primary { background: var(--status-available); color:#fff; }
+  .btn--ghost { background:transparent; color: var(--ink-soft); border:1px solid var(--line); }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="back">‹</span>
+    <div class="ttl"><b>Put-away</b><span>Task 4 of 14</span></div></div>
+
+  <div class="pallet">
+    <span class="lpn">Pallet LPN 0078-2206-014</span>
+    <b>Whole milk 3.2% — 1 L · LOT-0425-A</b>
+    <div class="chips"><span class="chip">240 ea</span><span class="chip cold">❄ 2–6 °C required</span><span class="chip">BBE 2026-07-02</span></div>
+  </div>
+
+  <div class="propose">
+    <div class="cap">Proposed location</div>
+    <div class="loc"><div class="addr">WH01-CR1-A03-R2-S1</div>
+      <div class="why">Cold room · consolidates with same SKU/batch · 0.8 m³ free</div></div>
+  </div>
+
+  <div class="checks">
+    <div class="c"><span class="ok">✓</span> Temperature compatible (cold room 2–6 °C)</div>
+    <div class="c"><span class="ok">✓</span> Capacity & load limit OK</div>
+  </div>
+
+  <div class="scan"><span class="ico" data-icon="scan"></span><input value="" placeholder="Scan location to confirm…" autofocus /></div>
+
+  <div class="actions">
+    <button class="btn btn--primary">Confirm put-away ✓</button>
+    <button class="btn btn--ghost">Location full — propose another</button>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

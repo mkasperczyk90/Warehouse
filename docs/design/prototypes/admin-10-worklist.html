@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Today / Worklist</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); align-items:center; }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--brand); }
+  .side a .pill { margin-left:auto; font-size: var(--fs-xs); font-weight:700; border-radius: var(--r-pill); padding:1px 8px; }
+  .side a .pill.red { background: var(--status-blocked); color:#fff; }
+  .side a .pill.amber { background: var(--status-transit); color:#fff; }
+  .side a .pill.blue { background: var(--status-reserved); color:#fff; }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .who { display:flex; align-items:center; gap: var(--s-3); font-size: var(--fs-sm); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--brand); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .content { padding: var(--s-6); overflow:auto; }
+  .head { margin-bottom: var(--s-5); } .head h2 { font-size: var(--fs-2xl); } .head .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; max-width:760px; }
+  /* attention cards — a count + what it is + the action it needs */
+  .cards { display:grid; grid-template-columns: repeat(5,1fr); gap: var(--s-4); margin-bottom: var(--s-6); }
+  .card { background:var(--surface); border:1px solid var(--line); border-left-width:4px; border-radius: var(--r-md); padding: var(--s-4) var(--s-5); cursor:pointer; }
+  .card .v { font-size: var(--fs-2xl); font-weight:800; font-variant-numeric:tabular-nums; }
+  .card .l { font-size: var(--fs-sm); font-weight:600; margin-top:2px; }
+  .card .x { font-size: var(--fs-xs); color: var(--ink-faint); margin-top: var(--s-2); }
+  .card.qc    { border-left-color: var(--status-blocked); } .card.qc .v { color: var(--status-blocked); }
+  .card.exp   { border-left-color: var(--status-expired); } .card.exp .v { color: var(--status-expired); }
+  .card.part  { border-left-color: var(--status-transit); } .card.part .v { color: var(--status-transit); }
+  .card.inb   { border-left-color: var(--status-reserved); } .card.inb .v { color: var(--status-reserved); }
+  .card.stk   { border-left-color: var(--status-available); } .card.stk .v { color: var(--status-available); }
+  /* worklist panels — the actual jobs, top few + a way to the rest */
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); overflow:hidden; }
+  .panel .ph { display:flex; justify-content:space-between; align-items:center; padding: var(--s-4) var(--s-5); border-bottom:1px solid var(--line); }
+  .panel .ph b { font-size: var(--fs-md); } .panel .ph .n { color: var(--ink-faint); font-weight:500; }
+  .panel .ph a { color: var(--brand); font-size: var(--fs-sm); font-weight:600; }
+  .row { display:flex; align-items:center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom:1px solid var(--line-soft); cursor:pointer; }
+  .row:last-child { border-bottom:0; }
+  .row:hover { background: var(--line-soft); }
+  .row .nm { font-size: var(--fs-md); } .row .nm .sku { color: var(--ink-faint); font-size: var(--fs-xs); }
+  .row .meta { margin-left:auto; text-align:right; font-size: var(--fs-xs); color: var(--ink-faint); }
+  .row .qty { font-variant-numeric:tabular-nums; font-weight:700; font-size: var(--fs-sm); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <a class="on">◎ Today</a>
+    <div class="grp">Inventory</div>
+    <a>▦ Stock view</a>
+    <a>✓ Stocktakes <span class="pill blue">1</span></a>
+    <a>⚑ Quality holds <span class="pill red">4</span></a>
+    <a>± Adjustments</a>
+    <div class="grp">Logistics</div>
+    <a>⇩ Inbound (ASN) <span class="pill blue">2</span></a>
+    <a>↗ Outbound <span class="pill amber">3</span></a>
+    <a>⊞ Dispatch</a>
+    <div class="grp">Master data</div>
+    <a>◰ Products</a><a>⌂ Topology</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb"><b>Today</b></div>
+      <div class="who">WH-01 Wrocław ▾ <span class="av">KM</span> K. Manager</div></div>
+
+    <div class="content">
+      <div class="head"><h2>What needs you now</h2>
+        <div class="sub">Your work queues across inbound, stock, quality and outbound — the counts mirror
+          the sidebar badges. This is a <b>worklist, not a dashboard</b>: every card is a job to clear and
+          a link to the screen that clears it. Trends and metrics live elsewhere.</div></div>
+
+      <div class="cards">
+        <div class="card qc"><div class="v">4</div><div class="l">QC holds</div><div class="x">batches awaiting a decision</div></div>
+        <div class="card exp"><div class="v">12</div><div class="l">Expiring ≤ 7 d</div><div class="x">FEFO risk — review / pick first</div></div>
+        <div class="card part"><div class="v">3</div><div class="l">Partial orders</div><div class="x">split or hold</div></div>
+        <div class="card inb"><div class="v">2</div><div class="l">Inbound today</div><div class="x">receiving prep</div></div>
+        <div class="card stk"><div class="v">1</div><div class="l">Stocktake to approve</div><div class="x">differences → ledger</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <div class="ph"><b>Quality holds <span class="n">· 4</span></b><a>View all →</a></div>
+          <div class="row"><div class="nm">LOT-0402 · Cheese wheel 5 kg<div class="sku">QC-HOLD-02 · GR-2206 Dairy Farms</div></div>
+            <span class="badge badge--blocked">Quarantine</span><div class="meta"><div class="qty">48 ea</div></div></div>
+          <div class="row"><div class="nm">LOT-0331 · Butter block 250 g<div class="sku">QC-HOLD-01 · GR-2205 Dairy Farms</div></div>
+            <span class="badge badge--blocked">Quarantine</span><div class="meta"><div class="qty">120 ea</div></div></div>
+          <div class="row"><div class="nm">LOT-0419 · Greek yoghurt 400 g<div class="sku">QC-HOLD-02 · GR-2206 Dairy Farms</div></div>
+            <span class="badge badge--blocked">Quarantine</span><div class="meta"><div class="qty">48 ea</div></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><b>Orders needing a decision <span class="n">· 3</span></b><a>View all →</a></div>
+          <div class="row"><div class="nm">SO-4472 · Bistro 24<div class="sku">1 line short of ATP · split or hold</div></div>
+            <span class="badge badge--transit">Partially reserved</span></div>
+          <div class="row"><div class="nm">SO-4469 · Fresh Market sp. z o.o.<div class="sku">created · not yet reserved</div></div>
+            <span class="badge badge--reserved">Created</span></div>
+          <div class="row"><div class="nm">SO-4470 · Hotel Vega<div class="sku">wave W-2206 · picking</div></div>
+            <span class="badge badge--available">Picking</span></div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><b>Expiring soon <span class="n">· top 4 of 12</span></b><a>View all →</a></div>
+          <div class="row"><div class="nm">Butter block 250 g · LOT-0331<div class="sku">CR1-A01-R1-S4 · Cold room</div></div>
+            <div class="meta"><span class="badge badge--expired">BBE 1 d</span><div>2026-06-15</div></div></div>
+          <div class="row"><div class="nm">Kefir 1 L · LOT-0388<div class="sku">CR1-A03-R2-S3 · Cold room</div></div>
+            <div class="meta"><span class="badge badge--expired">BBE 3 d</span><div>2026-06-17</div></div></div>
+          <div class="row"><div class="nm">Whole milk 3.2% 1 L · LOT-0425-A<div class="sku">CR1-A03-R2-S1 · Cold room</div></div>
+            <div class="meta"><span class="badge badge--expired">BBE 5 d</span><div>2026-06-19</div></div></div>
+          <div class="row"><div class="nm">Greek yoghurt 400 g · LOT-0419<div class="sku">A2-A07-R3-S2 · Standard</div></div>
+            <div class="meta"><span class="badge badge--expired">BBE 6 d</span><div>2026-06-20</div></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="ph"><b>Inbound today <span class="n">· 2</span></b><a>View all →</a></div>
+          <div class="row"><div class="nm">ASN-2206 · Dairy Farms Ltd<div class="sku">8 lines · 1 unknown SKU flagged</div></div>
+            <div class="meta"><span class="badge badge--transit">Arrived</span><div>Dock D-3 · 09:30</div></div></div>
+          <div class="row"><div class="nm">ASN-2207 · Nordic Frozen AS<div class="sku">12 lines · frozen</div></div>
+            <div class="meta"><span class="badge badge--reserved">Announced</span><div>Dock D-5 · 14:00</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

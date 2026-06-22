@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="admin">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440, initial-scale=1" />
+<title>Admin — Stock adjustment</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width:1440px; height:900px; background:var(--canvas); display:flex; }
+  .side { width:230px; background:#1f2433; color:#c9d1e3; display:flex; flex-direction:column; padding: var(--s-5) 0; }
+  .side .logo { font-size: var(--fs-lg); font-weight:800; color:#fff; padding: 0 var(--s-5) var(--s-5); }
+  .side a { padding: var(--s-3) var(--s-5); font-size: var(--fs-md); color:#aab4cc; display:flex; gap: var(--s-3); }
+  .side a.on { background:#2b3147; color:#fff; border-left:3px solid var(--status-blocked); }
+  .side .grp { font-size: var(--fs-xs); text-transform:uppercase; letter-spacing:.1em; color:#6b738c; padding: var(--s-4) var(--s-5) var(--s-1); }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:60px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding: 0 var(--s-6); }
+  .top .crumb { font-size: var(--fs-md); color: var(--ink-soft); } .top .crumb b { color: var(--ink); }
+  .top .av { width:32px; height:32px; border-radius:50%; background: var(--brand); color:#fff; display:grid; place-items:center; font-weight:700; }
+  .content { padding: var(--s-6); overflow:auto; max-width: 880px; }
+  .head { margin-bottom: var(--s-5); } .head h2 { font-size: var(--fs-xl); } .head .sub { color: var(--ink-faint); font-size: var(--fs-sm); margin-top:4px; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius: var(--r-md); padding: var(--s-5) var(--s-6); margin-bottom: var(--s-5); }
+  .card h3 { font-size: var(--fs-md); margin-bottom: var(--s-4); padding-bottom: var(--s-3); border-bottom:1px solid var(--line-soft); }
+  .item { display:flex; align-items:center; gap: var(--s-4); }
+  .item .nm b { font-size: var(--fs-md); } .item .nm .sku { color: var(--ink-faint); font-size: var(--fs-xs); }
+  .item .badge { margin-left:auto; }
+  .grid { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--s-4) var(--s-5); align-items:end; }
+  .f label { display:block; font-size: var(--fs-xs); color: var(--ink-faint); margin-bottom: var(--s-1); }
+  .f .input { border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3); font-size: var(--fs-md); }
+  .f .input.ro { background: var(--line-soft); color: var(--ink-soft); }
+  .delta { font-size: var(--fs-2xl); font-weight:800; color: var(--status-blocked); font-variant-numeric:tabular-nums; }
+  .result { display:flex; align-items:center; gap: var(--s-5); background: var(--canvas); border-radius: var(--r-sm); padding: var(--s-4) var(--s-5); margin-top: var(--s-4); }
+  .result .a { font-size: var(--fs-sm); color: var(--ink-faint); } .result .b { font-size: var(--fs-lg); font-weight:800; font-variant-numeric:tabular-nums; }
+  .actions { display:flex; gap: var(--s-3); }
+  .btn { border:0; border-radius: var(--r-sm); font-weight:700; font-size: var(--fs-md); padding: var(--s-3) var(--s-5); }
+  .btn--primary { background: var(--status-blocked); color:#fff; } .btn--ghost { background:var(--surface); border:1px solid var(--line); color: var(--ink-soft); }
+  .audit { background: var(--status-reserved-bg); color: var(--status-reserved); border-radius: var(--r-sm); padding: var(--s-3) var(--s-4); font-size: var(--fs-sm); margin-top: var(--s-4); }
+</style>
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">▣ Warehouse</div>
+    <div class="grp">Inventory</div><a>▦ Stock view</a><a>✓ Stocktakes</a><a class="on">± Adjustments</a><a>⇄ Movements</a>
+    <div class="grp">Logistics</div><a>⇩ Inbound (ASN)</a><a>↗ Outbound</a>
+    <div class="grp">Master data</div><a>◰ Products</a><a>⌂ Topology</a>
+  </aside>
+
+  <div class="main">
+    <div class="top"><div class="crumb">Inventory / Adjustments / <b>New adjustment</b></div>
+      <div class="who"><span class="av">KM</span> K. Manager</div></div>
+
+    <div class="content">
+      <div class="head"><h2>Manual stock adjustment</h2>
+        <div class="sub">Damage, loss or correction — always with a reason and an audit trail. Posts a reversing/adjusting entry to the immutable ledger (UC-08).</div></div>
+
+      <div class="card"><h3>Stock item</h3>
+        <div class="item"><div class="nm"><b>Butter block 250 g · LOT-0331</b>
+          <div class="sku">SKU 5900512331027 · CR1-A01-R1-S4 · Cold room 1</div></div>
+          <span class="badge badge--available">Available</span></div>
+      </div>
+
+      <div class="card"><h3>Adjustment</h3>
+        <div class="grid">
+          <div class="f"><label>System on hand</label><div class="input ro">600 ea</div></div>
+          <div class="f"><label>New counted quantity</label><div class="input">588 ea</div></div>
+          <div class="f"><label>Delta</label><div class="delta">−12</div></div>
+          <div class="f"><label>Reason <span style="color:var(--status-blocked)">*</span></label><div class="input">Damage ▾</div></div>
+          <div class="f" style="grid-column:span 2"><label>Note</label><div class="input">3 cartons crushed during put-away; photo attached.</div></div>
+        </div>
+        <div class="result"><span class="a">After posting →</span><span class="b">588 ea on hand</span>
+          <span class="a">ledger movement</span><span class="b">−12 · reason Damage</span></div>
+        <div class="audit">🔒 Audited: K. Manager · 2026-06-14 08:42 · this entry is immutable (a later correction is a new reversing movement).</div>
+      </div>
+
+      <div class="actions"><button class="btn btn--ghost">Cancel</button><button class="btn btn--primary">Post adjustment to ledger</button></div>
+    </div>
+  </div>
+  <script src="nav.js"></script>
+</body>
+</html>

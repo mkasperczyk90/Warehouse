@@ -1,0 +1,180 @@
+.ship {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-4);
+  margin-bottom: var(--s-3);
+  box-shadow: var(--shadow-1);
+}
+
+.id {
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+
+.cust {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  margin: 2px 0 var(--s-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+.car {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--brand);
+  color: var(--brand-ink);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.track {
+  margin-top: var(--s-3);
+  font-size: var(--fs-xs);
+  color: var(--status-reserved);
+  font-weight: 600;
+}
+
+.assign {
+  margin-top: var(--s-3);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--line);
+  background: var(--canvas);
+  border-radius: var(--r-sm);
+  padding: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.advance {
+  margin-top: var(--s-3);
+  width: 100%;
+  border: 1px solid var(--brand);
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  padding: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.print {
+  margin-top: var(--s-2);
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 0;
+}
+
+.filterRow {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+.filterPill {
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 4px var(--s-3);
+}
+
+.filterOn {
+  background: var(--brand);
+  color: var(--brand-ink);
+  border-color: var(--brand);
+}
+
+.state {
+  padding: var(--s-6) var(--s-5);
+  font-size: var(--fs-md);
+  color: var(--ink-faint);
+}
+
+/* --- Assign-carrier dialog ---------------------------------------------- */
+.dialogShip {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  margin-bottom: var(--s-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--s-4);
+}
+
+.fieldLabel {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  margin-bottom: var(--s-1);
+}
+
+.input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-3);
+  font-size: var(--fs-md);
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.primary {
+  border: 0;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: var(--s-2) var(--s-5);
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+.primary:disabled {
+  opacity: 0.5;
+}
+
+.ghost {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  padding: var(--s-2) var(--s-5);
+  background: var(--surface);
+  color: var(--ink-soft);
+}

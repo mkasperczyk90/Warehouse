@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Warehouse Terminal",
+    "slug": "warehouse-terminal",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "warehouseterminal",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#364fc7"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "resizeMode": "contain",
+          "backgroundColor": "#364fc7"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

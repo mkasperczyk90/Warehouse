@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" class="terminal">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=390, initial-scale=1" />
+<title>Terminal — Goods receipt</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { width: 390px; min-height: 844px; background: var(--canvas); display:flex; flex-direction:column; }
+  .bar { background: var(--brand); color:#fff; padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4); }
+  .bar .back { font-size: var(--fs-lg); }
+  .bar .ttl b { font-size: var(--fs-md); display:block; }
+  .bar .ttl span { font-size: var(--fs-xs); opacity:.85; }
+  .ctx { background:#e7f5ff; color: var(--status-reserved); padding: var(--s-3) var(--s-5);
+         font-size: var(--fs-sm); display:flex; justify-content:space-between; }
+  .scan { margin: var(--s-5); background:var(--surface); border:2px solid var(--status-available);
+          border-radius: var(--r-md); padding: var(--s-4) var(--s-5); display:flex; align-items:center; gap: var(--s-4);
+          box-shadow: var(--shadow-1); }
+  .scan .ico { font-size:30px; color: var(--status-available); }
+  .scan input { flex:1; border:0; font-size: var(--fs-md); outline:0; }
+  .card { margin: 0 var(--s-5) var(--s-5); background:var(--surface); border-radius: var(--r-lg);
+          box-shadow: var(--shadow-1); overflow:hidden; }
+  .card .head { padding: var(--s-5); border-bottom:1px solid var(--line-soft); }
+  .card .head .sku { font-size: var(--fs-xs); color: var(--ink-faint); }
+  .card .head b { font-size: var(--fs-md); display:block; margin-top:2px; }
+  .row { display:flex; align-items:center; justify-content:space-between; padding: var(--s-4) var(--s-5); }
+  .row .lbl { font-size: var(--fs-sm); color: var(--ink-soft); }
+  .row .v { font-size: var(--fs-md); font-weight:700; }
+  .stepper { display:flex; align-items:center; gap: var(--s-4); }
+  .stepper button { width: var(--tap); height: var(--tap); border-radius: var(--r-md); border:1px solid var(--line);
+                    background:var(--canvas); font-size: var(--fs-lg); font-weight:700; color: var(--ink); }
+  .stepper .num { font-size: var(--fs-xl); font-weight:800; min-width: 64px; text-align:center; font-variant-numeric: tabular-nums; }
+  .expected { background:#fff4e6; color: var(--status-transit); font-size: var(--fs-xs);
+              padding: var(--s-3) var(--s-5); display:flex; justify-content:space-between; }
+  .batch { padding: var(--s-4) var(--s-5); border-top:1px solid var(--line-soft); display:grid; grid-template-columns:1fr 1fr; gap: var(--s-3); }
+  .batch label { font-size: var(--fs-xs); color: var(--ink-faint); display:block; margin-bottom:4px; }
+  .batch .f { border:1px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3); font-size: var(--fs-sm); font-weight:600; }
+  .actions { margin-top:auto; padding: var(--s-5); display:flex; flex-direction:column; gap: var(--s-3); background:var(--surface); border-top:1px solid var(--line); }
+  .btn { min-height: var(--tap); border-radius: var(--r-md); border:0; font-size: var(--fs-md); font-weight:700; }
+  .btn--primary { background: var(--status-available); color:#fff; }
+  /* a shortage/discrepancy is routine, not danger — neutral, not red */
+  .btn--ghost { background:transparent; color: var(--ink-soft); border:1px solid var(--line); }
+  /* tap-to-keypad: the count is the primary value, so it's directly editable */
+  .stepper .num { cursor:pointer; border-bottom:2px dashed var(--line); padding:0 var(--s-2); }
+  .keyhint { font-size: var(--fs-xs); color: var(--ink-faint); text-align:right; padding: var(--s-1) var(--s-5) var(--s-4); }
+  /* numeric keypad sheet — large keys for gloved hands */
+  .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display:none; align-items:flex-end; }
+  .sheet.open { display:flex; }
+  .pad { width:100%; background: var(--surface); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s-5); box-shadow: var(--shadow-2); }
+  .pad .ctx { color: var(--ink-faint); font-size: var(--fs-xs); display:block; }
+  .pad .val { font-size: var(--fs-2xl); font-weight:800; text-align:center; font-variant-numeric: tabular-nums; padding: var(--s-2) 0 var(--s-4); }
+  .pad .exp { width:100%; min-height: var(--tap); border:1px solid var(--status-transit); color: var(--status-transit);
+              background: var(--status-transit-bg); border-radius: var(--r-md); font-size: var(--fs-sm); font-weight:700; margin-bottom: var(--s-4); }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+  .grid button { min-height: var(--tap); border-radius: var(--r-md); border:1px solid var(--line);
+                 background: var(--canvas); font-size: var(--fs-xl); font-weight:700; color: var(--ink); }
+  .grid button.k-ok { background: var(--status-available); color:#fff; border-color: var(--status-available); }
+  .grid button.k-del { color: var(--status-blocked); }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="back">‹</span>
+    <div class="ttl"><b>Goods receipt</b><span>Line 3 of 8</span></div></div>
+  <div class="ctx"><span>ASN-2206 · Dairy Farms Ltd</span><span>Dock D-3</span></div>
+
+  <div class="scan"><span class="ico" data-icon="scan"></span><input value="" placeholder="Scan item barcode…" autofocus /></div>
+
+  <div class="card">
+    <div class="head"><span class="sku">SKU 4006381333931 · EAN scanned ✓</span>
+      <b>Whole milk 3.2% — 1 L carton</b></div>
+    <div class="expected"><span>Expected on ASN</span><span class="qty">240 <span class="unit">ea</span> (10 cases)</span></div>
+    <div class="row"><span class="lbl">Counted</span>
+      <div class="stepper"><button id="dec">−</button><span class="num" id="count">240</span><button id="inc">+</button></div></div>
+    <div class="keyhint">Tap the number for the keypad ⌨</div>
+    <div class="batch">
+      <div><label>Batch / lot no.</label><div class="f">LOT-0425-A</div></div>
+      <div><label>Best before</label><div class="f">2026-07-02</div></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn--primary">Confirm line ✓</button>
+    <button class="btn btn--ghost">Report discrepancy</button>
+  </div>
+  <div class="sheet" id="sheet">
+    <div class="pad">
+      <span class="ctx">Whole milk 3.2% — 1 L · counted quantity (ea)</span>
+      <div class="val" id="pad-val">240</div>
+      <button class="exp" id="pad-exp">= Expected on ASN · 240 ea</button>
+      <div class="grid">
+        <button>1</button><button>2</button><button>3</button>
+        <button>4</button><button>5</button><button>6</button>
+        <button>7</button><button>8</button><button>9</button>
+        <button class="k-del" id="pad-del">⌫</button><button>0</button><button class="k-ok" id="pad-ok">✓</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="nav.js"></script>
+  <script>
+  (function(){
+    var EXPECTED = 240;
+    var count = document.getElementById('count');
+    var sheet = document.getElementById('sheet');
+    var val   = document.getElementById('pad-val');
+    var entry = null;                       // null until the operator types a fresh value
+    function open(){ entry = null; val.textContent = count.textContent; sheet.classList.add('open'); }
+    function close(){ sheet.classList.remove('open'); }
+    count.addEventListener('click', open);
+    document.getElementById('inc').addEventListener('click', function(){ count.textContent = (+count.textContent + 1); });
+    document.getElementById('dec').addEventListener('click', function(){ count.textContent = Math.max(0, +count.textContent - 1); });
+    sheet.addEventListener('click', function(e){ if (e.target === sheet) close(); });
+    document.getElementById('pad-exp').addEventListener('click', function(){ entry = String(EXPECTED); val.textContent = entry; });
+    document.querySelectorAll('.grid button').forEach(function(b){
+      b.addEventListener('click', function(){
+        if (b.id === 'pad-ok')  { if (entry !== null && entry !== '') count.textContent = String(+entry); close(); return; }
+        if (b.id === 'pad-del') { entry = (entry === null ? count.textContent : entry).slice(0, -1); val.textContent = entry || '0'; return; }
+        entry = ((entry === null ? '' : entry) + b.textContent.trim()).replace(/^0+(?=\d)/, '');
+        val.textContent = entry;
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
