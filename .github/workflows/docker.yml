@@ -61,7 +61,7 @@ jobs:
             context: src/web/terminal
             dockerfile: src/web/terminal/Dockerfile
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v4
