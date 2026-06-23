@@ -35,14 +35,17 @@ jobs:
           - app: terminal
             dir: src/web/terminal
             build: build:web   # expo export --platform web
+    permissions:
+      contents: read
+      checks: write          # let the test reporter publish a per-test Check run.
     defaults:
       run:
         working-directory: ${{ matrix.dir }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node 20
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -62,8 +65,20 @@ jobs:
       - name: Lint
         run: npm run lint --if-present
 
+      # Only admin has a test:run script; --if-present makes this a no-op for terminal.
+      # The extra args make vitest also emit JUnit for the test reporter below.
       - name: Unit tests
-        run: npm run test:run --if-present
+        run: npm run test:run --if-present -- --reporter=default --reporter=junit --outputFile=test-results/vitest-junit.xml
+
+      # Per-test pass/fail Check from the vitest JUnit output (admin only).
+      - name: Publish test report
+        if: ${{ !cancelled() && matrix.app == 'admin' }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: Frontend tests (admin)
+          path: ${{ matrix.dir }}/test-results/vitest-junit.xml
+          reporter: java-junit
+          fail-on-error: false
 
       - name: Build
         run: npm run ${{ matrix.build }}

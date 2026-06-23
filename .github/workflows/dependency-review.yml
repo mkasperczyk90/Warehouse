@@ -1,0 +1,25 @@
+name: Dependency review
+
+# On every PR, flag dependencies that introduce known vulnerabilities or disallowed licenses
+# (reads the GitHub dependency graph — covers both NuGet and npm). No deployment.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # post the findings summary as a PR comment
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure

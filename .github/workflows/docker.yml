@@ -36,6 +36,9 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # upload the Trivy SARIF to the Security tab.
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +64,7 @@ jobs:
             context: src/web/terminal
             dockerfile: src/web/terminal/Dockerfile
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v4
@@ -72,6 +75,40 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
+          load: true             # keep the image locally so it can be scanned below.
           tags: warehouse-${{ matrix.name }}:ci
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,scope=${{ matrix.name }},mode=max
+
+      # Scan the built image for known CVEs. Report-only (exit-code 0) — results land in the
+      # Security tab via SARIF rather than blocking the build; tighten exit-code later to gate.
+      - name: Scan image (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: warehouse-${{ matrix.name }}:ci
+          format: sarif
+          output: trivy-${{ matrix.name }}.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Upload Trivy results
+        if: ${{ !cancelled() }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-${{ matrix.name }}.sarif
+          category: trivy-${{ matrix.name }}
+
+      # Software bill of materials for the image — useful artifact for supply-chain auditing.
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: warehouse-${{ matrix.name }}:ci
+          format: spdx-json
+          output-file: sbom-${{ matrix.name }}.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-${{ matrix.name }}
+          path: sbom-${{ matrix.name }}.spdx.json
+          if-no-files-found: warn

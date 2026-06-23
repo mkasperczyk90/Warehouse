@@ -11,6 +11,8 @@ updates:
         patterns: ['*']
 
   # The two SPAs and the two e2e harnesses each have their own lockfile.
+  # Group aggressively so a weekly run lands ~2 PRs per directory (safe vs. breaking),
+  # not one-per-package: minor/patch in one PR, the riskier majors batched in another.
   - package-ecosystem: npm
     directories:
       - '/src/web/admin'
@@ -23,9 +25,14 @@ updates:
     groups:
       npm-minor-patch:
         update-types: ['minor', 'patch']
+      npm-major:
+        update-types: ['major']
 
-  # Keep the workflow actions themselves current.
+  # Keep the workflow actions themselves current — all action bumps in a single PR.
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']

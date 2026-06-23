@@ -38,8 +38,11 @@ jobs:
   build-test:
     name: Build & test
     runs-on: ubuntu-latest   # Docker is preinstalled here — the integration tests need it (Testcontainers).
+    permissions:
+      contents: read
+      checks: write          # let the test reporter publish a per-test Check run.
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup .NET (from global.json)
         uses: actions/setup-dotnet@v5
@@ -60,15 +63,38 @@ jobs:
       - name: Build (Release, warnings-as-errors)
         run: dotnet build Warehouse.slnx -c Release --no-restore
 
-      # To also collect coverage, add the `coverlet.collector` package to the test projects
-      # and append: --collect "XPlat Code Coverage"
       - name: Test (unit + architecture + integration)
         run: >
           dotnet test Warehouse.slnx -c Release --no-build
-          --logger "trx;LogFileName=test-results.trx"
+          --logger trx
+          --collect "XPlat Code Coverage"
           --results-directory ${{ github.workspace }}/TestResults
 
-      - name: Upload test results
+      # Surfaces a per-test pass/fail Check (with failure annotations on the PR) from the TRX files,
+      # so you can see which tests broke without downloading the artifact. Runs even when tests fail.
+      - name: Publish test report
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: Backend tests
+          path: TestResults/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      # Turn the cobertura output (from coverlet.collector) into a markdown table on the run's summary page.
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: ${{ github.workspace }}/TestResults/**/coverage.cobertura.xml
+          targetdir: ${{ github.workspace }}/coveragereport
+          reporttypes: MarkdownSummaryGithub
+
+      - name: Append coverage to job summary
+        if: ${{ !cancelled() }}
+        run: cat ${{ github.workspace }}/coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload test results & coverage
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
@@ -93,7 +119,7 @@ jobs:
           - name: logistics-api
             project: src/Services/Logistics/Warehouse.Logistics.Api/Warehouse.Logistics.Api.csproj
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup .NET (from global.json)
         uses: actions/setup-dotnet@v5
