@@ -1,0 +1,36 @@
+name: Secret scan
+
+# Scans commit history for leaked secrets (API keys, tokens, credentials) and fails on a find.
+# Free for personal-account repos — no license needed. (An organization-owned repo would require a
+# free key passed as the GITLEAKS_LICENSE secret.)
+on:
+  push:
+    branches: [main]
+  pull_request:            # covers feature branches before merge
+  schedule:
+    - cron: '0 5 * * 1'    # weekly full sweep, Monday 05:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: gitleaks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # comment on the PR when a leak is found
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0      # full history so gitleaks can scan every commit, not just the tip
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
