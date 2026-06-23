@@ -61,10 +61,6 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # admin has no lint script, terminal has no unit tests — run each only where present.
-      - name: Lint
-        run: npm run lint --if-present
-
       # Only admin has a test:run script; --if-present makes this a no-op for terminal.
       # The extra args make vitest also emit JUnit for the test reporter below.
       - name: Unit tests

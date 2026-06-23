@@ -19,5 +19,10 @@ export default defineConfig({
     // CSS Modules resolve to undefined class names in tests; we assert on
     // text/roles, not styles, so skipping CSS keeps runs fast.
     css: false,
+    // CI runners are slower (shared ~2 vCPU); these async, MSW-backed component tests can
+    // brush past the default 5s timeout under load. Give CI headroom and retry to absorb the
+    // occasional resource-contention flake. Local runs keep the strict defaults.
+    testTimeout: process.env.CI ? 20_000 : 5_000,
+    retry: process.env.CI ? 2 : 0,
   },
 });

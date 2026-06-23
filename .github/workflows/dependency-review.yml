@@ -14,12 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write   # post the findings summary as a PR comment
     steps:
       - uses: actions/checkout@v7
 
+      # Findings land in the job summary + the check. We don't post a PR comment: on Dependabot
+      # PRs the GITHUB_TOKEN is read-only, so commenting would just fail there.
+      # NOTE: requires "Dependency graph" enabled in repo Settings → Code security.
       - name: Dependency review
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
-          comment-summary-in-pr: on-failure
