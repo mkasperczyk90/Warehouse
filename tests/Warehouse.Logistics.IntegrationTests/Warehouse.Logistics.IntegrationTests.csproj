@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SharedKernel\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Warehouse.Contracts\Warehouse.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Services\Logistics\Modules\Warehouse.Logistics.Core\Warehouse.Logistics.Core.csproj" />
+  </ItemGroup>
+
+</Project>

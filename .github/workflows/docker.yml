@@ -1,0 +1,77 @@
+name: Docker images
+
+# Validates that every app's Dockerfile builds (backend services + both SPAs).
+# Images are built with buildx + layer cache but NOT pushed anywhere — this is a
+# build gate, not a deployment.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '**/Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/docker.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - '**/Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/docker.yml'
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Backend services build from the repo root (cross-project references + Directory.*.props).
+          - name: gateway
+            context: .
+            dockerfile: src/Gateway/Warehouse.Gateway/Dockerfile
+          - name: masterdata-api
+            context: .
+            dockerfile: src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile
+          - name: warehousing-api
+            context: .
+            dockerfile: src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile
+          - name: logistics-api
+            context: .
+            dockerfile: src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile
+          # SPAs build from their own directory.
+          - name: admin
+            context: src/web/admin
+            dockerfile: src/web/admin/Dockerfile
+          - name: terminal
+            context: src/web/terminal
+            dockerfile: src/web/terminal/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.name }} image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: warehouse-${{ matrix.name }}:ci
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max

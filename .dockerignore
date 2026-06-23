@@ -1,0 +1,15 @@
+# Backend service images build from the repository root (their projects reference SharedKernel,
+# Contracts, ServiceDefaults and sibling modules across directories). Keep that context lean.
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.expo
+**/.vite
+**/.vs
+**/.git
+**/.github
+**/TestResults
+**/*.user
+docs
+tests

@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # .NET — central package management (Directory.Packages.props at the root).
+  - package-ecosystem: nuget
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      dotnet:
+        patterns: ['*']
+
+  # The two SPAs and the two e2e harnesses each have their own lockfile.
+  - package-ecosystem: npm
+    directories:
+      - '/src/web/admin'
+      - '/src/web/terminal'
+      - '/tests/e2e/admin'
+      - '/tests/e2e/terminal'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types: ['minor', 'patch']
+
+  # Keep the workflow actions themselves current.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly

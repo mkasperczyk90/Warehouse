@@ -1,13 +1,13 @@
-using Warehouse.Logistics.Core.Application.CancelOrder;
-using Warehouse.Logistics.Core.Application.ConfirmDispatch;
-using Warehouse.Logistics.Core.Application.ConfirmPick;
-using Warehouse.Logistics.Core.Application.CreateOutboundOrder;
-using Warehouse.Logistics.Core.Application.GetOrder;
-using Warehouse.Logistics.Core.Application.GetPickList;
-using Warehouse.Logistics.Core.Application.ListOrders;
-using Warehouse.Logistics.Core.Application.MarkPacked;
-using Warehouse.Logistics.Core.Application.ReportShortPick;
-using Warehouse.Logistics.Core.Application.StartPicking;
+using Warehouse.Logistics.Core.Application.Orders.CancelOrder;
+using Warehouse.Logistics.Core.Application.Orders.ConfirmDispatch;
+using Warehouse.Logistics.Core.Application.PickLists.ConfirmPick;
+using Warehouse.Logistics.Core.Application.Orders.CreateOutboundOrder;
+using Warehouse.Logistics.Core.Application.Orders.GetOrder;
+using Warehouse.Logistics.Core.Application.PickLists.GetPickList;
+using Warehouse.Logistics.Core.Application.Orders.ListOrders;
+using Warehouse.Logistics.Core.Application.Orders.MarkPacked;
+using Warehouse.Logistics.Core.Application.PickLists.ReportShortPick;
+using Warehouse.Logistics.Core.Application.Orders.StartPicking;
 using Warehouse.Logistics.Core.Domain;
 
 namespace Warehouse.Logistics.Api;

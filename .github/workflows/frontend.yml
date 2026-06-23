@@ -1,0 +1,76 @@
+name: Frontend
+
+# The two SPAs (admin = Vite/React, terminal = Expo/React Native Web). Per app:
+# typecheck, lint/unit-test where the script exists, then build the static bundle
+# (MSW worker generated first) and upload dist/ as an artifact. No deployment.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/frontend.yml'
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: admin
+            dir: src/web/admin
+            build: build       # tsc --noEmit && vite build
+          - app: terminal
+            dir: src/web/terminal
+            build: build:web   # expo export --platform web
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.dir }}/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Generates public/mockServiceWorker.js (gitignored) so the built bundle can boot MSW.
+      - name: Generate MSW worker
+        run: npm run mock:init
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # admin has no lint script, terminal has no unit tests — run each only where present.
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Unit tests
+        run: npm run test:run --if-present
+
+      - name: Build
+        run: npm run ${{ matrix.build }}
+
+      - name: Upload build
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-${{ matrix.app }}-dist
+          path: ${{ matrix.dir }}/dist
+          if-no-files-found: error

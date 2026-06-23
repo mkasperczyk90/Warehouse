@@ -38,6 +38,10 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Warehouse.ArchitectureTests/Warehouse.ArchitectureTests.csproj" />
+    <Project Path="tests/Warehouse.Logistics.IntegrationTests/Warehouse.Logistics.IntegrationTests.csproj" />
+    <Project Path="tests/Warehouse.Logistics.Tests/Warehouse.Logistics.Tests.csproj" />
     <Project Path="tests/Warehouse.SharedKernel.Tests/Warehouse.SharedKernel.Tests.csproj" />
+    <Project Path="tests/Warehouse.Warehousing.IntegrationTests/Warehouse.Warehousing.IntegrationTests.csproj" />
+    <Project Path="tests/Warehouse.Warehousing.Tests/Warehouse.Warehousing.Tests.csproj" />
   </Folder>
 </Solution>

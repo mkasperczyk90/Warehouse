@@ -1,12 +1,12 @@
 ---
 name: add-terminal-e2e-test
-description: Add or extend playwright-bdd end-to-end coverage for the Warehouse operator terminal (src/e2e/terminal) — a Gherkin .feature + step definitions + a Page Object + fixture wiring, following the suite's conventions and use cases (docs/03-use-cases.md). Use when covering a terminal screen, flow, exception, or new mutation in e2e, or when a terminal change needs its tests updated.
+description: Add or extend playwright-bdd end-to-end coverage for the Warehouse operator terminal (tests/e2e/terminal) — a Gherkin .feature + step definitions + a Page Object + fixture wiring, following the suite's conventions and use cases (docs/03-use-cases.md). Use when covering a terminal screen, flow, exception, or new mutation in e2e, or when a terminal change needs its tests updated.
 ---
 
 # Add a terminal e2e test
 
-Recipe for `src/e2e/terminal` (playwright-bdd driving the terminal's **web** target). Read
-[`src/e2e/terminal/README.md`](../../../src/e2e/terminal/README.md) first. The pieces connect as:
+Recipe for `tests/e2e/terminal` (playwright-bdd driving the terminal's **web** target). Read
+[`tests/e2e/terminal/README.md`](../../../tests/e2e/terminal/README.md) first. The pieces connect as:
 `.feature` (Gherkin, the source of truth) → `e2e/steps/*.steps.ts` (`createBdd(test)`) → `e2e/pages/*.ts`
 (Page Object Model — all locators/assertions) → `fixtures/index.ts` (each POM injected as a fixture).
 `bddgen` generates Playwright specs into `.features-gen/` (gitignored); the npm scripts run it first.
@@ -50,7 +50,7 @@ Mirror an existing one of the same shape: task screen → `PutAwayPage`/`MovePag
 
 ## Finish
 
-Run `npm test` from `src/e2e/terminal` (`bddgen` + `playwright test`; it boots Expo web on :8081
+Run `npm test` from `tests/e2e/terminal` (`bddgen` + `playwright test`; it boots Expo web on :8081
 automatically). `npm run test:headed` to watch it drive, `npm run report` for the HTML report. Update the
 README's **feature table** and **use-case coverage** section. If chromium is missing,
 `npx playwright install chromium`.

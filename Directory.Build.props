@@ -12,10 +12,13 @@
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
-  <!-- Test projects: relax doc/analyzer noise -->
-  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+  <!-- Test projects: relax doc/analyzer noise (covers *.Tests and ArchitectureTests) -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);CA1707</NoWarn> <!-- underscores in test method names -->
+    <!-- CA1707: underscores in test method names; xUnit1051: a CancellationToken on every
+         in-memory call adds noise without buying cancellation responsiveness in unit tests;
+         CA1816: xUnit's IAsyncLifetime.DisposeAsync is not the IDisposable pattern CA1816 targets. -->
+    <NoWarn>$(NoWarn);CA1707;xUnit1051;CA1816</NoWarn>
   </PropertyGroup>
 
 </Project>

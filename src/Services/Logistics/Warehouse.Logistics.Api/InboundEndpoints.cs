@@ -1,12 +1,12 @@
-using Warehouse.Logistics.Core.Application.AnnounceDelivery;
-using Warehouse.Logistics.Core.Application.AssignDockSlot;
-using Warehouse.Logistics.Core.Application.CancelDelivery;
-using Warehouse.Logistics.Core.Application.ConfirmReceipt;
-using Warehouse.Logistics.Core.Application.GetDelivery;
-using Warehouse.Logistics.Core.Application.ListDeliveries;
-using Warehouse.Logistics.Core.Application.RecordReceiptLine;
-using Warehouse.Logistics.Core.Application.RegisterArrival;
-using Warehouse.Logistics.Core.Application.StartReceiving;
+using Warehouse.Logistics.Core.Application.Deliveries.AnnounceDelivery;
+using Warehouse.Logistics.Core.Application.Deliveries.AssignDockSlot;
+using Warehouse.Logistics.Core.Application.Deliveries.CancelDelivery;
+using Warehouse.Logistics.Core.Application.Deliveries.ConfirmReceipt;
+using Warehouse.Logistics.Core.Application.Deliveries.GetDelivery;
+using Warehouse.Logistics.Core.Application.Deliveries.ListDeliveries;
+using Warehouse.Logistics.Core.Application.Deliveries.RecordReceiptLine;
+using Warehouse.Logistics.Core.Application.Deliveries.RegisterArrival;
+using Warehouse.Logistics.Core.Application.Deliveries.StartReceiving;
 using Warehouse.Logistics.Core.Domain;
 
 namespace Warehouse.Logistics.Api;

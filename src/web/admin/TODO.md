@@ -161,7 +161,7 @@ The app already calls `fetch` through the single `src/core/api/client.ts` seam; 
       container, so wide tables scroll within their panel instead of clipping (Inbound/Outbound master-detail).
 - [ ] **Kanban columns unequal height** (Dispatch) — make columns `min-height`/stretch so the grey panels align.
 - [ ] **Pagination footer on tiny tables** — hide it when `total ≤ pageSize` (noise on embedded line tables).
-- [ ] **E2E smoke** (optional) — a Playwright happy-path click-through (mirrors `src/e2e/terminal`).
+- [ ] **E2E smoke** (optional) — a Playwright happy-path click-through (mirrors `tests/e2e/terminal`).
 - [ ] More test depth where logic is thin today: Stock empty-state, error states per screen, i18n
       language switch.
 
