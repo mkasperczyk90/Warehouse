@@ -38,11 +38,7 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 const ROOM_TYPES: RoomType[] = ['cold', 'freezer', 'standard', 'hazmat', 'dock'];
-const WAREHOUSES = [
-  { id: 'WH-01', name: 'WH-01 Wrocław' },
-  { id: 'WH-02', name: 'WH-02 Poznań' },
-];
-const emptyRoom = () => ({ name: '', warehouse: 'WH-01', type: 'cold' as RoomType, tempMin: 2, tempMax: 6 });
+const emptyRoom = () => ({ code: '', warehouse: '', type: 'cold' as RoomType, tempMin: 2, tempMax: 6 });
 
 export function TopologyScreen() {
   const { t } = useTranslation();
@@ -51,6 +47,10 @@ export function TopologyScreen() {
 
   const firstRoom = useMemo(
     () => tree.data?.find((n) => n.kind === 'room')?.id ?? null,
+    [tree.data],
+  );
+  const warehouseOptions = useMemo(
+    () => (tree.data ?? []).filter((n) => n.kind === 'warehouse').map((n) => ({ id: n.id, label: n.label })),
     [tree.data],
   );
   const selectedId = selected ?? firstRoom;
@@ -76,7 +76,7 @@ export function TopologyScreen() {
 
   const submitAddRoom = () => {
     addRoom.mutate(
-      { ...roomForm, name: roomForm.name.trim() },
+      { ...roomForm, code: roomForm.code.trim() },
       {
         onSuccess: (data) => {
           setRoomOpen(false);
@@ -116,7 +116,7 @@ export function TopologyScreen() {
             type="button"
             className={styles.addRoom}
             onClick={() => {
-              setRoomForm(emptyRoom());
+              setRoomForm({ ...emptyRoom(), warehouse: warehouseOptions[0]?.id ?? '' });
               setRoomOpen(true);
             }}
           >
@@ -150,12 +150,12 @@ export function TopologyScreen() {
 
       <Modal open={roomOpen} title={t('topology.addRoom.title')} onClose={() => setRoomOpen(false)}>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>{t('topology.addRoom.name')}</span>
+          <span className={styles.fieldLabel}>{t('topology.addRoom.code')}</span>
           <input
             className={styles.input}
-            value={roomForm.name}
-            aria-label={t('topology.addRoom.name')}
-            onChange={(e) => setRoomForm((f) => ({ ...f, name: e.target.value }))}
+            value={roomForm.code}
+            aria-label={t('topology.addRoom.code')}
+            onChange={(e) => setRoomForm((f) => ({ ...f, code: e.target.value }))}
           />
         </label>
         <label className={styles.field}>
@@ -166,9 +166,9 @@ export function TopologyScreen() {
             aria-label={t('topology.addRoom.warehouse')}
             onChange={(e) => setRoomForm((f) => ({ ...f, warehouse: e.target.value }))}
           >
-            {WAREHOUSES.map((w) => (
+            {warehouseOptions.map((w) => (
               <option key={w.id} value={w.id}>
-                {w.name}
+                {w.label}
               </option>
             ))}
           </select>
@@ -217,7 +217,7 @@ export function TopologyScreen() {
           <button
             type="button"
             className={styles.primary}
-            disabled={!roomForm.name.trim() || addRoom.isPending}
+            disabled={!roomForm.code.trim() || addRoom.isPending}
             onClick={submitAddRoom}
           >
             {t('topology.addRoom.submit')}

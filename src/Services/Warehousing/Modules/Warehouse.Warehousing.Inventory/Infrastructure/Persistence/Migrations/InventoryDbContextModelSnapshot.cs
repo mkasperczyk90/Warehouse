@@ -135,11 +135,25 @@ namespace Warehouse.Warehousing.Inventory.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(12,3)")
                         .HasColumnName("max_load_kg");
 
+                    b.Property<string>("Room")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("room");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("Warehouse")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("warehouse");
+
                     b.HasKey("Code");
+
+                    b.HasIndex("Warehouse", "Room");
 
                     b.ToTable("location_snapshots", "inventory");
                 });
@@ -168,6 +182,12 @@ namespace Warehouse.Warehousing.Inventory.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsHazardous")
                         .HasColumnType("boolean")
                         .HasColumnName("is_hazardous");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<bool>("RequiresColdChain")
                         .HasColumnType("boolean")
@@ -331,6 +351,55 @@ namespace Warehouse.Warehousing.Inventory.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrderRef");
 
                     b.ToTable("stock_reservations", "inventory");
+                });
+
+            modelBuilder.Entity("Warehouse.Warehousing.Inventory.Domain.Stocktake", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("approved_at");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("label");
+
+                    b.Property<string>("OrderedBy")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("ordered_by");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("scope");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("stocktakes", "inventory");
                 });
 
             modelBuilder.Entity("Warehouse.Warehousing.Inventory.Domain.HandlingUnit", b =>
@@ -662,6 +731,113 @@ namespace Warehouse.Warehousing.Inventory.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Quantity")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Warehouse.Warehousing.Inventory.Domain.Stocktake", b =>
+                {
+                    b.OwnsMany("Warehouse.Warehousing.Inventory.Domain.CountLine", "Lines", b1 =>
+                        {
+                            b1.Property<Guid>("stocktake_id")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<string>("Batch")
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("batch");
+
+                            b1.Property<string>("CountedBy")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("counted_by");
+
+                            b1.Property<string>("Location")
+                                .IsRequired()
+                                .HasMaxLength(60)
+                                .HasColumnType("character varying(60)")
+                                .HasColumnName("location");
+
+                            b1.Property<string>("Sku")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("sku");
+
+                            b1.HasKey("stocktake_id", "Id");
+
+                            b1.ToTable("stocktake_count_lines", "inventory");
+
+                            b1.WithOwner()
+                                .HasForeignKey("stocktake_id");
+
+                            b1.OwnsOne("Warehouse.SharedKernel.ValueObjects.Quantity", "Counted", b2 =>
+                                {
+                                    b2.Property<Guid>("CountLinestocktake_id")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("CountLineId")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<decimal>("Amount")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("numeric(18,3)")
+                                        .HasColumnName("counted_amount");
+
+                                    b2.Property<string>("Unit")
+                                        .IsRequired()
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("counted_unit");
+
+                                    b2.HasKey("CountLinestocktake_id", "CountLineId");
+
+                                    b2.ToTable("stocktake_count_lines", "inventory");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("CountLinestocktake_id", "CountLineId");
+                                });
+
+                            b1.OwnsOne("Warehouse.SharedKernel.ValueObjects.Quantity", "Expected", b2 =>
+                                {
+                                    b2.Property<Guid>("CountLinestocktake_id")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("CountLineId")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<decimal>("Amount")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("numeric(18,3)")
+                                        .HasColumnName("expected_amount");
+
+                                    b2.Property<string>("Unit")
+                                        .IsRequired()
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("expected_unit");
+
+                                    b2.HasKey("CountLinestocktake_id", "CountLineId");
+
+                                    b2.ToTable("stocktake_count_lines", "inventory");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("CountLinestocktake_id", "CountLineId");
+                                });
+
+                            b1.Navigation("Counted")
+                                .IsRequired();
+
+                            b1.Navigation("Expected")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Lines");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,28 +8,33 @@ using Warehouse.Warehousing.Inventory.Domain.Replicas;
 namespace Warehouse.Warehousing.Inventory.Application.Consumers;
 
 /// <summary>
-/// Projects the Catalog's <see cref="ProductDefinedV1"/> into Inventory's local
-/// <see cref="ProductSnapshot"/> (ADR-0003). The V1 event is intentionally minimal, so the
-/// dimensional fields the put-away policy would use (unit weight/volume, temperature range) are
-/// seeded with neutral defaults until a richer product event ships; the flags it does carry
-/// (cold-chain, hazardous, batch-tracked) are projected faithfully.
+/// Projects the Catalog's <see cref="ProductDefinedV2"/> into Inventory's local
+/// <see cref="ProductSnapshot"/> (ADR-0003). V2 carries the unit footprint (weight + volume) and the
+/// required temperature range, so the put-away policy now validates cold chain and capacity from real
+/// data — no longer neutral defaults. Idempotent: a redelivery re-applies the same projection.
 /// </summary>
 public sealed class ProductDefinedConsumer(IProductSnapshotRepository products, IUnitOfWork unitOfWork)
 {
-    public async Task Handle(ProductDefinedV1 message, CancellationToken cancellationToken)
+    public async Task Handle(ProductDefinedV2 message, CancellationToken cancellationToken)
     {
         var sku = Sku.Of(message.Sku);
         var unit = UnitOfMeasure.FromCode(message.BaseUnit);
+        var unitWeight = Weight.FromKilograms(message.UnitWeightKg);
+        var unitVolume = Volume.FromCubicMeters(message.UnitVolumeM3);
+        var requiredTemperature = message is { MinCelsius: { } min, MaxCelsius: { } max }
+            ? TemperatureRange.Of(min, max)
+            : null;
         var existing = await products.FindAsync(sku, cancellationToken);
 
         if (existing is null)
         {
             products.Add(new ProductSnapshot(
                 sku,
+                message.Name,
                 unit,
-                Weight.FromKilograms(0),
-                Volume.FromCubicMeters(0),
-                requiredTemperature: null,
+                unitWeight,
+                unitVolume,
+                requiredTemperature,
                 message.RequiresColdChain,
                 message.IsHazardous,
                 message.IsBatchTracked,
@@ -39,10 +44,11 @@ public sealed class ProductDefinedConsumer(IProductSnapshotRepository products, 
         else
         {
             existing.Apply(
+                message.Name,
                 unit,
-                Weight.FromKilograms(0),
-                Volume.FromCubicMeters(0),
-                requiredTemperature: null,
+                unitWeight,
+                unitVolume,
+                requiredTemperature,
                 message.RequiresColdChain,
                 message.IsHazardous,
                 message.IsBatchTracked,

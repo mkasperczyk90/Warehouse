@@ -11,12 +11,12 @@ public sealed class ShipmentTests
     private static readonly PackageDimensions Carton = PackageDimensions.Of(40, 30, 20);
 
     private static Shipment NewShipment() =>
-        Shipment.CreateFor(OrderId.New(), new PartyRoleRef(Guid.NewGuid()));
+        Shipment.CreateFor(OrderId.New(), new PartyRoleRef(Guid.NewGuid().ToString()));
 
     [Fact]
     public void CreateFor_starts_in_Packing_for_the_carrier()
     {
-        var carrier = new PartyRoleRef(Guid.NewGuid());
+        var carrier = new PartyRoleRef(Guid.NewGuid().ToString());
 
         var shipment = Shipment.CreateFor(OrderId.New(), carrier);
 

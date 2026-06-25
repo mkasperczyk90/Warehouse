@@ -82,6 +82,7 @@ internal sealed class OutboundOrderConfiguration : IEntityTypeConfiguration<Outb
         builder.Property(o => o.Warehouse).HasConversion(w => w.Code, v => WarehouseRef.Of(v)).HasColumnName("warehouse_code").HasMaxLength(10);
         builder.Property(o => o.RequiredAt).HasColumnName("required_at");
         builder.Property(o => o.Status).HasConversion<string>().HasColumnName("status").HasMaxLength(20);
+        builder.Property(o => o.Resolution).HasConversion<string>().HasColumnName("resolution").HasMaxLength(16);
 
         builder.OwnsOne(o => o.ShipTo, a =>
         {

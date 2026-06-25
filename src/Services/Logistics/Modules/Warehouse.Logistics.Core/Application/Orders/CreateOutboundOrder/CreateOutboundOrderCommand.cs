@@ -2,7 +2,7 @@ namespace Warehouse.Logistics.Core.Application.Orders.CreateOutboundOrder;
 
 /// <summary>UC-09 — place an outbound order: consignee, ship-to address, warehouse, required date, lines.</summary>
 public sealed record CreateOutboundOrderCommand(
-    Guid CustomerRoleId,
+    string CustomerRoleId,
     OutboundShipTo ShipTo,
     string WarehouseCode,
     DateTimeOffset RequiredAt,

@@ -17,7 +17,7 @@ public sealed class OutboundHandlerTests
 {
     // --- CreateOutboundOrder (UC-09) ----------------------------------------
     private static CreateOutboundOrderCommand CreateCommand(string sku = "SKU-1", decimal qty = 10) => new(
-        Guid.NewGuid(),
+        Guid.NewGuid().ToString(),
         new OutboundShipTo("Main 1", "Wrocław", "50-001", "PL"),
         "WH01",
         DateTimeOffset.UtcNow.AddDays(2),
@@ -61,7 +61,7 @@ public sealed class OutboundHandlerTests
             new FakeOutboundOrderRepository(), new FakeCatalogProductReplica(), Outbox.Create());
 
         var cmd = new CreateOutboundOrderCommand(
-            Guid.NewGuid(), new OutboundShipTo("Main 1", "Wrocław", "50-001", "PL"), "WH01", DateTimeOffset.UtcNow, []);
+            Guid.NewGuid().ToString(), new OutboundShipTo("Main 1", "Wrocław", "50-001", "PL"), "WH01", DateTimeOffset.UtcNow, []);
 
         await Expect.DomainErrorAsync("order_lines_empty", () => handler.HandleAsync(cmd));
     }
@@ -160,7 +160,7 @@ public sealed class OutboundHandlerTests
         var shipments = new FakeShipmentRepository();
         var outbox = Outbox.Create();
         var handler = new ConfirmDispatchHandler(orders, shipments, outbox);
-        var carrier = Guid.NewGuid();
+        var carrier = Guid.NewGuid().ToString();
 
         await handler.HandleAsync(new ConfirmDispatchCommand(order.Id.Value, carrier, "1Z-42", 12.5m));
 
@@ -182,7 +182,7 @@ public sealed class OutboundHandlerTests
         var handler = new ConfirmDispatchHandler(orders, new FakeShipmentRepository(), Outbox.Create());
 
         await Assert.ThrowsAsync<DomainException>(
-            () => handler.HandleAsync(new ConfirmDispatchCommand(order.Id.Value, Guid.NewGuid(), null, 5m)));
+            () => handler.HandleAsync(new ConfirmDispatchCommand(order.Id.Value, Guid.NewGuid().ToString(), null, 5m)));
     }
 
     // --- CancelOrder --------------------------------------------------------

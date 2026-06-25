@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Warehouse.SharedKernel.ValueObjects;
 using Warehouse.Warehousing.Inventory.Domain;
@@ -149,6 +150,53 @@ internal sealed class HandlingUnitConfiguration : IEntityTypeConfiguration<Handl
     }
 }
 
+/// <summary>Stocktake aggregate: a blind count over a set of locations, with its recorded count lines.</summary>
+internal sealed class StocktakeConfiguration : IEntityTypeConfiguration<Stocktake>
+{
+    public void Configure(EntityTypeBuilder<Stocktake> builder)
+    {
+        builder.ToTable("stocktakes");
+        builder.HasKey(s => s.Id);
+        builder.Property(s => s.Id).HasConversion(id => id.Value, v => new StocktakeId(v)).HasColumnName("id");
+        builder.Property(s => s.Label).HasColumnName("label").HasMaxLength(120).IsRequired();
+        builder.Property(s => s.OrderedBy).HasColumnName("ordered_by").HasMaxLength(128).IsRequired();
+        builder.Property(s => s.Status).HasConversion<string>().HasColumnName("status").HasMaxLength(16);
+        builder.Property(s => s.StartedAt).HasColumnName("started_at");
+        builder.Property(s => s.ApprovedAt).HasColumnName("approved_at");
+
+        // Scope is a small set of location codes; persisted as a single joined column (no child table).
+        builder.Property(s => s.Scope)
+            .HasConversion(
+                v => string.Join(',', v.Select(c => c.Value)),
+                s => s.Length == 0
+                    ? new List<LocationCode>()
+                    : s.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(LocationCode.Of).ToList(),
+                new ValueComparer<IReadOnlyCollection<LocationCode>>(
+                    (a, b) => a!.SequenceEqual(b!),
+                    v => v.Aggregate(0, (h, c) => HashCode.Combine(h, c.GetHashCode())),
+                    v => v.ToList()))
+            .HasColumnName("scope")
+            .HasMaxLength(2000);
+
+        builder.OwnsMany(s => s.Lines, l =>
+        {
+            l.ToTable("stocktake_count_lines");
+            l.WithOwner().HasForeignKey("stocktake_id");
+            l.Property(x => x.Location).HasConversion(x => x.Value, v => LocationCode.Of(v)).HasColumnName("location").HasMaxLength(60);
+            l.Property(x => x.Sku).HasConversion(x => x.Value, v => Sku.Of(v)).HasColumnName("sku").HasMaxLength(32);
+            l.Property(x => x.Batch).HasConversion(x => x!.Value, v => BatchNumber.Of(v)).HasColumnName("batch").HasMaxLength(32);
+            l.Property(x => x.CountedBy).HasColumnName("counted_by").HasMaxLength(128).IsRequired();
+            l.OwnsOne(x => x.Counted, q => QuantityMap.Configure(q, "counted"));
+            l.Navigation(x => x.Counted).IsRequired();
+            l.OwnsOne(x => x.Expected, q => QuantityMap.Configure(q, "expected"));
+            l.Navigation(x => x.Expected).IsRequired();
+            l.Ignore(x => x.HasDifference);
+        });
+
+        builder.Property<uint>("xmin").HasColumnType("xid").ValueGeneratedOnAddOrUpdate().IsConcurrencyToken();
+    }
+}
+
 /// <summary>Local replica of the Catalog product card (updated by integration events).</summary>
 internal sealed class ProductSnapshotConfiguration : IEntityTypeConfiguration<ProductSnapshot>
 {
@@ -157,6 +205,7 @@ internal sealed class ProductSnapshotConfiguration : IEntityTypeConfiguration<Pr
         builder.ToTable("product_snapshots");
         builder.HasKey(p => p.Sku);
         builder.Property(p => p.Sku).HasConversion(x => x.Value, v => Sku.Of(v)).HasColumnName("sku").HasMaxLength(32);
+        builder.Property(p => p.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
         builder.Property(p => p.BaseUnit).HasConversion(u => u.Code, c => UnitOfMeasure.FromCode(c)).HasColumnName("base_unit").HasMaxLength(8);
         builder.Property(p => p.UnitWeight).HasConversion(w => w.Kilograms, d => Weight.FromKilograms(d)).HasColumnName("unit_weight_kg").HasPrecision(12, 3);
         builder.Property(p => p.UnitVolume).HasConversion(v => v.CubicMeters, d => Volume.FromCubicMeters(d)).HasColumnName("unit_volume_m3").HasPrecision(12, 4);
@@ -181,6 +230,9 @@ internal sealed class LocationSnapshotConfiguration : IEntityTypeConfiguration<L
         builder.ToTable("location_snapshots");
         builder.HasKey(l => l.Code);
         builder.Property(l => l.Code).HasConversion(x => x.Value, v => LocationCode.Of(v)).HasColumnName("code").HasMaxLength(60);
+        builder.Property(l => l.Warehouse).HasConversion(x => x.Value, v => WarehouseCode.Of(v)).HasColumnName("warehouse").HasMaxLength(10);
+        builder.Property(l => l.Room).HasColumnName("room").HasMaxLength(10);
+        builder.HasIndex(l => new { l.Warehouse, l.Room });
         builder.Property(l => l.IsHazmatZone).HasColumnName("is_hazmat_zone");
         builder.Property(l => l.Capacity).HasConversion(v => v.CubicMeters, d => Volume.FromCubicMeters(d)).HasColumnName("capacity_m3").HasPrecision(12, 4);
         builder.Property(l => l.MaxLoad).HasConversion(w => w.Kilograms, d => Weight.FromKilograms(d)).HasColumnName("max_load_kg").HasPrecision(12, 3);

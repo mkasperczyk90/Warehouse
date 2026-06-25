@@ -9,4 +9,8 @@
     <ProjectReference Include="..\..\ServiceDefaults\Warehouse.ServiceDefaults\Warehouse.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Warehouse.Gateway.Tests" />
+  </ItemGroup>
+
 </Project>

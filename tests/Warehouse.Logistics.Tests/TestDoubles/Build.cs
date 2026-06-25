@@ -17,7 +17,7 @@ internal static class Build
     /// <summary>A freshly created order (status <c>Created</c>) with one line.</summary>
     public static OutboundOrder Order(decimal quantity = 10, string product = "SKU-1") =>
         OutboundOrder.Create(
-            new PartyRoleRef(Guid.NewGuid()),
+            new PartyRoleRef(Guid.NewGuid().ToString()),
             ShipTo(),
             WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow.AddDays(2),
@@ -56,7 +56,7 @@ internal static class Build
     /// <summary>A delivery (status <c>Announced</c>) with one line.</summary>
     public static InboundDelivery Delivery(string product = "SKU-1") =>
         InboundDelivery.Announce(
-            new PartyRoleRef(Guid.NewGuid()),
+            new PartyRoleRef(Guid.NewGuid().ToString()),
             WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow.AddDays(1),
             [(Code(product), Qty(100), null)]);

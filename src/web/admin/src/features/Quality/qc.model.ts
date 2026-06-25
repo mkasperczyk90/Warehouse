@@ -26,7 +26,7 @@ export const QC_REJECT_REASONS = ['failedTemp', 'damaged', 'expired', 'labFail']
 const QC_KEY = ['qc', 'batches'];
 
 export function useQcBatches() {
-  return useQuery({ queryKey: QC_KEY, queryFn: () => api.get<QcBatch[]>('qc/batches') });
+  return useQuery({ queryKey: QC_KEY, queryFn: () => api.get<QcBatch[]>('inventory/qc/batches') });
 }
 
 /**
@@ -47,7 +47,7 @@ export function useQcDecision() {
       decision: QcDecision;
       reason: string;
       note?: string;
-    }) => api.post(`qc/${id}/${decision}`, { reason, note }),
+    }) => api.post(`inventory/qc/${id}/${decision}`, { reason, note }),
     onMutate: async ({ id }) => {
       await qc.cancelQueries({ queryKey: QC_KEY });
       const prev = qc.getQueryData<QcBatch[]>(QC_KEY);

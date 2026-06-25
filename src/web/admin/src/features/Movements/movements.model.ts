@@ -24,6 +24,6 @@ export interface MovementRow {
 export function useMovements() {
   return useQuery({
     queryKey: ['movements'],
-    queryFn: () => api.get<MovementRow[]>('movements'),
+    queryFn: () => api.get<MovementRow[]>('inventory/movements'),
   });
 }

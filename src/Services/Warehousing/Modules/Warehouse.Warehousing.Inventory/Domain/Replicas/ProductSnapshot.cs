@@ -11,6 +11,7 @@ public sealed class ProductSnapshot
 {
     public ProductSnapshot(
         Sku sku,
+        string name,
         UnitOfMeasure baseUnit,
         Weight unitWeight,
         Volume unitVolume,
@@ -22,8 +23,10 @@ public sealed class ProductSnapshot
         DateTimeOffset updatedAt)
     {
         ArgumentNullException.ThrowIfNull(sku);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(baseUnit);
         Sku = sku;
+        Name = name;
         BaseUnit = baseUnit;
         UnitWeight = unitWeight;
         UnitVolume = unitVolume;
@@ -40,6 +43,9 @@ public sealed class ProductSnapshot
     }
 
     public Sku Sku { get; private set; } = null!;
+
+    /// <summary>Display name carried from the Catalog card — what the stock view shows for the product.</summary>
+    public string Name { get; private set; } = null!;
 
     public UnitOfMeasure BaseUnit { get; private set; } = null!;
 
@@ -61,6 +67,7 @@ public sealed class ProductSnapshot
 
     /// <summary>Applies a later projection (ProductDefined/ProductStorageChanged) onto this replica.</summary>
     public void Apply(
+        string name,
         UnitOfMeasure baseUnit,
         Weight unitWeight,
         Volume unitVolume,
@@ -71,7 +78,9 @@ public sealed class ProductSnapshot
         bool hasExpiryDate,
         DateTimeOffset updatedAt)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(baseUnit);
+        Name = name;
         BaseUnit = baseUnit;
         UnitWeight = unitWeight;
         UnitVolume = unitVolume;

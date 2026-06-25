@@ -10,6 +10,6 @@ public sealed record ShipmentDispatchedV1(
     Guid OrderId,
     Guid ShipmentId,
     string WarehouseCode,
-    Guid CarrierRoleId,
+    string CarrierRoleId,
     string? TrackingNumber,
     DateTimeOffset OccurredAt);

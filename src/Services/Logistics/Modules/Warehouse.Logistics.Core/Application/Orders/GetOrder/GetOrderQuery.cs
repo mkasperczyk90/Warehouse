@@ -9,7 +9,7 @@ public sealed record GetOrderQuery(Guid OrderId);
 
 public sealed record OrderDto(
     Guid Id,
-    Guid CustomerRoleId,
+    string CustomerRoleId,
     string WarehouseCode,
     DateTimeOffset RequiredAt,
     string Status,

@@ -28,7 +28,7 @@ public sealed class InboundDeliveryTests
     public void Announce_without_lines_is_rejected()
     {
         Expect.DomainError("delivery_lines_empty", () => InboundDelivery.Announce(
-            new PartyRoleRef(Guid.NewGuid()), WarehouseRef.Of("WH01"), DateTimeOffset.UtcNow, []));
+            new PartyRoleRef(Guid.NewGuid().ToString()), WarehouseRef.Of("WH01"), DateTimeOffset.UtcNow, []));
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class InboundDeliveryTests
     {
         // Two lines; only the first is counted, so the second must be confirmed as a full shortage.
         var delivery = InboundDelivery.Announce(
-            new PartyRoleRef(Guid.NewGuid()), WarehouseRef.Of("WH01"), DateTimeOffset.UtcNow.AddDays(1),
+            new PartyRoleRef(Guid.NewGuid().ToString()), WarehouseRef.Of("WH01"), DateTimeOffset.UtcNow.AddDays(1),
             [(Build.Code("A"), Build.Qty(100), null), (Build.Code("B"), Build.Qty(50), null)]);
         delivery.RegisterArrival();
         delivery.StartReceiving();

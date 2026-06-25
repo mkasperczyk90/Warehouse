@@ -5,14 +5,14 @@ import type { DispatchColumn } from '@/features/Dispatch';
 import type { AsnDetail, AsnSummary } from '@/features/Inbound';
 import type { SoDetail, SoSummary } from '@/features/Outbound';
 import type { MovementRow } from '@/features/Movements';
-import type { ProductDraft, ProductForm, ProductSummary } from '@/features/Products';
+import type { DefineProductForm, Product, ProductSummary, StorageMode } from '@/features/Products';
 import type { QcBatch } from '@/features/Quality';
 import type { Stocktake, StocktakeListItem } from '@/features/Stocktake';
 import type { RoomDetail, TopologyNode } from '@/features/Topology';
 import type { SearchResult } from '@/features/Search';
 import type { Worklist } from '@/features/Today';
 import type { StockItemDetail, StockKpis, StockRow } from '@/features/Stock';
-import type { Warehouse } from '@/features/Warehouses';
+import type { WarehouseSummary } from '@/features/Warehouses';
 import type { CurrentUser } from '@/features/Auth';
 import type { UserProfile } from '@/features/Profile';
 
@@ -25,9 +25,11 @@ import type { UserProfile } from '@/features/Profile';
 // Every operational GET is scoped to the warehouse the desk has selected, which
 // the api client sends as `X-Warehouse-Id`. Master data (products, topology) is
 // cross-warehouse by design and stays global.
-const warehouses: Warehouse[] = [
-  { id: 'WH-01', code: 'WH-01', name: 'Wrocław' },
-  { id: 'WH-02', code: 'WH-02', name: 'Poznań' },
+// Mirrors the Topology backend's `WarehouseSummaryDto` (GET /topology/warehouses). The switcher maps
+// each to { id: code, code, name: city }; the code is the identity sent as `X-Warehouse-Id`.
+const warehouses: WarehouseSummary[] = [
+  { code: 'WH-01', name: 'Wrocław DC', city: 'Wrocław', countryCode: 'PL', roomCount: 3, dockCount: 2, locationCount: 120 },
+  { code: 'WH-02', name: 'Poznań DC', city: 'Poznań', countryCode: 'PL', roomCount: 2, dockCount: 1, locationCount: 80 },
 ];
 
 /** The active warehouse for a request (defaults to WH-01 when the header is absent). */
@@ -550,25 +552,46 @@ let qcBatches: QcBatch[] = [
   { id: 'B-0500', batch: 'LOT-0500-PZ', product: 'Frozen peas 1 kg', sku: '5601012009880', fromReceipt: 'GR-3100 · Wielkopolska', location: 'PZ-QC-HOLD-01', qty: 30, unit: 'ea', status: 'blocked', statusLabel: 'Quarantine' },
 ];
 
-// --- Products (UC-13, admin-4-product) — stateful: create adds to the catalogue
-const productsBySku: Record<string, ProductDraft> = {
-  '4006381333931': { sku: '4006381333931', lastEdited: '2026-05-30', name: 'Whole milk 3.2% — 1 L carton', ean: '4006381333931', category: 'dairy', unit: 'ea', length: 70, width: 70, height: 200, weight: 1_030, packConversion: '1 case = 24 ea (catalog default)', tempMin: 2, tempMax: 6, hazardous: false, batchTracked: true, expiryTracked: true },
-  '5901234123457': { sku: '5901234123457', lastEdited: '2026-05-22', name: 'Greek yoghurt 400 g', ean: '5901234123457', category: 'dairy', unit: 'ea', length: 95, width: 95, height: 60, weight: 410, packConversion: '1 case = 12 ea', tempMin: 2, tempMax: 6, hazardous: false, batchTracked: true, expiryTracked: true },
-  '5900512331027': { sku: '5900512331027', lastEdited: '2026-05-18', name: 'Butter block 250 g', ean: '5900512331027', category: 'dairy', unit: 'ea', length: 110, width: 60, height: 40, weight: 250, packConversion: '1 case = 40 ea', tempMin: 2, tempMax: 6, hazardous: false, batchTracked: true, expiryTracked: true },
-  '5601012009873': { sku: '5601012009873', lastEdited: '2026-04-30', name: 'Frozen berries 1 kg', ean: '5601012009873', category: 'frozen', unit: 'ea', length: 200, width: 140, height: 60, weight: 1_000, packConversion: '1 case = 10 ea', tempMin: -18, tempMax: -18, hazardous: false, batchTracked: true, expiryTracked: true },
-  '5902860004417': { sku: '5902860004417', lastEdited: '2026-05-10', name: 'Cheese wheel 5 kg', ean: '5902860004417', category: 'dairy', unit: 'kg', length: 250, width: 250, height: 120, weight: 5_000, packConversion: '1 pallet = 24 ea', tempMin: 2, tempMax: 8, hazardous: false, batchTracked: true, expiryTracked: true },
-  '5901111000017': { sku: '5901111000017', lastEdited: '2026-03-15', name: 'Cardboard box L', ean: '5901111000017', category: 'packaging', unit: 'ea', length: 600, width: 400, height: 400, weight: 320, packConversion: '1 bale = 25 ea', tempMin: 10, tempMax: 30, hazardous: false, batchTracked: false, expiryTracked: false },
+// --- Products (UC-13, admin-4-product) — stateful: define adds to the catalogue.
+// Shape mirrors the MasterData/Catalog backend DTOs (the contract; ADR-0006).
+const cold = (min: number, max: number): Product['storage'] => ({
+  mode: 'ColdChain',
+  minCelsius: min,
+  maxCelsius: max,
+  requiresColdChain: true,
+  isHazardous: false,
+});
+const ambient: Product['storage'] = {
+  mode: 'Ambient',
+  minCelsius: null,
+  maxCelsius: null,
+  requiresColdChain: false,
+  isHazardous: false,
+};
+const hazmat: Product['storage'] = {
+  mode: 'Hazardous',
+  minCelsius: null,
+  maxCelsius: null,
+  requiresColdChain: false,
+  isHazardous: true,
 };
 
-const toSummary = (p: ProductDraft): ProductSummary => ({
+const catalogBySku: Record<string, Product> = {
+  'MILK-1L': { sku: 'MILK-1L', name: 'Whole milk 3.2% — 1 L carton', ean: '4006381333931', category: 'Refrigerated', dimensions: { lengthCm: 7, widthCm: 7, heightCm: 20 }, unitWeightKg: 1.03, baseUnit: 'pcs', storage: cold(2, 6), isBatchTracked: true, hasExpiryDate: true, unitConversions: [{ unit: 'ctn', factorToBase: 24 }] },
+  'YOG-400': { sku: 'YOG-400', name: 'Greek yoghurt 400 g', ean: '5901234123457', category: 'Refrigerated', dimensions: { lengthCm: 9.5, widthCm: 9.5, heightCm: 6 }, unitWeightKg: 0.41, baseUnit: 'pcs', storage: cold(2, 6), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
+  'BERRY-1KG': { sku: 'BERRY-1KG', name: 'Frozen berries 1 kg', ean: '5601012009873', category: 'Frozen', dimensions: { lengthCm: 20, widthCm: 14, heightCm: 6 }, unitWeightKg: 1, baseUnit: 'pcs', storage: cold(-18, -18), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
+  'CHEESE-5KG': { sku: 'CHEESE-5KG', name: 'Cheese wheel 5 kg', ean: '5902860004417', category: 'Refrigerated', dimensions: { lengthCm: 25, widthCm: 25, heightCm: 12 }, unitWeightKg: 5, baseUnit: 'kg', storage: cold(2, 8), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
+  'SOLV-5L': { sku: 'SOLV-5L', name: 'Cleaning solvent 5 L', ean: null, category: 'Hazardous', dimensions: { lengthCm: 20, widthCm: 20, heightCm: 30 }, unitWeightKg: 5.2, baseUnit: 'l', storage: hazmat, isBatchTracked: true, hasExpiryDate: false, unitConversions: [] },
+  'BOX-L': { sku: 'BOX-L', name: 'Cardboard box L', ean: '5901111000017', category: 'DryGoods', dimensions: { lengthCm: 60, widthCm: 40, heightCm: 40 }, unitWeightKg: 0.32, baseUnit: 'pcs', storage: ambient, isBatchTracked: false, hasExpiryDate: false, unitConversions: [] },
+};
+
+const toSummary = (p: Product): ProductSummary => ({
   sku: p.sku,
   name: p.name,
   category: p.category,
-  unit: p.unit,
-  tempMin: p.tempMin,
-  tempMax: p.tempMax,
-  batchTracked: p.batchTracked,
-  expiryTracked: p.expiryTracked,
+  baseUnit: p.baseUnit,
+  storage: p.storage.mode,
+  isBatchTracked: p.isBatchTracked,
 });
 
 // --- Topology (UC-14, admin-7-topology) ------------------------------------
@@ -646,8 +669,8 @@ function searchAll(query: string, warehouse: string): SearchResult[] {
   const hit = (s: string) => s.toLowerCase().includes(q);
   const out: SearchResult[] = [];
 
-  for (const p of Object.values(productsBySku)) {
-    if ([p.sku, p.name, p.ean].some(hit))
+  for (const p of Object.values(catalogBySku)) {
+    if ([p.sku, p.name, p.ean ?? ''].some(hit))
       out.push({ type: 'product', refId: p.sku, label: p.name, sublabel: `SKU ${p.sku}` });
   }
   for (const r of rows) {
@@ -769,7 +792,6 @@ function buildWorklist(warehouse: string): Worklist {
 
 let asnCounter = 2208;
 let orderCounter = 4472;
-let topoRoomCounter = 0;
 const carrierNames: Record<string, string> = { DH: 'DHL', GL: 'GLS', DP: 'DPD' };
 
 /** Flatten topology rooms into candidate move targets, with each room's type. */
@@ -922,7 +944,7 @@ function orderDto(d: SoDetail) {
 }
 
 export const handlers = [
-  http.get('/api/warehouses', () => HttpResponse.json(warehouses)),
+  http.get('/api/topology/warehouses', () => HttpResponse.json(warehouses)),
   http.post('/api/auth/login', async ({ request }) => {
     const { badge } = (await request.json()) as { badge: string };
     const user = Object.values(users).find((u) => u.badge === badge.trim());
@@ -951,23 +973,23 @@ export const handlers = [
     return HttpResponse.json(user);
   }),
   http.get('/api/worklist', ({ request }) => HttpResponse.json(buildWorklist(wh(request)))),
-  http.get('/api/movements', ({ request }) =>
+  http.get('/api/inventory/movements', ({ request }) =>
     HttpResponse.json(movements.filter((m) => whOf(m.id) === wh(request))),
   ),
-  http.get('/api/locations', () => HttpResponse.json(allLocations())),
+  http.get('/api/inventory/locations', () => HttpResponse.json(allLocations())),
   http.get('/api/search', ({ request }) => {
     const q = new URL(request.url).searchParams.get('q') ?? '';
     return HttpResponse.json(q.trim() ? searchAll(q.trim(), wh(request)) : []);
   }),
-  http.get('/api/stock/kpis', ({ request }) => HttpResponse.json(kpisFor(wh(request)))),
-  http.get('/api/stock/rows', ({ request }) =>
+  http.get('/api/inventory/stock/kpis', ({ request }) => HttpResponse.json(kpisFor(wh(request)))),
+  http.get('/api/inventory/stock/rows', ({ request }) =>
     HttpResponse.json(rows.filter((r) => whOf(r.id) === wh(request))),
   ),
-  http.get('/api/stock/item/:id', ({ params }) => {
+  http.get('/api/inventory/stock/item/:id', ({ params }) => {
     const r = rows.find((x) => x.id === params.id);
     return r ? HttpResponse.json(stockItemDetail(r)) : new HttpResponse(null, { status: 404 });
   }),
-  http.get('/api/stock/by-sku/:sku', ({ params }) =>
+  http.get('/api/inventory/stock/by-sku/:sku', ({ params }) =>
     HttpResponse.json(
       rows
         .filter((r) => r.sku === params.sku)
@@ -981,7 +1003,7 @@ export const handlers = [
         })),
     ),
   ),
-  http.post('/api/stock/item/:id/move', async ({ params, request }) => {
+  http.post('/api/inventory/stock/item/:id/move', async ({ params, request }) => {
     const { toLocation } = (await request.json()) as { toLocation: string };
     const r = rows.find((x) => x.id === params.id);
     if (!r) return new HttpResponse(null, { status: 404 });
@@ -990,7 +1012,7 @@ export const handlers = [
     if (loc) r.room = loc.room;
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('/api/stock/item/:id/block', ({ params }) => {
+  http.post('/api/inventory/stock/item/:id/block', ({ params }) => {
     const r = rows.find((x) => x.id === params.id);
     if (!r) return new HttpResponse(null, { status: 404 });
     r.status = 'blocked';
@@ -1207,8 +1229,8 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.get('/api/adjustments/draft', () => HttpResponse.json(adjustmentDraft)),
-  http.get('/api/adjustments/draft/:id', ({ params }) => {
+  http.get('/api/inventory/adjustments/draft', () => HttpResponse.json(adjustmentDraft)),
+  http.get('/api/inventory/adjustments/draft/:id', ({ params }) => {
     const r = rows.find((x) => x.id === params.id);
     if (!r) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({
@@ -1224,7 +1246,7 @@ export const handlers = [
       unit: r.unit,
     });
   }),
-  http.post('/api/adjustments', async ({ request }) => {
+  http.post('/api/inventory/adjustments', async ({ request }) => {
     const body = (await request.json()) as { newQuantity: number; reason: string };
     return HttpResponse.json({
       itemId: adjustmentDraft.itemId,
@@ -1236,18 +1258,18 @@ export const handlers = [
     });
   }),
 
-  http.get('/api/stocktake', ({ request }) =>
+  http.get('/api/inventory/stocktake', ({ request }) =>
     HttpResponse.json(
       Object.values(stocktakesById)
         .filter((s) => whOf(s.summary.id) === wh(request))
         .map(stocktakeListItem),
     ),
   ),
-  http.get('/api/stocktake/:id', ({ params }) => {
+  http.get('/api/inventory/stocktake/:id', ({ params }) => {
     const s = stocktakesById[params.id as string];
     return s ? HttpResponse.json(s) : new HttpResponse(null, { status: 404 });
   }),
-  http.post('/api/stocktake', async ({ request }) => {
+  http.post('/api/inventory/stocktake', async ({ request }) => {
     const { scope } = (await request.json()) as { scope: string };
     const id = `ST-${++stocktakeCounter}`;
     stocktakesById[id] = {
@@ -1266,25 +1288,106 @@ export const handlers = [
     };
     return HttpResponse.json({ id });
   }),
-  http.post('/api/stocktake/:id/approve', () => HttpResponse.json({ posted: true })),
-  http.post('/api/stocktake/:id/recount', () => new HttpResponse(null, { status: 204 })),
+  http.post('/api/inventory/stocktake/:id/approve', () => HttpResponse.json({ posted: true })),
+  http.post('/api/inventory/stocktake/:id/recount', () => new HttpResponse(null, { status: 204 })),
 
-  http.get('/api/qc/batches', ({ request }) =>
+  http.get('/api/inventory/qc/batches', ({ request }) =>
     HttpResponse.json(qcBatches.filter((b) => whOf(b.id) === wh(request))),
   ),
-  http.post('/api/qc/:id/:decision', ({ params }) => {
+  http.post('/api/inventory/qc/:id/:decision', ({ params }) => {
     qcBatches = qcBatches.filter((b) => b.id !== params.id);
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.get('/api/products', () => HttpResponse.json(Object.values(productsBySku).map(toSummary))),
-  http.get('/api/products/:sku', ({ params }) => {
-    const product = productsBySku[params.sku as string];
+  http.get('/api/catalog/products', ({ request }) => {
+    const category = new URL(request.url).searchParams.get('category');
+    const all = Object.values(catalogBySku).filter((p) => !category || p.category === category);
+    return HttpResponse.json(all.map(toSummary));
+  }),
+  http.get('/api/catalog/products/:sku', ({ params }) => {
+    const product = catalogBySku[params.sku as string];
     return product ? HttpResponse.json(product) : new HttpResponse(null, { status: 404 });
   }),
-  http.post('/api/products', async ({ request }) => {
-    const body = (await request.json()) as ProductForm;
-    productsBySku[body.sku] = { ...body, lastEdited: new Date().toISOString().slice(0, 10) };
+  http.post('/api/catalog/products', async ({ request }) => {
+    const body = (await request.json()) as DefineProductForm;
+    const coldChain = body.storage === 'ColdChain';
+    catalogBySku[body.sku] = {
+      sku: body.sku,
+      name: body.name,
+      ean: body.ean ?? null,
+      category: body.category,
+      dimensions: { lengthCm: body.lengthCm, widthCm: body.widthCm, heightCm: body.heightCm },
+      unitWeightKg: body.unitWeightKg,
+      baseUnit: body.baseUnit,
+      storage: {
+        mode: body.storage,
+        minCelsius: body.minCelsius,
+        maxCelsius: body.maxCelsius,
+        requiresColdChain: coldChain,
+        isHazardous: body.storage === 'Hazardous',
+      },
+      isBatchTracked: body.isBatchTracked,
+      hasExpiryDate: body.hasExpiryDate,
+      unitConversions: [],
+    };
+    return HttpResponse.json({ sku: body.sku }, { status: 201 });
+  }),
+  http.post('/api/catalog/products/import', async ({ request }) => {
+    const { products } = (await request.json()) as { products: DefineProductForm[] };
+    const failed: { sku: string; code: string; message: string }[] = [];
+    let created = 0;
+    for (const body of products) {
+      if (catalogBySku[body.sku]) {
+        failed.push({ sku: body.sku, code: 'product_sku_duplicate', message: `SKU ${body.sku} already exists.` });
+        continue;
+      }
+      const coldChain = body.storage === 'ColdChain';
+      catalogBySku[body.sku] = {
+        sku: body.sku,
+        name: body.name,
+        ean: body.ean ?? null,
+        category: body.category,
+        dimensions: { lengthCm: body.lengthCm, widthCm: body.widthCm, heightCm: body.heightCm },
+        unitWeightKg: body.unitWeightKg,
+        baseUnit: body.baseUnit,
+        storage: {
+          mode: body.storage,
+          minCelsius: body.minCelsius,
+          maxCelsius: body.maxCelsius,
+          requiresColdChain: coldChain,
+          isHazardous: body.storage === 'Hazardous',
+        },
+        isBatchTracked: body.isBatchTracked,
+        hasExpiryDate: body.hasExpiryDate,
+        unitConversions: [],
+      };
+      created++;
+    }
+    return HttpResponse.json({ created, failed });
+  }),
+  http.post('/api/catalog/products/:sku/rename', async ({ params, request }) => {
+    const sku = params.sku as string;
+    const body = (await request.json()) as { name: string };
+    const product = catalogBySku[sku];
+    if (!product) return new HttpResponse(null, { status: 404 });
+    catalogBySku[sku] = { ...product, name: body.name };
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('/api/catalog/products/:sku/storage', async ({ params, request }) => {
+    const sku = params.sku as string;
+    const body = (await request.json()) as { storage: StorageMode; minCelsius: number | null; maxCelsius: number | null };
+    const product = catalogBySku[sku];
+    if (!product) return new HttpResponse(null, { status: 404 });
+    catalogBySku[sku] = {
+      ...product,
+      storage: {
+        mode: body.storage,
+        minCelsius: body.minCelsius,
+        maxCelsius: body.maxCelsius,
+        requiresColdChain: body.storage === 'ColdChain',
+        isHazardous: body.storage === 'Hazardous',
+      },
+    };
     return new HttpResponse(null, { status: 204 });
   }),
 
@@ -1317,14 +1420,23 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   http.post('/api/topology/rooms', async ({ request }) => {
-    const { name, type, tempMin, tempMax, warehouse } = (await request.json()) as {
-      name: string;
+    const { code, type, tempMin, tempMax, warehouse } = (await request.json()) as {
+      code: string;
       type: RoomDetail['type'];
       tempMin: number;
       tempMax: number;
       warehouse: string;
     };
-    const id = `R-${++topoRoomCounter}`;
+    // Rooms are coded in the domain; the friendly name is derived from the type (mirrors the backend).
+    const ROOM_LABEL: Record<RoomDetail['type'], string> = {
+      cold: 'Cold room',
+      freezer: 'Freezer',
+      standard: 'Standard hall',
+      hazmat: 'Hazmat zone',
+      dock: 'Dock',
+    };
+    const name = `${ROOM_LABEL[type]} ${code}`;
+    const id = `${warehouse}:${code}`; // tree node id: "{warehouseCode}:{roomCode}"
     topologyRooms[id] = { id, name, warehouse, type, tempMin, tempMax, shownCount: 0, totalCount: 0, locations: [] };
     const node: TopologyNode = { id, level: 2, label: name, kind: 'room', icon: type, tag: `${tempMin}–${tempMax} °C` };
     const whIdx = topologyTree.findIndex((n) => n.id === warehouse);

@@ -2,10 +2,12 @@ using Warehouse.SharedKernel.Domain;
 
 namespace Warehouse.Logistics.Core.Domain;
 
-/// <summary>Reference to a party role (supplier/customer/carrier) owned by the Partners context.</summary>
-public readonly record struct PartyRoleRef(Guid Value)
+/// <summary>Reference to a party role (supplier/customer/carrier) owned by the Partners context. An
+/// opaque external identifier — a Party-role id in production, a free-text label in dev — so it is
+/// carried as a string rather than a Guid (the desk announces orders before a Partner picker exists).</summary>
+public readonly record struct PartyRoleRef(string Value)
 {
-    public override string ToString() => Value.ToString();
+    public override string ToString() => Value;
 }
 
 /// <summary>Reference to a warehouse owned by the Topology context.</summary>

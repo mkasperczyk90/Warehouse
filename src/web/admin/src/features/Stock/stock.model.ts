@@ -31,14 +31,14 @@ export interface StockKpis {
 export function useStockRows() {
   return useQuery({
     queryKey: ['stock', 'rows'],
-    queryFn: () => api.get<StockRow[]>('stock/rows'),
+    queryFn: () => api.get<StockRow[]>('inventory/stock/rows'),
   });
 }
 
 export function useStockKpis() {
   return useQuery({
     queryKey: ['stock', 'kpis'],
-    queryFn: () => api.get<StockKpis>('stock/kpis'),
+    queryFn: () => api.get<StockKpis>('inventory/stock/kpis'),
   });
 }
 
@@ -72,7 +72,7 @@ export interface StockItemDetail {
 export function useStockItem(id: string | undefined) {
   return useQuery({
     queryKey: ['stock', 'item', id],
-    queryFn: () => api.get<StockItemDetail>(`stock/item/${id}`),
+    queryFn: () => api.get<StockItemDetail>(`inventory/stock/item/${id}`),
     enabled: !!id,
   });
 }
@@ -92,19 +92,19 @@ export interface MoveLocation {
 export function useLocations() {
   return useQuery({
     queryKey: ['locations'],
-    queryFn: () => api.get<MoveLocation[]>('locations'),
+    queryFn: () => api.get<MoveLocation[]>('inventory/locations'),
   });
 }
 
 export function useMoveStock(id: string | undefined) {
   return useMutation({
-    mutationFn: (body: { toLocation: string }) => api.post(`stock/item/${id}/move`, body),
+    mutationFn: (body: { toLocation: string }) => api.post(`inventory/stock/item/${id}/move`, body),
   });
 }
 
 export function useBlockStock(id: string | undefined) {
   return useMutation({
     mutationFn: (body: { reason: BlockReason; note?: string }) =>
-      api.post(`stock/item/${id}/block`, body),
+      api.post(`inventory/stock/item/${id}/block`, body),
   });
 }

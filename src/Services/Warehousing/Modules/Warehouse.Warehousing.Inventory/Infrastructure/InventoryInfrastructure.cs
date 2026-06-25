@@ -16,6 +16,7 @@ public static class InventoryInfrastructure
         services.AddScoped<IBatchRepository, BatchRepository>();
         services.AddScoped<IStockReservationRepository, StockReservationRepository>();
         services.AddScoped<IProductSnapshotRepository, ProductSnapshotRepository>();
+        services.AddScoped<ILocationSnapshotRepository, LocationSnapshotRepository>();
         services.AddScoped<IStockLedger, StockLedger>();
 
         // The DbContext is the unit of work; handlers commit through this port (one transaction).

@@ -21,7 +21,7 @@ gaps explain most of the individual items:
 
 - [x] **Product catalog list** — *done.* `/products` is now a searchable, category-filterable catalogue
       (`ProductCatalogScreen`); rows open `/products/$sku` (edit), `+ New product` → `/products/new`
-      (create, stateful in the mock). Remaining: **CSV bulk import** of master data.
+      (create, stateful in the mock). **CSV bulk import** is now wired too — *done* (see §1 Products).
 - [x] **Front door for Adjustment & Stocktake.** *Done.* Adjustment is reachable from a Stock row →
       `/stock/$id` drill → **Adjust stock** → `/adjustment/$itemId`. Stocktake is now a **list**
       (`/stocktake`) with a **Start count** dialog that creates a counting stocktake (stateful mock) and
@@ -91,7 +91,11 @@ gaps explain most of the individual items:
       `localStorage`. Operational data (stock+KPIs, movements, ASN, orders, dispatch, QC, stocktake,
       worklist, search) is filtered server-side in the MSW handlers (WH-01 + a WH-02 Poznań dataset);
       master data (products, topology) stays cross-warehouse by design. A user menu (My profile / language
-      / **Sign out**) is in the TopBar too. Follow-up: scope `topology`/`locations` move-targets per site.
+      / **Sign out**) is in the TopBar too. The switcher list now speaks the **real** backend contract —
+      `useWarehouses()` calls `topology/warehouses` (Topology `WarehouseSummaryDto`, gateway `/api/topology`),
+      so going live is turning MSW off. Follow-up: the whole topology screen (tree/room **reads + writes**)
+      now speaks the real backend too (see §1 Topology); still open are `occupancy` (needs Inventory) and
+      scoping `topology`/`locations` move-targets per site.
 - [ ] **Audit / history views** — the adjustment banner says "audited" but there's nowhere to see the
       history (who adjusted, who released QC, when).
 
@@ -118,6 +122,91 @@ The app already calls `fetch` through the single `src/core/api/client.ts` seam; 
 - [ ] Reconcile each feature's wire contract with the real endpoints as backend slices land — keep the
       `x.model.ts` types as the contract; adjust fixtures/handlers to match, then remove handlers per
       endpoint as the real one ships.
+      - [x] **Products / Catalog (UC-13)** — *wired.* The catalogue (list + category filter, product card,
+        define, rename, change-storage) speaks the real MasterData endpoints `catalog/products[/{sku}…]`
+        (Catalog `ListProducts`/`GetProduct`/`DefineProduct`/`Rename`/`ChangeStorage`, gateway `/api/catalog`)
+        — the FE `product.model.ts` types are byte-for-byte the backend DTOs/commands, so MSW was already on
+        the same paths. A new **`CatalogSeeder`** (dev-only, idempotent) makes the real list return the six
+        demo cards, replaying them through the import slice so the resulting `ProductDefinedV2` events also
+        seed the Inventory/Logistics replicas. **CSV bulk import** landed as a real backend slice:
+        `POST catalog/products/import` (Catalog `ImportProductsHandler` → per-row `DefineProduct`, isolating
+        bad rows) returns `{ created, failed[] }`; the catalogue's **Import CSV** button parses the file
+        client-side (rejecting malformed-numeric rows before the wire) and shows a per-row result summary.
+        Going live for Products is now just turning MSW off.
+      - [x] **Stock / Inventory projection** — *wired.* The Stock view (rows, KPIs, item drill + movements,
+        ATP-by-SKU) and its row actions (move/block) now speak the real Warehousing endpoints
+        `inventory/stock/*` + `inventory/locations` (Inventory read model `StockOverviewHandler`, gateway
+        `/api/inventory`). MSW handlers were repointed to the same paths so dev/tests stay green against an
+        identical contract; the backend dev seed (`InventorySeeder` + `TopologySeeder`, WH01/WH02) makes the
+        real endpoints return data. Going live for Stock is now just turning MSW off.
+      - [x] **Movements (ledger)** — *wired.* `/api/inventory/movements` projects the immutable
+        `stock_movements` ledger (Inventory `MovementsHandler`) into the admin Movements view — signed qty,
+        UI category + label per movement type, warehouse-scoped. MSW repointed to the same path; the seed
+        now routes stock in the production way (goods receipt → put-away), so the ledger shows two real
+        categories. **Inventory read-side is now backend-real end to end.**
+      - [x] **Adjustments (UC-08)** — *wired.* `inventory/adjustments/draft[/{id}]` (draft from a real stock
+        item) + `POST inventory/adjustments` (Inventory `AdjustStockHandler` → `StockItem.AdjustTo` → one
+        signed ledger entry). Domain invariants enforced (never below zero/allocated, no-op rejected) and
+        surfaced as `DomainException` → HTTP. MSW repointed to the same paths.
+      - [x] **Stocktake (UC-07)** — *wired.* `inventory/stocktake` (list), `/{id}` (review detail), start,
+        approve, recount. The `Stocktake` aggregate is now persisted (new `stocktakes` +
+        `stocktake_count_lines` tables, EF config + migration). **Approve reconciles to the ledger**: each
+        accepted difference line posts a `StockItem.AdjustTo` adjustment, so a count's shortages become real
+        movements (and show up in the Movements view). Seed ships a review-ready count (cold room, −12) and a
+        completed one (freezer). Recount is a no-op ack until the terminal counting workflow lands; the start
+        flow opens a blind count over the warehouse's locations (operators record the counts).
+      - [x] **QC / Quality holds (UC-03)** — *wired.* `inventory/qc/batches` (quarantine worklist, grouped by
+        batch from the held stock) + `POST inventory/qc/{batchId}/{release|reject}` with reason+note. The
+        decision is batch-level (Inventory `QcDecisionHandler`): release lifts the `Batch` hold and frees its
+        quarantined `StockItem`s (→ Available, visible in Stock); reject blocks the batch and its stock.
+        Seed ships two held batches (cheese + a milk lot on QC hold). First move beyond the Inventory
+        read-models into batch-quality writes.
+      - [x] **Inbound deliveries (UC-01/UC-02)** — *wired.* The ASN list, detail (header + dock slot +
+        lines) and read-only receiving-progress view speak the real Logistics endpoints
+        `logistics/deliveries[/{id}…]` (`ListDeliveries`/`GetDelivery`, gateway `/api/logistics`) — the FE
+        `inbound.model.ts` DTOs are byte-for-byte the backend `DeliverySummaryDto`/`DeliveryDto`/
+        `DeliveryLineDto`, and MSW already serves the same paths. Create/dock-slot/arrival post the real
+        commands. A new **`LogisticsSeeder`** (dev-only, idempotent) makes the real list return three
+        announced deliveries (WH01/WH02) over seeded catalog SKUs. Note: the `lines/{id}/resolve`
+        (unknown-SKU) path stays **MSW-only and inert** — the backend rejects unknown SKUs at announce, so
+        no line is ever flagged; it never fires against the real backend.
+      - [x] **Outbound orders (UC-09…UC-12)** — *wired.* The order list, detail (header + ship-to +
+        lines, reservation view derived from status) and the actions (create, decision/split-hold, release
+        to picking, cancel) speak the real `logistics/orders[/{id}…]` endpoints — FE `outbound.model.ts`
+        DTOs equal the backend `OrderSummaryDto`/`OrderDto`/`OrderLineDto`. `LogisticsSeeder` ships two
+        placed orders. **Party identity reconciled:** supplier/customer/carrier role refs are now carried
+        as an opaque **string** (`PartyRoleRef(string)`, commands + `DeliveryDto.SupplierRoleId`/
+        `OrderDto.CustomerRoleId` + the two integration events, EF columns `uuid → text` via the
+        `PartyRoleRefAsString` migration), so the desk's free-text supplier/customer flows end-to-end and
+        the create dialogs work against the real backend (a Partner picker yielding a real Party-role id is
+        the eventual replacement). The split/hold decision still needs a partially-reserved order from the
+        reservation saga to exercise end-to-end (the seed places orders in `Created`).
+      - [x] **Topology tree + room (UC-14)** — *wired (read + write).* A Warehousing read model serves the
+        FE's flat-tree contract: `GET topology/tree` (`GetTopologyTreeHandler` → warehouse + room nodes) and
+        `GET topology/room/{id}` (`GetRoomHandler` → room detail + locations), projecting the seeded
+        `WarehouseSite` aggregates. The FE `topology.model.ts` `TopologyNode`/`RoomDetail`/`LocationRow`
+        types equal the backend DTOs (room node id is `"{warehouseCode}:{roomCode}"`, round-tripped
+        opaquely; MSW serves the same shape, so dev/tests stay green). **Writes wired too:** thin flat-path
+        endpoints split the composite room id and delegate to the warehouse-scoped handlers — add-room
+        (`POST topology/rooms`, FE room-type key → enum), save-room env (`POST topology/room/{id}` →
+        `ChangeRoomEnvironment`; room type is fixed so the FE type field is display-only there), add-location
+        (→ `AddLocation`) and a **new `ChangeLocationCapacity` slice** for edit-location (re-announces the
+        same `LocationDefinedV1` upsert event, so Inventory's `LocationSnapshot` re-rates). The add-room
+        dialog now collects a room **code** (rooms are coded in the domain) and sources its warehouse list
+        from the live tree (real codes), so it posts a payload the backend accepts. `occupied` still reads
+        **"—"**: occupancy is Inventory's stock, not Topology, so it stays blank until a stock-occupancy
+        projection is composed in (the P2 heatmap).
+      - [x] **Worklist + Search (cross-context BFF)** — *wired.* These two need data from several services
+        at once, so they live as a **BFF in the Gateway** (the only place allowed to fan out): minimal-API
+        endpoints `GET /api/worklist` and `GET /api/search` that resolve the service clients by Aspire
+        service discovery (inheriting the standard resilience handler), forward `X-Warehouse-Id`, fetch in
+        parallel **best-effort** (a failing source leaves its section empty), and project with pure,
+        unit-tested mappers (`WorklistMapper`/`SearchMapper`, new `Warehouse.Gateway.Tests`). Worklist
+        aggregates QC + expiring stock (≤7 d) + partial orders + inbound + stocktakes-to-approve; Search
+        spans products, stock, ASN, orders and locations (a new flat `GET topology/locations` read backs the
+        location hits). The FE contract is unchanged (`useWorklist`/`useGlobalSearch` already hit these
+        paths; MSW keeps serving them in dev), so going live is turning MSW off. **Search shipments** join
+        once the dispatch read model lands (below).
 - [ ] Auth: attach the bearer token / session to requests in the seam once Identity is in (out of scope
       in pass 1 per blog #11, but the seam is the single place to add it).
 

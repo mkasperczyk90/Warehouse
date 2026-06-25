@@ -9,7 +9,7 @@ internal static class Sample
 {
     public static OutboundOrder Order(decimal quantity = 10, string sku = "SKU-1", string warehouse = "WH01") =>
         OutboundOrder.Create(
-            new PartyRoleRef(Guid.NewGuid()),
+            new PartyRoleRef(Guid.NewGuid().ToString()),
             Address.Of("Main 1", "Wrocław", "50-001", "PL"),
             WarehouseRef.Of(warehouse),
             DateTimeOffset.UtcNow.AddDays(2),
@@ -18,7 +18,7 @@ internal static class Sample
     public static InboundDelivery DeliveryWithSlot(string dockCode, DateTimeOffset from, DateTimeOffset to)
     {
         var delivery = InboundDelivery.Announce(
-            new PartyRoleRef(Guid.NewGuid()),
+            new PartyRoleRef(Guid.NewGuid().ToString()),
             WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow.AddDays(1),
             [(ProductCode.Of("SKU-1"), Quantity.Of(100, UnitOfMeasure.Piece), null)]);

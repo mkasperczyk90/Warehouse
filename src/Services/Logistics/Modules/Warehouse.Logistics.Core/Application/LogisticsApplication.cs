@@ -13,6 +13,7 @@ using Warehouse.Logistics.Core.Application.PickLists.GetPickList;
 using Warehouse.Logistics.Core.Application.Deliveries.ListDeliveries;
 using Warehouse.Logistics.Core.Application.Orders.ListOrders;
 using Warehouse.Logistics.Core.Application.Orders.MarkPacked;
+using Warehouse.Logistics.Core.Application.Orders.ResolvePartialOrder;
 using Warehouse.Logistics.Core.Application.PickLists.ReportShortPick;
 using Warehouse.Logistics.Core.Application.Deliveries.RecordReceiptLine;
 using Warehouse.Logistics.Core.Application.Deliveries.RegisterArrival;
@@ -45,6 +46,7 @@ public static class LogisticsApplication
         services.AddScoped<MarkPackedHandler>();
         services.AddScoped<ConfirmDispatchHandler>();
         services.AddScoped<CancelOrderHandler>();
+        services.AddScoped<ResolvePartialOrderHandler>();
         services.AddScoped<GetOrderHandler>();
         services.AddScoped<ListOrdersHandler>();
 

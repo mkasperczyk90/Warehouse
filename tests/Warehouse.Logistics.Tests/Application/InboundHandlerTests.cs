@@ -16,7 +16,7 @@ public sealed class InboundHandlerTests
 {
     // --- AnnounceDelivery (UC-01) -------------------------------------------
     private static AnnounceDeliveryCommand AnnounceCommand(string sku = "SKU-1") => new(
-        Guid.NewGuid(),
+        Guid.NewGuid().ToString(),
         "WH01",
         DateTimeOffset.UtcNow.AddDays(1),
         [new AnnounceDeliveryLine(sku, 100, "pcs")]);

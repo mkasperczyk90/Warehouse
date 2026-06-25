@@ -61,11 +61,12 @@ describe('TopologyScreen', () => {
     await screen.findByText('Cold room 1 — WH-01');
 
     await user.click(screen.getByRole('button', { name: 'Add room' }));
-    await user.type(screen.getByLabelText('Room name'), 'Chiller 2');
+    // Rooms are identified by a code; the detail name is derived from the type (default: cold room).
+    await user.type(screen.getByLabelText('Room code'), 'CR2');
     await user.click(screen.getByRole('button', { name: 'Create room' }));
 
-    // The new room is created and selected → its detail header shows.
-    expect(await screen.findByText('Chiller 2 — WH-01')).toBeInTheDocument();
+    // The new room is created and selected → its detail header shows the derived label.
+    expect(await screen.findByText('Cold room CR2 — WH-01')).toBeInTheDocument();
   });
 
   it('saves a room', async () => {

@@ -75,11 +75,12 @@ export function useAddLocation(roomId: string | undefined) {
   });
 }
 
-/** Add a room under a warehouse — a new node in the topology tree (UC-14). */
+/** Add a room under a warehouse — a new node in the topology tree (UC-14). Rooms are identified by a
+ * short code in the domain (e.g. `CR2`); `warehouse` is the tree's warehouse node id. */
 export function useAddRoom() {
   return useMutation({
     mutationFn: (body: {
-      name: string;
+      code: string;
       warehouse: string;
       type: RoomType;
       tempMin: number;

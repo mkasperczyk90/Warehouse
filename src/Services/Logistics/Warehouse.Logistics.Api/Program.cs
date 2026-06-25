@@ -57,7 +57,10 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<LogisticsDbContext>().Database.MigrateAsync();
+    var logistics = scope.ServiceProvider.GetRequiredService<LogisticsDbContext>();
+    await logistics.Database.MigrateAsync();
+    // Seed announced deliveries + placed orders (idempotent) so Inbound/Outbound show real data.
+    await LogisticsSeeder.SeedAsync(logistics);
 }
 
 app.MapInboundEndpoints();

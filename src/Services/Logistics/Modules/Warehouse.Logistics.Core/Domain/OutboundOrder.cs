@@ -38,6 +38,9 @@ public sealed class OutboundOrder : AggregateRoot<OrderId>
 
     public OrderStatus Status { get; private set; }
 
+    /// <summary>How the coordinator resolved a partial reservation (null until a decision is made).</summary>
+    public PartialDecision? Resolution { get; private set; }
+
     public IReadOnlyCollection<OrderLine> Lines => _lines.AsReadOnly();
 
     public static OutboundOrder Create(
@@ -75,6 +78,23 @@ public sealed class OutboundOrder : AggregateRoot<OrderId>
 
         Status = fully ? OrderStatus.Reserved : OrderStatus.PartiallyReserved;
         Raise(new OrderReserved(Id, fully, DateTimeOffset.UtcNow));
+    }
+
+    /// <summary>UC-09 coordinator decision on a partial order: ship the reserved portion now and backorder
+    /// the rest. The available portion proceeds as a normal reserved order.</summary>
+    public void SplitForAvailable()
+    {
+        EnsureStatus(OrderStatus.PartiallyReserved, "split");
+        Status = OrderStatus.Reserved;
+        Resolution = PartialDecision.Split;
+    }
+
+    /// <summary>UC-09 coordinator decision on a partial order: hold the whole order until stock covers it.
+    /// The order stays partially reserved (waiting); only the recorded decision changes.</summary>
+    public void HoldForStock()
+    {
+        EnsureStatus(OrderStatus.PartiallyReserved, "hold");
+        Resolution = PartialDecision.Hold;
     }
 
     public void StartPicking()

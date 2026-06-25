@@ -13,11 +13,12 @@ public sealed class Stocktake : AggregateRoot<StocktakeId>
 {
     private readonly List<CountLine> _lines = [];
 
-    private Stocktake(StocktakeId id, IReadOnlyCollection<LocationCode> scope, string orderedBy)
+    private Stocktake(StocktakeId id, IReadOnlyCollection<LocationCode> scope, string orderedBy, string label)
         : base(id)
     {
         Scope = scope;
         OrderedBy = orderedBy;
+        Label = label;
         Status = StocktakeStatus.Open;
         StartedAt = DateTimeOffset.UtcNow;
     }
@@ -27,6 +28,9 @@ public sealed class Stocktake : AggregateRoot<StocktakeId>
     }
 
     public IReadOnlyCollection<LocationCode> Scope { get; private set; } = [];
+
+    /// <summary>Human description of what the count covers (e.g. "Cold room 1, aisle A") — for the worklist.</summary>
+    public string Label { get; private set; } = null!;
 
     public string OrderedBy { get; private set; } = null!;
 
@@ -38,12 +42,13 @@ public sealed class Stocktake : AggregateRoot<StocktakeId>
 
     public IReadOnlyCollection<CountLine> Lines => _lines.AsReadOnly();
 
-    public static Stocktake Order(IReadOnlyCollection<LocationCode> scope, string orderedBy)
+    public static Stocktake Order(IReadOnlyCollection<LocationCode> scope, string orderedBy, string label)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(orderedBy);
+        ArgumentException.ThrowIfNullOrWhiteSpace(label);
         return scope is null || scope.Count == 0
             ? throw new DomainException("stocktake_scope_empty", "A stocktake needs at least one location to count.")
-            : new Stocktake(StocktakeId.New(), scope, orderedBy);
+            : new Stocktake(StocktakeId.New(), scope, orderedBy, label);
     }
 
     public void RecordCount(LocationCode location, Sku sku, BatchNumber? batch, Quantity counted, Quantity expected, string countedBy)
@@ -94,14 +99,41 @@ public sealed class Stocktake : AggregateRoot<StocktakeId>
     }
 }
 
-/// <summary>One counted position: what was found vs what the system expected.</summary>
-public sealed record CountLine(
-    LocationCode Location,
-    Sku Sku,
-    BatchNumber? Batch,
-    Quantity Counted,
-    Quantity Expected,
-    string CountedBy)
+/// <summary>One counted position: what was found vs what the system expected. A class (not a record) so
+/// EF can materialize its owned <see cref="Quantity"/> values, which can't be constructor parameters.</summary>
+public sealed class CountLine
 {
+    public CountLine(
+        LocationCode location, Sku sku, BatchNumber? batch, Quantity counted, Quantity expected, string countedBy)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(sku);
+        ArgumentNullException.ThrowIfNull(counted);
+        ArgumentNullException.ThrowIfNull(expected);
+        ArgumentException.ThrowIfNullOrWhiteSpace(countedBy);
+        Location = location;
+        Sku = sku;
+        Batch = batch;
+        Counted = counted;
+        Expected = expected;
+        CountedBy = countedBy;
+    }
+
+    private CountLine()
+    {
+    }
+
+    public LocationCode Location { get; private set; } = null!;
+
+    public Sku Sku { get; private set; } = null!;
+
+    public BatchNumber? Batch { get; private set; }
+
+    public Quantity Counted { get; private set; } = null!;
+
+    public Quantity Expected { get; private set; } = null!;
+
+    public string CountedBy { get; private set; } = null!;
+
     public bool HasDifference => Counted != Expected;
 }

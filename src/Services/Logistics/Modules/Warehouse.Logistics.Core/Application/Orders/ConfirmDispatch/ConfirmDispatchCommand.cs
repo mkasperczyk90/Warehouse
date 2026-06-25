@@ -12,7 +12,7 @@ namespace Warehouse.Logistics.Core.Application.Orders.ConfirmDispatch;
 /// <see cref="ShipmentDispatchedV1"/> so Inventory deducts the stock. The order must already be
 /// <c>Packed</c> (UC-11).</summary>
 public sealed record ConfirmDispatchCommand(
-    Guid OrderId, Guid CarrierRoleId, string? TrackingNumber, decimal PackageWeightKg);
+    Guid OrderId, string CarrierRoleId, string? TrackingNumber, decimal PackageWeightKg);
 
 public sealed class ConfirmDispatchHandler(
     IOutboundOrderRepository orders,

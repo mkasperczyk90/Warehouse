@@ -9,7 +9,7 @@ namespace Warehouse.Contracts.Logistics;
 /// </summary>
 public sealed record OutboundOrderPlacedV1(
     Guid OrderId,
-    Guid CustomerRoleId,
+    string CustomerRoleId,
     string WarehouseCode,
     IReadOnlyList<OutboundOrderLineV1> Lines,
     DateTimeOffset OccurredAt);

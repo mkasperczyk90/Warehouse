@@ -9,7 +9,7 @@ public sealed record GetDeliveryQuery(Guid DeliveryId);
 
 public sealed record DeliveryDto(
     Guid Id,
-    Guid SupplierRoleId,
+    string SupplierRoleId,
     string WarehouseCode,
     DateTimeOffset PlannedAt,
     string Status,

@@ -86,9 +86,37 @@ classDiagram
 | A location must have positive capacity | `location_capacity_required` |
 | Deleting a non-empty room/location — application-level policy consulting Inventory (not in the aggregate) | — |
 
-## Domain events
+## Application surface (vertical slices, ADR-0007)
 
-| Event | Raised by | Downstream effect |
+One folder per use case under `Application/Warehouses/`; each handler is resolved directly by a thin
+endpoint (`TopologyEndpoints` → `/topology/warehouses/…`, fronted by the gateway at `/api/topology`).
+
+| Use case | Kind | Route |
 |---|---|---|
-| `LocationDefined(warehouse, room, location, kind, capacity, maxLoad, environment)` | `AddLocation` | Inventory creates/updates `LocationSnapshot` |
-| `RoomEnvironmentChanged(warehouse, room, environment)` | `ChangeRoomEnvironment` | Inventory re-validates stock in that room and reports incompatibilities |
+| `EstablishWarehouse` | command | `POST /topology/warehouses` |
+| `AddRoom` | command | `POST /topology/warehouses/{code}/rooms` |
+| `AddLocation` | command | `POST /topology/warehouses/{code}/rooms/{room}/locations` |
+| `AddDock` | command | `POST /topology/warehouses/{code}/docks` |
+| `ChangeRoomEnvironment` | command | `POST /topology/warehouses/{code}/rooms/{room}/environment` |
+| `ListWarehouses` / `GetWarehouse` | query | `GET /topology/warehouses[/{code}]` |
+
+## Events
+
+In-aggregate **domain events** (raised on `WarehouseSite`, in `Domain/Events`):
+
+| Event | Raised by |
+|---|---|
+| `LocationDefined(warehouse, room, location, kind, capacity, maxLoad, environment)` | `AddLocation` |
+| `RoomEnvironmentChanged(warehouse, room, environment)` | `ChangeRoomEnvironment` |
+
+Published **integration events** (primitives-only `Contracts/Topology`, relayed through the transactional
+outbox to the `topology` fanout exchange — Topology is a producer from here on):
+
+| Event | Published by | Consumed by → effect |
+|---|---|---|
+| `LocationDefinedV1` | `AddLocation` (`IDbContextOutbox<TopologyDbContext>`) | Inventory `LocationProjectionConsumer` upserts a local `LocationSnapshot` |
+| `RoomEnvironmentChangedV1` | `ChangeRoomEnvironment` | Inventory refreshes every `LocationSnapshot` in that room |
+
+Inventory reads that replica — never a cross-service query (ADR-0003): `ConfirmPutAway` runs
+`PutAwayPolicy` against the `LocationSnapshot` (+ Catalog `ProductSnapshot`), so the hard
+temperature/hazmat invariant is enforced at put-away from topology data alone.

@@ -39,7 +39,7 @@ public sealed class OutboundFulfillmentServiceTests
         var foreignPickList = Build.PickListFor(OrderId.New());
 
         Expect.DomainError("picklist_order_mismatch", () => OutboundFulfillmentService.CompletePacking(
-            order, foreignPickList, new PartyRoleRef(Guid.NewGuid())));
+            order, foreignPickList, new PartyRoleRef(Guid.NewGuid().ToString())));
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class OutboundFulfillmentServiceTests
         var pickList = Build.PickListFor(order.Id); // one pending task
 
         Expect.DomainError("picklist_incomplete", () => OutboundFulfillmentService.CompletePacking(
-            order, pickList, new PartyRoleRef(Guid.NewGuid())));
+            order, pickList, new PartyRoleRef(Guid.NewGuid().ToString())));
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class OutboundFulfillmentServiceTests
         var order = Build.PickingOrder();
         var pickList = Build.PickListFor(order.Id);
         pickList.ConfirmPick(1, "alice");
-        var carrier = new PartyRoleRef(Guid.NewGuid());
+        var carrier = new PartyRoleRef(Guid.NewGuid().ToString());
 
         var shipment = OutboundFulfillmentService.CompletePacking(order, pickList, carrier);
 

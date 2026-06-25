@@ -1,6 +1,7 @@
 using Warehouse.SharedKernel.Application;
 using Warehouse.Warehousing.Inventory.Application.Abstractions;
 using Warehouse.Warehousing.Inventory.Domain;
+using Warehouse.Warehousing.Inventory.Domain.Replicas;
 
 namespace Warehouse.Warehousing.Tests.TestDoubles;
 
@@ -80,4 +81,49 @@ internal sealed class FakeStockLedger : IStockLedger
     public IReadOnlyList<StockMovement> Movements => _movements;
 
     public void Append(StockMovement movement) => _movements.Add(movement);
+}
+
+/// <summary>In-memory <see cref="IProductSnapshotRepository"/> for the put-away compatibility check.</summary>
+internal sealed class FakeProductSnapshotRepository : IProductSnapshotRepository
+{
+    private readonly List<ProductSnapshot> _snapshots = [];
+
+    public IReadOnlyList<ProductSnapshot> All => _snapshots;
+
+    public void Seed(params ProductSnapshot[] snapshots) => _snapshots.AddRange(snapshots);
+
+    public Task<ProductSnapshot?> FindAsync(Sku sku, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_snapshots.SingleOrDefault(s => s.Sku == sku));
+
+    public void Add(ProductSnapshot snapshot) => _snapshots.Add(snapshot);
+
+    public void Update(ProductSnapshot snapshot)
+    {
+        // Reference semantics: the instance is already in the list.
+    }
+}
+
+/// <summary>In-memory <see cref="ILocationSnapshotRepository"/> for the location-projection consumer.</summary>
+internal sealed class FakeLocationSnapshotRepository : ILocationSnapshotRepository
+{
+    private readonly List<LocationSnapshot> _snapshots = [];
+
+    public IReadOnlyList<LocationSnapshot> All => _snapshots;
+
+    public void Seed(params LocationSnapshot[] snapshots) => _snapshots.AddRange(snapshots);
+
+    public Task<LocationSnapshot?> FindAsync(LocationCode code, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_snapshots.SingleOrDefault(s => s.Code == code));
+
+    public Task<IReadOnlyCollection<LocationSnapshot>> ListByRoomAsync(
+        WarehouseCode warehouse, string room, CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyCollection<LocationSnapshot>>(
+            _snapshots.Where(s => s.Warehouse == warehouse && s.Room == room).ToList());
+
+    public void Add(LocationSnapshot snapshot) => _snapshots.Add(snapshot);
+
+    public void Update(LocationSnapshot snapshot)
+    {
+        // Reference semantics: the instance is already in the list.
+    }
 }

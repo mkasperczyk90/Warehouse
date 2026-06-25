@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Contracts.Logistics;
+using Warehouse.Contracts.Topology;
 using Warehouse.Warehousing.Api;
 using Warehouse.Warehousing.Inventory.Application;
 using Warehouse.Warehousing.Inventory.Infrastructure;
 using Warehouse.Warehousing.Inventory.Infrastructure.Persistence;
+using Warehouse.Warehousing.Topology.Application;
 using Warehouse.Warehousing.Topology.Infrastructure;
 using Warehouse.Warehousing.Topology.Infrastructure.Persistence;
 using Wolverine;
@@ -18,6 +20,7 @@ builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<TopologyDbContext>("warehouse");
 builder.AddNpgsqlDbContext<InventoryDbContext>("warehouse");
 builder.Services.AddTopologyRepositories();
+builder.Services.AddTopologyApplication();
 builder.Services.AddInventoryRepositories();
 builder.Services.AddInventoryApplication();
 
@@ -33,6 +36,18 @@ builder.AddWarehouseMessaging("warehouse", (opts, rabbit) =>
     rabbit.BindExchange("logistics", ExchangeType.Fanout).ToQueue("warehousing.logistics");
     opts.ListenToRabbitQueue("warehousing.catalog");
     opts.ListenToRabbitQueue("warehousing.logistics");
+
+    // Topology announces locations/room-environment changes; Inventory keeps a LocationSnapshot replica.
+    // Both contexts live in this service, so the stream loops back through its own queue (forward-compatible
+    // with splitting Topology into its own service later).
+    rabbit.BindExchange("topology", ExchangeType.Fanout).ToQueue("warehousing.topology");
+    opts.ListenToRabbitQueue("warehousing.topology");
+
+    // Publish the Topology stream on its own fanout exchange.
+    opts.PublishMessage<LocationDefinedV1>()
+        .ToRabbitExchange("topology", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<RoomEnvironmentChangedV1>()
+        .ToRabbitExchange("topology", e => e.ExchangeType = ExchangeType.Fanout);
 
     // Reply to Logistics: goods received, put-away complete (inbound), and stock reserved (outbound).
     opts.PublishMessage<GoodsReceivedV1>()
@@ -54,15 +69,24 @@ app.UseExceptionHandler();
 
 app.MapDefaultEndpoints();
 
-// Dev convenience: apply migrations on startup. Production uses a migration step in the pipeline.
+// Dev convenience: apply migrations on startup and seed a demo dataset. Production uses a migration
+// step in the pipeline and never seeds.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<TopologyDbContext>().Database.MigrateAsync();
-    await scope.ServiceProvider.GetRequiredService<InventoryDbContext>().Database.MigrateAsync();
+    var topology = scope.ServiceProvider.GetRequiredService<TopologyDbContext>();
+    var inventory = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+    await topology.Database.MigrateAsync();
+    await inventory.Database.MigrateAsync();
+    await TopologySeeder.SeedAsync(topology);
+    await InventorySeeder.SeedAsync(inventory);
 }
 
+app.MapTopologyEndpoints();
 app.MapInventoryEndpoints();
+app.MapStockEndpoints();
+app.MapStocktakeEndpoints();
+app.MapQualityEndpoints();
 
 app.MapGet("/", () => "Warehouse Warehousing API");
 

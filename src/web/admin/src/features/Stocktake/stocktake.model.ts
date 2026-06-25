@@ -56,33 +56,33 @@ export interface ApprovedRow {
 export function useStocktakeList() {
   return useQuery({
     queryKey: ['stocktake', 'list'],
-    queryFn: () => api.get<StocktakeListItem[]>('stocktake'),
+    queryFn: () => api.get<StocktakeListItem[]>('inventory/stocktake'),
   });
 }
 
 export function useStocktake(id: string | undefined) {
   return useQuery({
     queryKey: ['stocktake', 'detail', id],
-    queryFn: () => api.get<Stocktake>(`stocktake/${id}`),
+    queryFn: () => api.get<Stocktake>(`inventory/stocktake/${id}`),
     enabled: !!id,
   });
 }
 
 export function useStartStocktake() {
   return useMutation({
-    mutationFn: (body: { scope: string }) => api.post<{ id: string }>('stocktake', body),
+    mutationFn: (body: { scope: string }) => api.post<{ id: string }>('inventory/stocktake', body),
   });
 }
 
 export function useApproveStocktake(id: string | undefined) {
   return useMutation({
-    mutationFn: (rows: ApprovedRow[]) => api.post(`stocktake/${id}/approve`, { rows }),
+    mutationFn: (rows: ApprovedRow[]) => api.post(`inventory/stocktake/${id}/approve`, { rows }),
   });
 }
 
 /** Re-issue a blind count for the selected (disputed) locations (UC-07). */
 export function useRecountStocktake(id: string | undefined) {
   return useMutation({
-    mutationFn: (rowIds: string[]) => api.post(`stocktake/${id}/recount`, { rows: rowIds }),
+    mutationFn: (rowIds: string[]) => api.post(`inventory/stocktake/${id}/recount`, { rows: rowIds }),
   });
 }

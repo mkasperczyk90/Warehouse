@@ -30,6 +30,14 @@ public enum DiscrepancyType
     Damaged = 3,
 }
 
+/// <summary>The coordinator's call on a partially-reserved order (UC-09): ship what's available now
+/// (split, remainder backordered) or wait for stock to cover the whole order (hold).</summary>
+public enum PartialDecision
+{
+    Split = 0,
+    Hold = 1,
+}
+
 public enum PickTaskStatus
 {
     Pending = 0,

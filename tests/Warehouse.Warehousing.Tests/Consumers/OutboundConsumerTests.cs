@@ -9,7 +9,7 @@ namespace Warehouse.Warehousing.Tests.Consumers;
 public sealed class OutboundConsumerTests
 {
     private static OutboundOrderPlacedV1 Placed(Guid orderId, decimal quantity, string sku = "MILK") => new(
-        orderId, Guid.NewGuid(), Build.Warehouse,
+        orderId, Guid.NewGuid().ToString(), Build.Warehouse,
         [new OutboundOrderLineV1(1, sku, quantity, "pcs")], DateTimeOffset.UtcNow);
 
     // --- ReserveStockConsumer (UC-09, Inventory side) -----------------------
@@ -128,7 +128,7 @@ public sealed class OutboundConsumerTests
         var consumer = new DispatchConsumer(stock, reservations, ledger, uow);
 
         await consumer.Handle(
-            new ShipmentDispatchedV1(orderId, Guid.NewGuid(), Build.Warehouse, Guid.NewGuid(), "1Z-9", DateTimeOffset.UtcNow),
+            new ShipmentDispatchedV1(orderId, Guid.NewGuid(), Build.Warehouse, Guid.NewGuid().ToString(), "1Z-9", DateTimeOffset.UtcNow),
             CancellationToken.None);
 
         Assert.Equal(70, item.OnHand.Amount);          // 100 − 30 picked
@@ -151,7 +151,7 @@ public sealed class OutboundConsumerTests
         var consumer = new DispatchConsumer(stock, reservations, ledger, uow);
 
         await consumer.Handle(
-            new ShipmentDispatchedV1(orderId, Guid.NewGuid(), Build.Warehouse, Guid.NewGuid(), null, DateTimeOffset.UtcNow),
+            new ShipmentDispatchedV1(orderId, Guid.NewGuid(), Build.Warehouse, Guid.NewGuid().ToString(), null, DateTimeOffset.UtcNow),
             CancellationToken.None);
 
         Assert.Equal(100, item.OnHand.Amount);

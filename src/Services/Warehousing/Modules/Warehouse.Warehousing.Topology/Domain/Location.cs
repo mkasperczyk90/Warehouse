@@ -33,4 +33,15 @@ public sealed class Location : Entity<LocationCode>
     public Volume Capacity { get; private set; }
 
     public Weight MaxLoad { get; private set; }
+
+    internal void ChangeCapacity(Volume capacity, Weight maxLoad)
+    {
+        if (capacity == Volume.Zero)
+        {
+            throw new DomainException("location_capacity_required", $"Location {Code} must have a positive capacity.");
+        }
+
+        Capacity = capacity;
+        MaxLoad = maxLoad;
+    }
 }

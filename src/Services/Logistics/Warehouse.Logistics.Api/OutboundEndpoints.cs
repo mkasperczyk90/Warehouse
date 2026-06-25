@@ -6,6 +6,7 @@ using Warehouse.Logistics.Core.Application.Orders.GetOrder;
 using Warehouse.Logistics.Core.Application.PickLists.GetPickList;
 using Warehouse.Logistics.Core.Application.Orders.ListOrders;
 using Warehouse.Logistics.Core.Application.Orders.MarkPacked;
+using Warehouse.Logistics.Core.Application.Orders.ResolvePartialOrder;
 using Warehouse.Logistics.Core.Application.PickLists.ReportShortPick;
 using Warehouse.Logistics.Core.Application.Orders.StartPicking;
 using Warehouse.Logistics.Core.Domain;
@@ -52,6 +53,14 @@ internal static class OutboundEndpoints
         {
             await handler.HandleAsync(
                 new ConfirmDispatchCommand(id, request.CarrierRoleId, request.TrackingNumber, request.PackageWeightKg), ct);
+            return Results.NoContent();
+        });
+
+        // UC-09: resolve a partially-reserved order — split (ship available, backorder rest) or hold (wait).
+        orders.MapPost("/{id:guid}/decision", async (
+            Guid id, OrderDecisionRequest request, ResolvePartialOrderHandler handler, CancellationToken ct) =>
+        {
+            await handler.HandleAsync(new ResolvePartialOrderCommand(id, request.Decision), ct);
             return Results.NoContent();
         });
 
@@ -103,7 +112,9 @@ internal static class OutboundEndpoints
     }
 }
 
-internal sealed record DispatchRequest(Guid CarrierRoleId, string? TrackingNumber, decimal PackageWeightKg);
+internal sealed record DispatchRequest(string CarrierRoleId, string? TrackingNumber, decimal PackageWeightKg);
+
+internal sealed record OrderDecisionRequest(string Decision);
 
 internal sealed record ConfirmPickRequest(string? PickedBy);
 

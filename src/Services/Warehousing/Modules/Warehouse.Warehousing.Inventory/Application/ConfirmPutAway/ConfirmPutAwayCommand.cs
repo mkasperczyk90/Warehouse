@@ -26,6 +26,8 @@ public sealed record ConfirmPutAwayCommand(
 
 public sealed class ConfirmPutAwayHandler(
     IStockItemRepository stockItems,
+    IProductSnapshotRepository products,
+    ILocationSnapshotRepository locations,
     IStockLedger ledger,
     IDbContextOutbox<InventoryDbContext> outbox)
 {
@@ -48,6 +50,8 @@ public sealed class ConfirmPutAwayHandler(
                 "put_away_no_buffer_stock",
                 $"No {sku} {(batch is null ? string.Empty : batch + " ")}in the dock buffer of {command.WarehouseCode}.");
 
+        await EnsureCompatibleAsync(sku, target, quantity, cancellationToken);
+
         var destination = await stockItems.GetAtAsync(sku, batch, target, cancellationToken);
         if (destination is null)
         {
@@ -68,5 +72,51 @@ public sealed class ConfirmPutAwayHandler(
         }
 
         await outbox.SaveChangesAndFlushMessagesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Enforces the hard storage-compatibility invariant (temperature / hazmat / capacity) before the
+    /// stock moves, reading Topology's <c>LocationSnapshot</c> and the Catalog's <c>ProductSnapshot</c>
+    /// replicas — no cross-service query (ADR-0003). A location Topology has not announced cannot be a
+    /// put-away target; an unknown product cannot be validated, so both are rejected rather than waved
+    /// through.
+    /// </summary>
+    private async Task EnsureCompatibleAsync(
+        Sku sku, LocationCode target, Quantity quantity, CancellationToken cancellationToken)
+    {
+        var location = await locations.FindAsync(target, cancellationToken)
+            ?? throw new DomainException(
+                "put_away_location_unknown", $"Location {target} is not known to the warehouse topology.");
+
+        var product = await products.FindAsync(sku, cancellationToken)
+            ?? throw new DomainException(
+                "put_away_product_unknown",
+                $"Product {sku} is not yet known to inventory; cannot validate storage compatibility.");
+
+        // Current occupancy at the target: sum each resident stock line by its product's footprint.
+        var occupiedVolume = Volume.Zero;
+        var occupiedWeight = Weight.Zero;
+        foreach (var item in await stockItems.ListAtAsync(target, cancellationToken))
+        {
+            if (item.OnHand.IsZero)
+            {
+                continue;
+            }
+
+            var resident = item.Sku == sku ? product : await products.FindAsync(item.Sku, cancellationToken);
+            if (resident is null)
+            {
+                continue;
+            }
+
+            occupiedVolume += Volume.FromCubicMeters(resident.UnitVolume.CubicMeters * item.OnHand.Amount);
+            occupiedWeight += Weight.FromKilograms(resident.UnitWeight.Kilograms * item.OnHand.Amount);
+        }
+
+        var check = PutAwayPolicy.CanStore(product, location, quantity, occupiedVolume, occupiedWeight);
+        if (!check.IsAllowed)
+        {
+            throw new DomainException("put_away_incompatible", check.RejectionReason!);
+        }
     }
 }

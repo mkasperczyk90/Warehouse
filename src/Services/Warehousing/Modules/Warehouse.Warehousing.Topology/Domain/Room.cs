@@ -46,4 +46,12 @@ public sealed class Room : Entity<RoomCode>
         ArgumentNullException.ThrowIfNull(environment);
         Environment = environment;
     }
+
+    internal Location ChangeLocationCapacity(LocationCode code, Volume capacity, Weight maxLoad)
+    {
+        var location = _locations.SingleOrDefault(l => l.Code == code)
+            ?? throw new DomainException("location_not_found", $"Location {code} does not exist in room {Code}.");
+        location.ChangeCapacity(capacity, maxLoad);
+        return location;
+    }
 }

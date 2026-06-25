@@ -7,8 +7,8 @@ import type { StatusVariant } from '@/shared/ui';
  * UC-09…UC-12 — Outbound orders (admin-5-outbound), talking to the Logistics service directly:
  * `logistics/orders/...`. The backend models the order lifecycle (reservations live in Inventory and
  * are not composed here), so the reservation view is derived from the order STATUS and product names
- * fall back to codes. Split/hold (decision) and the per-location ATP drill have no backend yet and
- * stay on their mock routes.
+ * fall back to codes. Split/hold (decision) is backend-real (split → Reserved, hold → stays
+ * PartiallyReserved); the per-location ATP drill still has no order-backend and stays on its mock route.
  */
 
 // ---- Backend DTOs ----------------------------------------------------------
@@ -182,7 +182,8 @@ export function useCreateOrder() {
 
 export type OrderDecision = 'split' | 'hold';
 
-/** Resolve a partial/waiting order — split or hold (UC-09). No backend yet; handled by the mock. */
+/** Resolve a partial/waiting order — split (ship available, backorder rest → Reserved) or hold (wait →
+ * stays partially reserved) (UC-09). Backed by `logistics/orders/{id}/decision`. */
 export function useDecideOrder(id: string | null | undefined) {
   return useMutation({
     mutationFn: (body: { decision: OrderDecision }) => api.post(`logistics/orders/${id}/decision`, body),
@@ -216,7 +217,7 @@ export interface AtpRow {
 export function useSkuStock(sku: string | null | undefined) {
   return useQuery({
     queryKey: ['stock', 'by-sku', sku],
-    queryFn: () => api.get<AtpRow[]>(`stock/by-sku/${sku}`),
+    queryFn: () => api.get<AtpRow[]>(`inventory/stock/by-sku/${sku}`),
     enabled: !!sku,
   });
 }

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SharedKernel\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Warehouse.Contracts\Warehouse.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Services\MasterData\Modules\Warehouse.MasterData.Catalog\Warehouse.MasterData.Catalog.csproj" />
+  </ItemGroup>
+
+</Project>

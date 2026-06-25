@@ -15,7 +15,7 @@ import { DispatchScreen } from '@/features/Dispatch';
 import { StocktakeListScreen, StocktakeReviewRoute } from '@/features/Stocktake';
 import { AdjustmentScreen, AdjustmentRoute } from '@/features/Adjustment';
 import { QualityScreen } from '@/features/Quality';
-import { ProductCatalogScreen, ProductEditScreen, ProductEditRoute } from '@/features/Products';
+import { ProductCatalogScreen, ProductDetailRoute } from '@/features/Products';
 import { TopologyScreen } from '@/features/Topology';
 import { ProfileScreen } from '@/features/Profile';
 import { ROUTES } from '@/navigation/routes';
@@ -116,16 +116,10 @@ const productsRoute = createRoute({
   component: ProductCatalogScreen,
 });
 
-const productNewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/products/new',
-  component: ProductEditScreen,
-});
-
-const productEditRoute = createRoute({
+const productDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/products/$sku',
-  component: ProductEditRoute,
+  component: ProductDetailRoute,
 });
 
 const topologyRoute = createRoute({
@@ -156,8 +150,7 @@ const routeTree = rootRoute.addChildren([
   adjustmentItemRoute,
   qualityRoute,
   productsRoute,
-  productNewRoute,
-  productEditRoute,
+  productDetailRoute,
   topologyRoute,
   profileRoute,
 ]);

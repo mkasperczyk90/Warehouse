@@ -48,13 +48,15 @@ export function useAdjustmentDraft(itemId?: string) {
   return useQuery({
     queryKey: ['adjustment', 'draft', itemId ?? 'default'],
     queryFn: () =>
-      api.get<AdjustmentDraft>(itemId ? `adjustments/draft/${itemId}` : 'adjustments/draft'),
+      api.get<AdjustmentDraft>(
+        itemId ? `inventory/adjustments/draft/${itemId}` : 'inventory/adjustments/draft',
+      ),
   });
 }
 
 export function usePostAdjustment() {
   return useMutation({
     mutationFn: (body: AdjustmentForm & { itemId: string }) =>
-      api.post<AdjustmentResult>('adjustments', body),
+      api.post<AdjustmentResult>('inventory/adjustments', body),
   });
 }

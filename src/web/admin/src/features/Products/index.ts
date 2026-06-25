@@ -1,13 +1,19 @@
 export { ProductCatalogScreen } from './ProductCatalogScreen';
-export { ProductEditScreen, ProductEditRoute } from './ProductEditScreen';
+export { ProductDetailScreen, ProductDetailRoute } from './ProductDetailScreen';
 export {
   useProductList,
   useProduct,
-  useSaveProduct,
-  productSchema,
+  useDefineProduct,
+  useRenameProduct,
+  useChangeStorage,
+  defineProductSchema,
   PRODUCT_CATEGORIES,
   PRODUCT_UNITS,
-  type ProductDraft,
-  type ProductForm,
+  STORAGE_MODES,
+  type Product,
   type ProductSummary,
+  type ProductCategory,
+  type ProductUnit,
+  type StorageMode,
+  type DefineProductForm,
 } from './product.model';

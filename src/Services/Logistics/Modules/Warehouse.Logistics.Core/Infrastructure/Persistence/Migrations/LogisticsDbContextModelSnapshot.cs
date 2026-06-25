@@ -39,8 +39,9 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
 
-                    b.Property<Guid>("Supplier")
-                        .HasColumnType("uuid")
+                    b.Property<string>("Supplier")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("supplier_role_id");
 
                     b.Property<string>("Warehouse")
@@ -66,13 +67,19 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("Customer")
-                        .HasColumnType("uuid")
+                    b.Property<string>("Customer")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("customer_role_id");
 
                     b.Property<DateTimeOffset>("RequiredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("required_at");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("resolution");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -152,8 +159,9 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("Carrier")
-                        .HasColumnType("uuid")
+                    b.Property<string>("Carrier")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("carrier_role_id");
 
                     b.Property<DateTimeOffset?>("DispatchedAt")
@@ -600,6 +608,40 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("shipment_id");
+
+                            b1.OwnsOne("Warehouse.Logistics.Core.Domain.PackageDimensions", "Dimensions", b2 =>
+                                {
+                                    b2.Property<Guid>("Packageshipment_id")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("PackageNumber")
+                                        .HasColumnType("integer");
+
+                                    b2.Property<decimal>("HeightCm")
+                                        .HasPrecision(10, 2)
+                                        .HasColumnType("numeric(10,2)")
+                                        .HasColumnName("height_cm");
+
+                                    b2.Property<decimal>("LengthCm")
+                                        .HasPrecision(10, 2)
+                                        .HasColumnType("numeric(10,2)")
+                                        .HasColumnName("length_cm");
+
+                                    b2.Property<decimal>("WidthCm")
+                                        .HasPrecision(10, 2)
+                                        .HasColumnType("numeric(10,2)")
+                                        .HasColumnName("width_cm");
+
+                                    b2.HasKey("Packageshipment_id", "PackageNumber");
+
+                                    b2.ToTable("packages", "logistics");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("Packageshipment_id", "PackageNumber");
+                                });
+
+                            b1.Navigation("Dimensions")
+                                .IsRequired();
                         });
 
                     b.Navigation("Packages");

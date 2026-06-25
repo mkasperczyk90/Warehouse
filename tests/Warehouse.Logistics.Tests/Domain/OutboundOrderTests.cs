@@ -12,7 +12,7 @@ public sealed class OutboundOrderTests
     public void Create_starts_in_Created_numbers_lines_and_raises_event()
     {
         var order = OutboundOrder.Create(
-            new PartyRoleRef(Guid.NewGuid()),
+            new PartyRoleRef(Guid.NewGuid().ToString()),
             Build.ShipTo(),
             WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow.AddDays(2),
@@ -27,7 +27,7 @@ public sealed class OutboundOrderTests
     public void Create_without_lines_is_rejected()
     {
         Expect.DomainError("order_lines_empty", () => OutboundOrder.Create(
-            new PartyRoleRef(Guid.NewGuid()), Build.ShipTo(), WarehouseRef.Of("WH01"),
+            new PartyRoleRef(Guid.NewGuid().ToString()), Build.ShipTo(), WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow, []));
     }
 
@@ -35,7 +35,7 @@ public sealed class OutboundOrderTests
     public void Create_line_with_zero_quantity_is_rejected()
     {
         Expect.DomainError("order_line_zero", () => OutboundOrder.Create(
-            new PartyRoleRef(Guid.NewGuid()), Build.ShipTo(), WarehouseRef.Of("WH01"),
+            new PartyRoleRef(Guid.NewGuid().ToString()), Build.ShipTo(), WarehouseRef.Of("WH01"),
             DateTimeOffset.UtcNow, [(Build.Code(), Quantity.Zero(UnitOfMeasure.Piece))]));
     }
 

@@ -96,6 +96,13 @@ public sealed class WarehouseSite : AggregateRoot<WarehouseCode>
         Raise(new RoomEnvironmentChanged(Code, room.Code, environment, DateTimeOffset.UtcNow));
     }
 
+    public Location ChangeLocationCapacity(RoomCode roomCode, LocationCode code, Volume capacity, Weight maxLoad)
+    {
+        ArgumentNullException.ThrowIfNull(roomCode);
+        ArgumentNullException.ThrowIfNull(code);
+        return GetRoom(roomCode).ChangeLocationCapacity(code, capacity, maxLoad);
+    }
+
     private Room GetRoom(RoomCode roomCode) =>
         _rooms.SingleOrDefault(r => r.Code == roomCode)
         ?? throw new DomainException("room_not_found", $"Room {roomCode} does not exist in warehouse {Code}.");

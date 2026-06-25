@@ -2,7 +2,7 @@ namespace Warehouse.Logistics.Core.Application.Deliveries.AnnounceDelivery;
 
 /// <summary>UC-01 — announce an inbound delivery (ASN): supplier, target warehouse, planned date, lines.</summary>
 public sealed record AnnounceDeliveryCommand(
-    Guid SupplierRoleId,
+    string SupplierRoleId,
     string WarehouseCode,
     DateTimeOffset PlannedAt,
     IReadOnlyList<AnnounceDeliveryLine> Lines);

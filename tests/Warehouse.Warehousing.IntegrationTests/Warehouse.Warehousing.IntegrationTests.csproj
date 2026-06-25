@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SharedKernel\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\Services\Warehousing\Modules\Warehouse.Warehousing.Inventory\Warehouse.Warehousing.Inventory.csproj" />
+    <ProjectReference Include="..\..\src\Services\Warehousing\Modules\Warehouse.Warehousing.Topology\Warehouse.Warehousing.Topology.csproj" />
   </ItemGroup>
 
 </Project>
