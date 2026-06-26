@@ -16,9 +16,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Both contexts share the Warehousing database ("warehouse"), each in its own schema.
-builder.AddNpgsqlDbContext<TopologyDbContext>("warehouse");
-builder.AddNpgsqlDbContext<InventoryDbContext>("warehouse");
+// Both contexts share the Warehousing database ("warehouse"), each in its own schema. Retry is disabled:
+// command handlers open their own transaction via the Wolverine outbox (SaveChangesAndFlushMessagesAsync),
+// which an Npgsql retrying execution strategy refuses ("does not support user-initiated transactions").
+// Durability is covered by the durable outbox + Wolverine's message-level retries instead.
+builder.AddNpgsqlDbContext<TopologyDbContext>("warehouse", settings => settings.DisableRetry = true);
+builder.AddNpgsqlDbContext<InventoryDbContext>("warehouse", settings => settings.DisableRetry = true);
 builder.Services.AddTopologyRepositories();
 builder.Services.AddTopologyApplication();
 builder.Services.AddInventoryRepositories();

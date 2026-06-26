@@ -22,6 +22,10 @@
     <PackageReference Include="WolverineFx.EntityFrameworkCore" />
     <PackageReference Include="WolverineFx.Postgresql" />
     <PackageReference Include="WolverineFx.RabbitMQ" />
+    <!-- Registers the Roslyn runtime compiler Wolverine 6 no longer bundles (TypeLoadMode.Dynamic). -->
+    <PackageReference Include="WolverineFx.RuntimeCompilation" />
+    <!-- Adds a readiness health check for the RabbitMQ broker (AddRabbitMQClient in AddWarehouseMessaging). -->
+    <PackageReference Include="Aspire.RabbitMQ.Client" />
   </ItemGroup>
 
 </Project>

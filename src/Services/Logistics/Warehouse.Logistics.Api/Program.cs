@@ -12,8 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Logistics owns its own database ("logistics", ADR: database-per-service).
-builder.AddNpgsqlDbContext<LogisticsDbContext>("logistics");
+// Logistics owns its own database ("logistics", ADR: database-per-service). Retry is disabled: command
+// handlers open their own transaction via the Wolverine outbox (SaveChangesAndFlushMessagesAsync), which
+// an Npgsql retrying execution strategy refuses ("does not support user-initiated transactions").
+// Durability is covered by the durable outbox + Wolverine's message-level retries instead.
+builder.AddNpgsqlDbContext<LogisticsDbContext>("logistics", settings => settings.DisableRetry = true);
 builder.Services.AddLogisticsRepositories();
 builder.Services.AddLogisticsApplication();
 

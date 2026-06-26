@@ -58,6 +58,11 @@ public static class MessagingExtensions
             configure(opts, rabbit);
         });
 
+        // Surface the broker in readiness: Wolverine owns its own RabbitMQ connection and does not register
+        // a health check, so without this a service reports Healthy while unable to relay the outbox. The
+        // Aspire client adds a "rabbitmq" connectivity check to /health (untagged → not part of /alive).
+        builder.AddRabbitMQClient("rabbitmq");
+
         // Dev: let Wolverine create its message-store tables and provision the RabbitMQ topology on startup.
         if (builder.Environment.IsDevelopment())
         {

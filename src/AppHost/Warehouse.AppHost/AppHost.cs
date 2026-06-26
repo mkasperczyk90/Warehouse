@@ -25,7 +25,11 @@ var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26
     .WithBindMount(
         "../../Identity/keycloak-badge-authenticator/target/badge-authenticator.jar",
         "/opt/keycloak/providers/badge-authenticator.jar")
-    .WithArgs("start-dev", "--import-realm");
+    .WithArgs("start-dev", "--import-realm")
+    // Readiness: the realm's OIDC discovery doc only returns 200 once 'warehouse' has finished importing,
+    // so dependents that WaitFor(keycloak) (the gateway) hold until tokens can actually be issued/validated,
+    // not merely until the container is running.
+    .WithHttpHealthCheck("/realms/warehouse/.well-known/openid-configuration", endpointName: "http");
 
 var masterData = builder.AddProject<Projects.Warehouse_MasterData_Api>("masterdata-api")
     .WithReference(masterDataDb).WaitFor(masterDataDb)

@@ -11,6 +11,9 @@
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.3" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.4.3" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.4.3" />
+    <!-- Client-side RabbitMQ integration: registers a readiness health check for the broker (the outbox
+         relay's transport), which Wolverine's own UseRabbitMq connection does not surface. -->
+    <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.4.3" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <!-- ServiceDefaults: telemetry, resilience, service discovery -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
@@ -33,6 +36,9 @@
     <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="6.9.0" />
     <PackageVersion Include="WolverineFx.Postgresql" Version="6.9.0" />
     <PackageVersion Include="WolverineFx.RabbitMQ" Version="6.9.0" />
+    <!-- Wolverine 6 split the Roslyn runtime compiler out of core; without it Wolverine's default
+         TypeLoadMode.Dynamic has no IAssemblyGenerator and fails at startup (GH-2876). -->
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.9.0" />
     <PackageVersion Include="MassTransit" Version="8.5.10" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.5.10" />
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.10" />
