@@ -20,12 +20,7 @@ const STATE_VARIANT: Record<StocktakeState, StatusVariant> = {
   completed: 'available',
 };
 
-const SCOPES = [
-  'Cold room 1, aisle A',
-  'Cold room 1, aisle B',
-  'Freezer 1',
-  'Standard hall A',
-];
+const SCOPES = ['Cold room 1, aisle A', 'Cold room 1, aisle B', 'Freezer 1', 'Standard hall A'];
 
 export function StocktakeListScreen() {
   const { t } = useTranslation();
@@ -113,7 +108,11 @@ export function StocktakeListScreen() {
         )}
       </div>
 
-      <Modal open={startOpen} title={t('stocktake.start.title')} onClose={() => setStartOpen(false)}>
+      <Modal
+        open={startOpen}
+        title={t('stocktake.start.title')}
+        onClose={() => setStartOpen(false)}
+      >
         <label className={styles.field}>
           <span className={styles.fieldLabel}>{t('stocktake.start.scopeLabel')}</span>
           <select
@@ -134,7 +133,12 @@ export function StocktakeListScreen() {
           <button type="button" className={styles.ghost} onClick={() => setStartOpen(false)}>
             {t('stocktake.start.cancel')}
           </button>
-          <button type="button" className={styles.primary} disabled={start.isPending} onClick={onStart}>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={start.isPending}
+            onClick={onStart}
+          >
             {t('stocktake.start.start')}
           </button>
         </div>

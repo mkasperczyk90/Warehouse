@@ -67,7 +67,11 @@ export function DispatchScreen() {
                 : undefined;
           const shipments = col.shipments.filter(matches);
           return (
-            <BoardColumn key={col.key} title={t(`dispatch.col.${col.key}`)} count={shipments.length}>
+            <BoardColumn
+              key={col.key}
+              title={t(`dispatch.col.${col.key}`)}
+              count={shipments.length}
+            >
               {shipments.map((ship) => (
                 <ShipmentCard
                   key={ship.id}
@@ -87,7 +91,9 @@ export function DispatchScreen() {
       <Modal open={!!pending} title={t('dispatch.assign.title')} onClose={() => setPending(null)}>
         {pending ? (
           <>
-            <p className={styles.dialogShip}>{pending.id} · {pending.customer}</p>
+            <p className={styles.dialogShip}>
+              {pending.id} · {pending.customer}
+            </p>
             <label className={styles.field}>
               <span className={styles.fieldLabel}>{t('dispatch.assign.carrier')}</span>
               <select

@@ -83,6 +83,7 @@ export function useApproveStocktake(id: string | undefined) {
 /** Re-issue a blind count for the selected (disputed) locations (UC-07). */
 export function useRecountStocktake(id: string | undefined) {
   return useMutation({
-    mutationFn: (rowIds: string[]) => api.post(`inventory/stocktake/${id}/recount`, { rows: rowIds }),
+    mutationFn: (rowIds: string[]) =>
+      api.post(`inventory/stocktake/${id}/recount`, { rows: rowIds }),
   });
 }

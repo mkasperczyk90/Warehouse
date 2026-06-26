@@ -2,23 +2,19 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   redirect,
 } from '@tanstack/react-router';
 
 import { AppShell } from '@/shared/layout/AppShell';
-import { TodayScreen } from '@/features/Today';
-import { MovementsScreen } from '@/features/Movements';
-import { StockScreen, StockItemRoute } from '@/features/Stock';
-import { InboundScreen, ReceivingRoute } from '@/features/Inbound';
-import { OutboundScreen } from '@/features/Outbound';
-import { DispatchScreen } from '@/features/Dispatch';
-import { StocktakeListScreen, StocktakeReviewRoute } from '@/features/Stocktake';
-import { AdjustmentScreen, AdjustmentRoute } from '@/features/Adjustment';
-import { QualityScreen } from '@/features/Quality';
-import { ProductCatalogScreen, ProductDetailRoute } from '@/features/Products';
-import { TopologyScreen } from '@/features/Topology';
-import { ProfileScreen } from '@/features/Profile';
 import { ROUTES } from '@/navigation/routes';
+import { validateSelectionSearch } from '@/navigation/search';
+import { validateStockSearch } from '@/features/Stock/stock.search';
+
+// Each screen is loaded on demand (its own chunk) — the initial bundle is just
+// the shell + router. `defaultPreload: 'intent'` warms the chunk on hover/focus,
+// so navigation still feels instant. The shell stays eager (it frames everything).
+const lazy = lazyRouteComponent;
 
 const rootRoute = createRootRoute({ component: AppShell });
 
@@ -35,103 +31,107 @@ const indexRoute = createRoute({
 const todayRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.today,
-  component: TodayScreen,
+  component: lazy(() => import('@/features/Today'), 'TodayScreen'),
 });
 
 const stockRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.stock,
-  component: StockScreen,
+  validateSearch: validateStockSearch,
+  component: lazy(() => import('@/features/Stock'), 'StockScreen'),
 });
 
 const stockItemRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/stock/$id',
-  component: StockItemRoute,
+  component: lazy(() => import('@/features/Stock'), 'StockItemRoute'),
 });
 
 const movementsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.movements,
-  component: MovementsScreen,
+  component: lazy(() => import('@/features/Movements'), 'MovementsScreen'),
 });
 
 const inboundRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.inbound,
-  component: InboundScreen,
+  validateSearch: validateSelectionSearch,
+  component: lazy(() => import('@/features/Inbound'), 'InboundScreen'),
 });
 
 const receivingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/inbound/$id/receiving',
-  component: ReceivingRoute,
+  component: lazy(() => import('@/features/Inbound'), 'ReceivingRoute'),
 });
 
 const outboundRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.outbound,
-  component: OutboundScreen,
+  validateSearch: validateSelectionSearch,
+  component: lazy(() => import('@/features/Outbound'), 'OutboundScreen'),
 });
 
 const dispatchRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.dispatch,
-  component: DispatchScreen,
+  component: lazy(() => import('@/features/Dispatch'), 'DispatchScreen'),
 });
 
 const stocktakeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.stocktake,
-  component: StocktakeListScreen,
+  component: lazy(() => import('@/features/Stocktake'), 'StocktakeListScreen'),
 });
 
 const stocktakeReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/stocktake/$id',
-  component: StocktakeReviewRoute,
+  component: lazy(() => import('@/features/Stocktake'), 'StocktakeReviewRoute'),
 });
 
 const adjustmentRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.adjustment,
-  component: AdjustmentScreen,
+  component: lazy(() => import('@/features/Adjustment'), 'AdjustmentScreen'),
 });
 
 const adjustmentItemRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/adjustment/$itemId',
-  component: AdjustmentRoute,
+  component: lazy(() => import('@/features/Adjustment'), 'AdjustmentRoute'),
 });
 
 const qualityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.quality,
-  component: QualityScreen,
+  component: lazy(() => import('@/features/Quality'), 'QualityScreen'),
 });
 
 const productsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.products,
-  component: ProductCatalogScreen,
+  component: lazy(() => import('@/features/Products'), 'ProductCatalogScreen'),
 });
 
 const productDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/products/$sku',
-  component: ProductDetailRoute,
+  component: lazy(() => import('@/features/Products'), 'ProductDetailRoute'),
 });
 
 const topologyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.topology,
-  component: TopologyScreen,
+  validateSearch: validateSelectionSearch,
+  component: lazy(() => import('@/features/Topology'), 'TopologyScreen'),
 });
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: ROUTES.profile,
-  component: ProfileScreen,
+  component: lazy(() => import('@/features/Profile'), 'ProfileScreen'),
 });
 
 const routeTree = rootRoute.addChildren([

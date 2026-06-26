@@ -36,9 +36,7 @@ describe('QualityScreen', () => {
     await user.selectOptions(screen.getByLabelText('Reason'), 'passed');
     await user.click(screen.getByRole('button', { name: 'Confirm release' }));
 
-    await waitFor(() =>
-      expect(screen.queryByText(/Cheese wheel 5 kg/)).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByText(/Cheese wheel 5 kg/)).not.toBeInTheDocument());
     expect(screen.getAllByRole('button', { name: 'Release' })).toHaveLength(3);
   });
 });

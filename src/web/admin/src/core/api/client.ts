@@ -61,7 +61,8 @@ async function request<T>(method: string, resource: string, body?: unknown): Pro
   if (!res.ok) {
     // Surface failures by their stable code (the same language the API returns).
     const payload = await res.json().catch(() => null);
-    const code = payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
+    const code =
+      payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
     throw new ApiError(res.status, code, payload?.message ?? res.statusText);
   }
 

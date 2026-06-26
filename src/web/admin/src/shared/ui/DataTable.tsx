@@ -64,41 +64,41 @@ export function DataTable<T>({
       <div className={styles.scroll}>
         <table className={styles.table}>
           <thead>
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((header) => {
-                const sortable = header.column.getCanSort();
-                const dir = header.column.getIsSorted();
-                return (
-                  <th
-                    key={header.id}
-                    className={`${header.column.columnDef.meta?.align === 'right' ? styles.num : ''} ${
-                      sortable ? styles.sortable : ''
-                    }`}
-                    onClick={sortable ? header.column.getToggleSortingHandler() : undefined}
-                  >
-                    <span className={styles.headInner}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                      {sortable ? (
-                        <span className={styles.sortIcon} aria-hidden>
-                          {dir === 'asc' ? (
-                            <ChevronUp size={13} />
-                          ) : dir === 'desc' ? (
-                            <ChevronDown size={13} />
-                          ) : (
-                            <ChevronsUpDown size={13} className={styles.sortIdle} />
-                          )}
-                        </span>
-                      ) : null}
-                    </span>
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
+                {hg.headers.map((header) => {
+                  const sortable = header.column.getCanSort();
+                  const dir = header.column.getIsSorted();
+                  return (
+                    <th
+                      key={header.id}
+                      className={`${header.column.columnDef.meta?.align === 'right' ? styles.num : ''} ${
+                        sortable ? styles.sortable : ''
+                      }`}
+                      onClick={sortable ? header.column.getToggleSortingHandler() : undefined}
+                    >
+                      <span className={styles.headInner}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                        {sortable ? (
+                          <span className={styles.sortIcon} aria-hidden>
+                            {dir === 'asc' ? (
+                              <ChevronUp size={13} />
+                            ) : dir === 'desc' ? (
+                              <ChevronDown size={13} />
+                            ) : (
+                              <ChevronsUpDown size={13} className={styles.sortIdle} />
+                            )}
+                          </span>
+                        ) : null}
+                      </span>
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr
@@ -121,7 +121,9 @@ export function DataTable<T>({
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className={cell.column.columnDef.meta?.align === 'right' ? styles.num : undefined}
+                    className={
+                      cell.column.columnDef.meta?.align === 'right' ? styles.num : undefined
+                    }
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

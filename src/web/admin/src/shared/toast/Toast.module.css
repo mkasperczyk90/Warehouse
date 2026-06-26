@@ -1,0 +1,67 @@
+.viewport {
+  position: fixed;
+  bottom: var(--s-5);
+  right: var(--s-5);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(380px, calc(100vw - 2 * var(--s-5)));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  border-left: 4px solid var(--ink-faint);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+
+.icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+.message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.close {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.success {
+  border-left-color: var(--status-available);
+}
+.success .icon {
+  color: var(--status-available);
+}
+
+.error {
+  border-left-color: var(--status-blocked);
+}
+.error .icon {
+  color: var(--status-blocked);
+}
+
+.info {
+  border-left-color: var(--status-reserved);
+}
+.info .icon {
+  color: var(--status-reserved);
+}

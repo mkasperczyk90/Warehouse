@@ -6,10 +6,12 @@ import { setActiveWarehouse } from '@/core/api/client';
 import { StockScreen } from '@/features/Stock';
 import { WarehouseProvider } from './WarehouseContext';
 
-// StockScreen rows navigate on click; stub the router hook.
+// StockScreen rows navigate on click and its filters read the URL; stub the
+// router hooks (no router here). `useSearch` seeds empty filters.
 vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@tanstack/react-router')>()),
   useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
 }));
 
 beforeEach(() => localStorage.clear());

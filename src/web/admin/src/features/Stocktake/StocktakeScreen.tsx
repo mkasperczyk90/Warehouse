@@ -42,7 +42,10 @@ export function StocktakeScreen({ id }: { id?: string }) {
   }
 
   const diffs = stocktake.data?.diffs ?? [];
-  const selectedIds = useMemo(() => diffs.filter((d) => selected[d.id]).map((d) => d.id), [diffs, selected]);
+  const selectedIds = useMemo(
+    () => diffs.filter((d) => selected[d.id]).map((d) => d.id),
+    [diffs, selected],
+  );
 
   // Reason required to post: every selected row must carry one (UC-07 rule).
   const canApprove = selectedIds.length > 0 && selectedIds.every((id) => reasons[id]);
@@ -59,7 +62,8 @@ export function StocktakeScreen({ id }: { id?: string }) {
   };
 
   if (stocktake.isLoading) return <p className={styles.state}>{t('state.loading')}</p>;
-  if (stocktake.isError || !stocktake.data) return <p className={styles.state}>{t('state.error')}</p>;
+  if (stocktake.isError || !stocktake.data)
+    return <p className={styles.state}>{t('state.error')}</p>;
 
   const { summary } = stocktake.data;
   const isReview = summary.state === 'review';
@@ -96,9 +100,16 @@ export function StocktakeScreen({ id }: { id?: string }) {
       {recountBanner ? <div className={styles.recountBanner}>{recountBanner}</div> : null}
 
       <div className={styles.summary}>
-        <SummaryCard label={t('stocktake.card.locationsCounted')} value={summary.locationsCounted} />
+        <SummaryCard
+          label={t('stocktake.card.locationsCounted')}
+          value={summary.locationsCounted}
+        />
         <SummaryCard label={t('stocktake.card.matches')} value={summary.matches} />
-        <SummaryCard label={t('stocktake.card.discrepancies')} value={summary.discrepancies} tone="neg" />
+        <SummaryCard
+          label={t('stocktake.card.discrepancies')}
+          value={summary.discrepancies}
+          tone="neg"
+        />
         <SummaryCard
           label={t('stocktake.card.netVariance')}
           value={summary.netVariance}
@@ -134,7 +145,12 @@ export function StocktakeScreen({ id }: { id?: string }) {
                       className={styles.chk}
                       checked={!!selected[d.id]}
                       aria-label={`select ${d.location}`}
-                      onChange={(e) => setSelected((s) => ({ ...s, [d.id]: e.target.checked }))}
+                      onChange={(e) =>
+                        setSelected((s) => ({
+                          ...s,
+                          [d.id]: e.target.checked,
+                        }))
+                      }
                     />
                   </td>
                   <td>{d.location}</td>
@@ -153,7 +169,10 @@ export function StocktakeScreen({ id }: { id?: string }) {
                       value={reasons[d.id] ?? ''}
                       aria-label={`reason ${d.location}`}
                       onChange={(e) =>
-                        setReasons((r) => ({ ...r, [d.id]: e.target.value as StocktakeReason | '' }))
+                        setReasons((r) => ({
+                          ...r,
+                          [d.id]: e.target.value as StocktakeReason | '',
+                        }))
                       }
                     >
                       <option value="">{t('stocktake.selectReason')}</option>
@@ -197,7 +216,9 @@ function SummaryCard({
   return (
     <div className={styles.card}>
       <div className={styles.cardLabel}>{label}</div>
-      <div className={`${styles.cardValue} ${tone === 'neg' ? styles.neg : tone === 'pos' ? styles.pos : ''}`}>
+      <div
+        className={`${styles.cardValue} ${tone === 'neg' ? styles.neg : tone === 'pos' ? styles.pos : ''}`}
+      >
         {signed && value > 0 ? '+' : ''}
         {value.toLocaleString()}
       </div>

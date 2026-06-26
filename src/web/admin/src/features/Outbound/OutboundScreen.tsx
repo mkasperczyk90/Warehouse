@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, Modal, StatusBadge } from '@/shared/ui';
@@ -18,6 +19,7 @@ import {
   type SoLine,
   type SoSummary,
 } from './outbound.model';
+import type { SelectionSearch } from '@/navigation/search';
 import styles from './OutboundScreen.module.css';
 
 const emptyLine = (): NewOrderLine => ({ sku: '', product: '', ordered: 0 });
@@ -26,9 +28,17 @@ const emptyForm = () => ({ customer: '', shipTo: '', requiredDate: '', lines: [e
 export function OutboundScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const list = useOrderList();
   const create = useCreateOrder();
-  const [selected, setSelected] = useState<string | null>(null);
+  // Selection lives in the URL (?selected=…) so a chosen order is deep-linkable and
+  // refresh-safe; local state drives rendering between writes.
+  const initial = useSearch({ strict: false }) as SelectionSearch;
+  const [selected, setSelectedState] = useState<string | null>(initial.selected ?? null);
+  const setSelected = (id: string | null) => {
+    setSelectedState(id);
+    navigate({ to: '/outbound', search: { selected: id ?? undefined }, replace: true });
+  };
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
 
@@ -53,14 +63,22 @@ export function OutboundScreen() {
   const onCancel = () => cancel.mutate(undefined, { onSuccess: invalidateOrder });
 
   const setLine = (i: number, patch: Partial<NewOrderLine>) =>
-    setForm((f) => ({ ...f, lines: f.lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)) }));
+    setForm((f) => ({
+      ...f,
+      lines: f.lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)),
+    }));
 
   const validLines = form.lines.filter((l) => l.sku.trim() && l.ordered > 0);
   const canCreate = form.customer.trim() !== '' && validLines.length > 0;
 
   const submit = () =>
     create.mutate(
-      { customer: form.customer.trim(), shipTo: form.shipTo.trim(), requiredDate: form.requiredDate, lines: validLines },
+      {
+        customer: form.customer.trim(),
+        shipTo: form.shipTo.trim(),
+        requiredDate: form.requiredDate,
+        lines: validLines,
+      },
       {
         onSuccess: (data) => {
           setCreateOpen(false);
@@ -221,7 +239,11 @@ export function OutboundScreen() {
         )}
       </div>
 
-      <Modal open={createOpen} title={t('outbound.create.title')} onClose={() => setCreateOpen(false)}>
+      <Modal
+        open={createOpen}
+        title={t('outbound.create.title')}
+        onClose={() => setCreateOpen(false)}
+      >
         <div className={styles.createGrid}>
           <label className={styles.createField}>
             <span className={styles.createLabel}>{t('outbound.create.customer')}</span>
@@ -280,7 +302,12 @@ export function OutboundScreen() {
               className={styles.removeLine}
               aria-label="remove line"
               disabled={form.lines.length === 1}
-              onClick={() => setForm((f) => ({ ...f, lines: f.lines.filter((_, idx) => idx !== i) }))}
+              onClick={() =>
+                setForm((f) => ({
+                  ...f,
+                  lines: f.lines.filter((_, idx) => idx !== i),
+                }))
+              }
             >
               <Trash2 size={14} aria-hidden />
             </button>
@@ -298,7 +325,12 @@ export function OutboundScreen() {
           <button type="button" className={styles.ghost} onClick={() => setCreateOpen(false)}>
             {t('outbound.create.cancel')}
           </button>
-          <button type="button" className={styles.primary} disabled={!canCreate || create.isPending} onClick={submit}>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={!canCreate || create.isPending}
+            onClick={submit}
+          >
             {t('outbound.create.submit')}
           </button>
         </div>

@@ -79,7 +79,12 @@ export function TodayScreen() {
 
       <div className={styles.cards}>
         {CARD_KEYS.map((k) => (
-          <button key={k} type="button" className={`${styles.card} ${styles[CARD_TONE[k]]}`} onClick={() => goCard(k)}>
+          <button
+            key={k}
+            type="button"
+            className={`${styles.card} ${styles[CARD_TONE[k]]}`}
+            onClick={() => goCard(k)}
+          >
             <div className={styles.cardV}>{counts[k]}</div>
             <div className={styles.cardL}>{t(`today.card.${k}`)}</div>
             <div className={styles.cardX}>{t(`today.card.${k}Ctx`)}</div>
@@ -92,20 +97,28 @@ export function TodayScreen() {
           <div key={q.key} className={styles.panel}>
             <div className={styles.ph}>
               <b>
-                {t(`today.queue.${q.key}`)} <span className={styles.n}>· {q.shownNote ?? q.count}</span>
+                {t(`today.queue.${q.key}`)}{' '}
+                <span className={styles.n}>· {q.shownNote ?? q.count}</span>
               </b>
               <button type="button" className={styles.viewAll} onClick={() => goQueue(q.key)}>
                 {t('today.viewAll')}
               </button>
             </div>
             {q.items.map((item) => (
-              <button key={item.id} type="button" className={styles.row} onClick={() => goItem(q.key, item)}>
+              <button
+                key={item.id}
+                type="button"
+                className={styles.row}
+                onClick={() => goItem(q.key, item)}
+              >
                 <span className={styles.nm}>
                   {item.label}
                   <span className={styles.sub2}>{item.sublabel}</span>
                 </span>
                 <span className={styles.meta}>
-                  {item.badge ? <StatusBadge variant={item.badge.variant} label={item.badge.label} /> : null}
+                  {item.badge ? (
+                    <StatusBadge variant={item.badge.variant} label={item.badge.label} />
+                  ) : null}
                   {item.meta ? <span className={styles.metaText}>{item.meta}</span> : null}
                 </span>
               </button>

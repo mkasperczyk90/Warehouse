@@ -79,19 +79,19 @@ the pattern: render → await async rows → assert badges, KPIs, and filtering.
 
 ## Screens & build phases
 
-| Route | Feature | UC | Prototype | Status |
-|---|---|---|---|---|
-| `/today` (the `/` landing) | `Today/TodayScreen` | cross-cutting | admin-10-worklist | **built** |
-| `/stock` · `/stock/$id` | `Stock/{StockScreen, StockItemScreen}` | UC-05 | admin-1-stock | **built (phase 1 + drill)** |
-| `/movements` | `Movements/MovementsScreen` | UC-05 (ledger) | — | **built** |
-| `/inbound` · `/inbound/$id/receiving` | `Inbound/{InboundScreen, ReceivingScreen}` | UC-01/02 | admin-2-asn | **built (phase 2 + receiving)** |
-| `/outbound` | `Outbound/OutboundScreen` | UC-09 | admin-5-outbound | **built (phase 2)** |
-| `/dispatch` | `Dispatch/DispatchScreen` | UC-12 | admin-6-dispatch | **built (phase 2)** |
-| `/stocktake` · `/stocktake/$id` | `Stocktake/{StocktakeListScreen, StocktakeScreen}` | UC-07 | admin-3-stocktake | **built (phase 3 + list/start)** |
-| `/adjustment` | `Adjustment/AdjustmentScreen` | UC-08 | admin-9-adjustment | **built (phase 3)** |
-| `/quality` | `Quality/QualityScreen` | UC-03 | admin-8-qc | **built (phase 3)** |
-| `/products` · `/products/new` · `/products/$sku` | `Products/{ProductCatalogScreen, ProductEditScreen}` | UC-13 | admin-4-product | **built (phase 4 + catalogue)** |
-| `/topology` | `Topology/TopologyScreen` | UC-14 | admin-7-topology | **built (phase 4)** |
+| Route                                            | Feature                                              | UC             | Prototype          | Status                           |
+| ------------------------------------------------ | ---------------------------------------------------- | -------------- | ------------------ | -------------------------------- |
+| `/today` (the `/` landing)                       | `Today/TodayScreen`                                  | cross-cutting  | admin-10-worklist  | **built**                        |
+| `/stock` · `/stock/$id`                          | `Stock/{StockScreen, StockItemScreen}`               | UC-05          | admin-1-stock      | **built (phase 1 + drill)**      |
+| `/movements`                                     | `Movements/MovementsScreen`                          | UC-05 (ledger) | —                  | **built**                        |
+| `/inbound` · `/inbound/$id/receiving`            | `Inbound/{InboundScreen, ReceivingScreen}`           | UC-01/02       | admin-2-asn        | **built (phase 2 + receiving)**  |
+| `/outbound`                                      | `Outbound/OutboundScreen`                            | UC-09          | admin-5-outbound   | **built (phase 2)**              |
+| `/dispatch`                                      | `Dispatch/DispatchScreen`                            | UC-12          | admin-6-dispatch   | **built (phase 2)**              |
+| `/stocktake` · `/stocktake/$id`                  | `Stocktake/{StocktakeListScreen, StocktakeScreen}`   | UC-07          | admin-3-stocktake  | **built (phase 3 + list/start)** |
+| `/adjustment`                                    | `Adjustment/AdjustmentScreen`                        | UC-08          | admin-9-adjustment | **built (phase 3)**              |
+| `/quality`                                       | `Quality/QualityScreen`                              | UC-03          | admin-8-qc         | **built (phase 3)**              |
+| `/products` · `/products/new` · `/products/$sku` | `Products/{ProductCatalogScreen, ProductEditScreen}` | UC-13          | admin-4-product    | **built (phase 4 + catalogue)**  |
+| `/topology`                                      | `Topology/TopologyScreen`                            | UC-14          | admin-7-topology   | **built (phase 4)**              |
 
 All nine designed admin screens are built. `/` redirects to `/stock` (the manager's landing).
 Sidebar items with no screen yet (Movements, Partners) are dimmed and inert.

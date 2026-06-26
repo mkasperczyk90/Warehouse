@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CalendarClock, ClipboardList, Plus, Trash2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, Modal, StatusBadge } from '@/shared/ui';
@@ -19,6 +19,7 @@ import {
   type NewAsnLine,
 } from './inbound.model';
 import { useWarehouses, warehouseLabel } from '@/features/Warehouses';
+import type { SelectionSearch } from '@/navigation/search';
 import styles from './InboundScreen.module.css';
 
 const UNITS = ['ea', 'kg', 'l', 'case'];
@@ -33,7 +34,14 @@ export function InboundScreen() {
   const list = useAsnList();
   const create = useCreateAsn();
   const warehouses = useWarehouses();
-  const [selected, setSelected] = useState<string | null>(null);
+  // Selection lives in the URL (?selected=…) so a chosen ASN is deep-linkable and
+  // refresh-safe; local state drives rendering between writes.
+  const initial = useSearch({ strict: false }) as SelectionSearch;
+  const [selected, setSelectedState] = useState<string | null>(initial.selected ?? null);
+  const setSelected = (id: string | null) => {
+    setSelectedState(id);
+    navigate({ to: '/inbound', search: { selected: id ?? undefined }, replace: true });
+  };
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
   // The site list owns the codes (WH01, …) the backend expects; default to the first one.
@@ -69,14 +77,23 @@ export function InboundScreen() {
     );
 
   const setLine = (i: number, patch: Partial<NewAsnLine>) =>
-    setForm((f) => ({ ...f, lines: f.lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)) }));
+    setForm((f) => ({
+      ...f,
+      lines: f.lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)),
+    }));
 
   const validLines = form.lines.filter((l) => l.sku.trim() && l.planned > 0);
-  const canCreate = form.supplier.trim() !== '' && selectedWarehouse !== '' && validLines.length > 0;
+  const canCreate =
+    form.supplier.trim() !== '' && selectedWarehouse !== '' && validLines.length > 0;
 
   const submit = () =>
     create.mutate(
-      { supplier: form.supplier.trim(), warehouse: selectedWarehouse, dockSlot: form.dockSlot.trim() || 'slot pending', lines: validLines },
+      {
+        supplier: form.supplier.trim(),
+        warehouse: selectedWarehouse,
+        dockSlot: form.dockSlot.trim() || 'slot pending',
+        lines: validLines,
+      },
       {
         onSuccess: (data) => {
           setCreateOpen(false);
@@ -139,7 +156,11 @@ export function InboundScreen() {
         header: () => '',
         cell: ({ row }) =>
           row.original.flagged ? (
-            <button type="button" className={styles.resolveBtn} onClick={() => openResolve(row.original)}>
+            <button
+              type="button"
+              className={styles.resolveBtn}
+              onClick={() => openResolve(row.original)}
+            >
               {t('inbound.resolve.action')}
             </button>
           ) : null,
@@ -224,7 +245,10 @@ export function InboundScreen() {
                     type="button"
                     className={styles.slotBtn}
                     onClick={() =>
-                      navigate({ to: '/inbound/$id/receiving', params: { id: detail.data.id } })
+                      navigate({
+                        to: '/inbound/$id/receiving',
+                        params: { id: detail.data.id },
+                      })
                     }
                   >
                     <ClipboardList size={14} aria-hidden /> {t('inbound.receiving.view')}
@@ -249,7 +273,11 @@ export function InboundScreen() {
         )}
       </div>
 
-      <Modal open={createOpen} title={t('inbound.create.title')} onClose={() => setCreateOpen(false)}>
+      <Modal
+        open={createOpen}
+        title={t('inbound.create.title')}
+        onClose={() => setCreateOpen(false)}
+      >
         <div className={styles.createGrid}>
           <label className={styles.createField}>
             <span className={styles.createLabel}>{t('inbound.create.supplier')}</span>
@@ -325,7 +353,12 @@ export function InboundScreen() {
               className={styles.removeLine}
               aria-label="remove line"
               disabled={form.lines.length === 1}
-              onClick={() => setForm((f) => ({ ...f, lines: f.lines.filter((_, idx) => idx !== i) }))}
+              onClick={() =>
+                setForm((f) => ({
+                  ...f,
+                  lines: f.lines.filter((_, idx) => idx !== i),
+                }))
+              }
             >
               <Trash2 size={14} aria-hidden />
             </button>
@@ -343,7 +376,12 @@ export function InboundScreen() {
           <button type="button" className={styles.ghost} onClick={() => setCreateOpen(false)}>
             {t('inbound.create.cancel')}
           </button>
-          <button type="button" className={styles.primary} disabled={!canCreate || create.isPending} onClick={submit}>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={!canCreate || create.isPending}
+            onClick={submit}
+          >
             {t('inbound.create.submit')}
           </button>
         </div>
@@ -379,13 +417,22 @@ export function InboundScreen() {
           <button type="button" className={styles.ghost} onClick={() => setDockOpen(false)}>
             {t('inbound.dock.cancel')}
           </button>
-          <button type="button" className={styles.primary} disabled={assignDock.isPending} onClick={submitDock}>
+          <button
+            type="button"
+            className={styles.primary}
+            disabled={assignDock.isPending}
+            onClick={submitDock}
+          >
             {t('inbound.dock.submit')}
           </button>
         </div>
       </Modal>
 
-      <Modal open={!!resolveLine} title={t('inbound.resolve.title')} onClose={() => setResolveLine(null)}>
+      <Modal
+        open={!!resolveLine}
+        title={t('inbound.resolve.title')}
+        onClose={() => setResolveLine(null)}
+      >
         {resolveLine ? (
           <>
             <p className={styles.resolveHint}>{resolveLine.product}</p>

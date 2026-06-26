@@ -5,10 +5,12 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/render';
 import { InboundScreen } from './InboundScreen';
 
-// The detail can navigate to the receiving view; stub the router hook.
+// The detail navigates to receiving and selection mirrors to the URL; stub the
+// router hooks (no router in component tests). `useSearch` seeds an empty selection.
 vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@tanstack/react-router')>()),
   useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
 }));
 
 describe('InboundScreen', () => {

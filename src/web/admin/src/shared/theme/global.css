@@ -1,6 +1,8 @@
 /* App-level layout reset for the admin SPA. Tokens come from tokens.css. */
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 

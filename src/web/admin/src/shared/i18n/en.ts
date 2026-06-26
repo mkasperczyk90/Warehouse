@@ -394,7 +394,13 @@ export const en = {
     cancel: 'Cancel',
     room: 'Room',
     type: 'Type',
-    typeOpt: { cold: 'Cold room', freezer: 'Freezer', standard: 'Standard', hazmat: 'Hazmat zone', dock: 'Docks' },
+    typeOpt: {
+      cold: 'Cold room',
+      freezer: 'Freezer',
+      standard: 'Standard',
+      hazmat: 'Hazmat zone',
+      dock: 'Docks',
+    },
     tempMin: 'Temp. min (°C)',
     tempMax: 'Temp. max (°C)',
     locations: 'Locations',
@@ -405,7 +411,8 @@ export const en = {
     loadLimit: 'Load limit (kg)',
     occupied: 'Occupied',
     edit: 'Edit',
-    deleteWarn: 'Rooms and locations holding stock cannot be deleted — move the stock out first (UC-14).',
+    deleteWarn:
+      'Rooms and locations holding stock cannot be deleted — move the stock out first (UC-14).',
     editLoc: {
       title: 'Edit location',
       submit: 'Save location',
@@ -519,5 +526,26 @@ export const en = {
   },
   placeholder: {
     body: 'This screen arrives in a later build phase.',
+  },
+  // Toast messages keyed by the backend's stable domain error code (DomainException).
+  // Unknown codes fall back to the API message, then `generic` — see `formatApiError`.
+  errors: {
+    generic: 'Something went wrong. Please try again.',
+    put_away_incompatible:
+      'Incompatible location — the room temperature does not match this product.',
+    location_not_found: 'That location no longer exists.',
+    stock_item_not_found: 'That stock item no longer exists.',
+    quantity_negative: 'Stock cannot go below zero.',
+    movement_quantity_zero: 'Nothing to post — the adjustment is a no-op.',
+    qc_decision_invalid: 'This batch has already been decided.',
+    batch_already_rejected: 'This batch was already rejected.',
+    reservation_fully_allocated: 'This reservation is already fully allocated.',
+    order_not_cancellable: 'This order can no longer be cancelled.',
+    order_invalid_status: 'That action is not allowed in the order’s current status.',
+    product_sku_duplicate: 'A product with this SKU already exists.',
+    product_ean_duplicate: 'A product with this EAN already exists.',
+    ean_invalid: 'That EAN is not valid.',
+    stocktake_already_approved: 'This stocktake has already been approved.',
+    stocktake_not_open: 'This stocktake is no longer open for counting.',
   },
 } as const;

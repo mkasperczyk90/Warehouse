@@ -39,7 +39,11 @@ interface OrderDto {
 
 // ---- Status mapping (OrderStatus enum) -------------------------------------
 const STATUS: Record<string, { variant: StatusVariant; label: string; subtitle: string }> = {
-  Created: { variant: 'reserved', label: 'Created', subtitle: 'Created · not yet reserved against ATP' },
+  Created: {
+    variant: 'reserved',
+    label: 'Created',
+    subtitle: 'Created · not yet reserved against ATP',
+  },
   PartiallyReserved: {
     variant: 'transit',
     label: 'Partially reserved',
@@ -48,12 +52,29 @@ const STATUS: Record<string, { variant: StatusVariant; label: string; subtitle: 
   Reserved: {
     variant: 'reserved',
     label: 'Reserved',
-    subtitle: 'Soft reservation against ATP · available portion reserved, batch+location pinned by FEFO at wave release',
+    subtitle:
+      'Soft reservation against ATP · available portion reserved, batch+location pinned by FEFO at wave release',
   },
-  Picking: { variant: 'available', label: 'Picking', subtitle: 'Released to wave — FEFO allocation, picking in progress' },
-  Packed: { variant: 'available', label: 'Packed', subtitle: 'Packed — ready for carrier collection' },
-  Dispatched: { variant: 'available', label: 'Dispatched', subtitle: 'Dispatched — collected by carrier' },
-  Cancelled: { variant: 'blocked', label: 'Cancelled', subtitle: 'Cancelled — reservations released back to ATP' },
+  Picking: {
+    variant: 'available',
+    label: 'Picking',
+    subtitle: 'Released to wave — FEFO allocation, picking in progress',
+  },
+  Packed: {
+    variant: 'available',
+    label: 'Packed',
+    subtitle: 'Packed — ready for carrier collection',
+  },
+  Dispatched: {
+    variant: 'available',
+    label: 'Dispatched',
+    subtitle: 'Dispatched — collected by carrier',
+  },
+  Cancelled: {
+    variant: 'blocked',
+    label: 'Cancelled',
+    subtitle: 'Cancelled — reservations released back to ATP',
+  },
 };
 
 const mapStatus = (s: string) => STATUS[s] ?? STATUS.Created;
@@ -109,12 +130,28 @@ const toSummary = (o: OrderSummaryDto): SoSummary => {
 /** Derive the per-line reservation view from the order's lifecycle status. */
 function reservedLines(status: string, lines: OrderLineDto[]): SoLine[] {
   return lines.map((l, i) => {
-    const base = { id: String(l.lineNo), sku: l.productCode, product: l.productCode, ordered: l.quantity, atpAtOrder: 0 };
+    const base = {
+      id: String(l.lineNo),
+      sku: l.productCode,
+      product: l.productCode,
+      ordered: l.quantity,
+      atpAtOrder: 0,
+    };
     if (status === 'PartiallyReserved' && i === 0) {
-      return { ...base, reserved: Math.floor(l.quantity / 2), status: 'transit' as StatusVariant, statusLabel: 'Partial' };
+      return {
+        ...base,
+        reserved: Math.floor(l.quantity / 2),
+        status: 'transit' as StatusVariant,
+        statusLabel: 'Partial',
+      };
     }
     if (status === 'PartiallyReserved' || RESERVED_STATES.has(status)) {
-      return { ...base, reserved: l.quantity, status: 'reserved' as StatusVariant, statusLabel: 'Reserved' };
+      return {
+        ...base,
+        reserved: l.quantity,
+        status: 'reserved' as StatusVariant,
+        statusLabel: 'Reserved',
+      };
     }
     const label = status === 'Cancelled' ? 'Cancelled' : 'Created';
     return { ...base, reserved: 0, status: 'reserved' as StatusVariant, statusLabel: label };
@@ -172,10 +209,21 @@ export function useCreateOrder() {
     mutationFn: (body: NewOrder) =>
       api.post<{ id: string }>('logistics/orders', {
         customerRoleId: body.customer,
-        shipTo: { street: body.shipTo || '—', city: '—', postalCode: '00-000', countryCode: 'PL' },
+        shipTo: {
+          street: body.shipTo || '—',
+          city: '—',
+          postalCode: '00-000',
+          countryCode: 'PL',
+        },
         warehouseCode: 'WH01',
-        requiredAt: body.requiredDate ? new Date(body.requiredDate).toISOString() : new Date().toISOString(),
-        lines: body.lines.map((l) => ({ productCode: l.sku, quantity: l.ordered, unit: 'ea' })),
+        requiredAt: body.requiredDate
+          ? new Date(body.requiredDate).toISOString()
+          : new Date().toISOString(),
+        lines: body.lines.map((l) => ({
+          productCode: l.sku,
+          quantity: l.ordered,
+          unit: 'ea',
+        })),
       }),
   });
 }
@@ -186,7 +234,8 @@ export type OrderDecision = 'split' | 'hold';
  * stays partially reserved) (UC-09). Backed by `logistics/orders/{id}/decision`. */
 export function useDecideOrder(id: string | null | undefined) {
   return useMutation({
-    mutationFn: (body: { decision: OrderDecision }) => api.post(`logistics/orders/${id}/decision`, body),
+    mutationFn: (body: { decision: OrderDecision }) =>
+      api.post(`logistics/orders/${id}/decision`, body),
   });
 }
 

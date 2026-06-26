@@ -1,0 +1,8 @@
+dist
+coverage
+node_modules
+public/mockServiceWorker.js
+
+# Vendored from docs/design/prototypes/tokens.css (ADR-0005) — keep byte-aligned
+# with its source, so never reformat it here.
+src/shared/theme/tokens.css

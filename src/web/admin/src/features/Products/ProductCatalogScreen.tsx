@@ -5,7 +5,14 @@ import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
 
-import { DataTable, FilterBar, Modal, StatusBadge, type FilterPill, type StatusVariant } from '@/shared/ui';
+import {
+  DataTable,
+  FilterBar,
+  Modal,
+  StatusBadge,
+  type FilterPill,
+  type StatusVariant,
+} from '@/shared/ui';
 import {
   IMPORT_COLUMNS,
   PRODUCT_CATEGORIES,
@@ -194,7 +201,9 @@ export function ProductCatalogScreen() {
             type="button"
             className={styles.importBtn}
             disabled={importProducts.isPending}
-            title={t('products.import.columnsHint', { columns: IMPORT_COLUMNS.join(', ') })}
+            title={t('products.import.columnsHint', {
+              columns: IMPORT_COLUMNS.join(', '),
+            })}
             onClick={() => fileInput.current?.click()}
           >
             <Upload size={14} aria-hidden /> {t('products.import.button')}
@@ -290,7 +299,10 @@ export function ProductCatalogScreen() {
 
           <label className={styles.field}>
             <span>{t('products.f.weight')}</span>
-            <input value={draft.unitWeightKg} onChange={(e) => set('unitWeightKg', e.target.value)} />
+            <input
+              value={draft.unitWeightKg}
+              onChange={(e) => set('unitWeightKg', e.target.value)}
+            />
           </label>
 
           <label className={styles.field}>
@@ -307,11 +319,17 @@ export function ProductCatalogScreen() {
             <div className={styles.row3}>
               <label className={styles.field}>
                 <span>{t('products.f.tempMin')}</span>
-                <input value={draft.minCelsius} onChange={(e) => set('minCelsius', e.target.value)} />
+                <input
+                  value={draft.minCelsius}
+                  onChange={(e) => set('minCelsius', e.target.value)}
+                />
               </label>
               <label className={styles.field}>
                 <span>{t('products.f.tempMax')}</span>
-                <input value={draft.maxCelsius} onChange={(e) => set('maxCelsius', e.target.value)} />
+                <input
+                  value={draft.maxCelsius}
+                  onChange={(e) => set('maxCelsius', e.target.value)}
+                />
               </label>
             </div>
           ) : null}
@@ -341,7 +359,12 @@ export function ProductCatalogScreen() {
             <button type="button" className={styles.ghost} onClick={() => setOpen(false)}>
               {t('products.cancel')}
             </button>
-            <button type="button" className={styles.primary} disabled={define.isPending} onClick={submit}>
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={define.isPending}
+              onClick={submit}
+            >
               {t('products.create')}
             </button>
           </div>

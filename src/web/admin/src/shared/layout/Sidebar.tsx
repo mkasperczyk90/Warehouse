@@ -45,7 +45,12 @@ const GROUPS: NavGroup[] = [
     items: [
       { to: ROUTES.stock, icon: Boxes, labelKey: 'nav.stock' },
       { to: ROUTES.movements, icon: ArrowLeftRight, labelKey: 'nav.movements' },
-      { to: ROUTES.stocktake, icon: ClipboardCheck, labelKey: 'nav.stocktake', countKey: 'stocktake' },
+      {
+        to: ROUTES.stocktake,
+        icon: ClipboardCheck,
+        labelKey: 'nav.stocktake',
+        countKey: 'stocktake',
+      },
       { to: ROUTES.adjustment, icon: Diff, labelKey: 'nav.adjustment' },
       { to: ROUTES.quality, icon: ShieldCheck, labelKey: 'nav.quality', countKey: 'qc' },
     ],
@@ -53,8 +58,18 @@ const GROUPS: NavGroup[] = [
   {
     labelKey: 'group.logistics',
     items: [
-      { to: ROUTES.inbound, icon: ArrowDownToLine, labelKey: 'nav.inbound', countKey: 'inbound' },
-      { to: ROUTES.outbound, icon: ArrowUpRight, labelKey: 'nav.outbound', countKey: 'partial' },
+      {
+        to: ROUTES.inbound,
+        icon: ArrowDownToLine,
+        labelKey: 'nav.inbound',
+        countKey: 'inbound',
+      },
+      {
+        to: ROUTES.outbound,
+        icon: ArrowUpRight,
+        labelKey: 'nav.outbound',
+        countKey: 'partial',
+      },
       { to: ROUTES.dispatch, icon: Truck, labelKey: 'nav.dispatch' },
     ],
   },

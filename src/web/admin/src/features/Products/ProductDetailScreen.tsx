@@ -117,7 +117,10 @@ export function ProductDetailScreen({ sku }: { sku: string }) {
         <div>
           <dt>{t('products.storageCol')}</dt>
           <dd>
-            <StatusBadge variant={STORAGE_VARIANT[p.storage.mode]} label={t(`products.storageOpt.${p.storage.mode}`)} />
+            <StatusBadge
+              variant={STORAGE_VARIANT[p.storage.mode]}
+              label={t(`products.storageOpt.${p.storage.mode}`)}
+            />
             {p.storage.minCelsius != null && p.storage.maxCelsius != null ? (
               <span className={styles.temp}>
                 {' '}
@@ -139,14 +142,20 @@ export function ProductDetailScreen({ sku }: { sku: string }) {
         <div>
           <dt>{t('col.tracking')}</dt>
           <dd>
-            {p.isBatchTracked ? <span className={styles.chip}>{t('products.batchChip')}</span> : null}
+            {p.isBatchTracked ? (
+              <span className={styles.chip}>{t('products.batchChip')}</span>
+            ) : null}
             {p.hasExpiryDate ? <span className={styles.chip}>{t('products.fefoChip')}</span> : null}
             {!p.isBatchTracked && !p.hasExpiryDate ? <span className={styles.muted}>—</span> : null}
           </dd>
         </div>
       </dl>
 
-      <Modal open={renameOpen} title={t('products.renameTitle')} onClose={() => setRenameOpen(false)}>
+      <Modal
+        open={renameOpen}
+        title={t('products.renameTitle')}
+        onClose={() => setRenameOpen(false)}
+      >
         <div className={styles.form}>
           <label className={styles.field}>
             <span>{t('products.newName')}</span>
@@ -168,7 +177,11 @@ export function ProductDetailScreen({ sku }: { sku: string }) {
         </div>
       </Modal>
 
-      <Modal open={storageOpen} title={t('products.changeStorageTitle')} onClose={() => setStorageOpen(false)}>
+      <Modal
+        open={storageOpen}
+        title={t('products.changeStorageTitle')}
+        onClose={() => setStorageOpen(false)}
+      >
         <div className={styles.form}>
           <label className={styles.field}>
             <span>{t('products.f.storage')}</span>
@@ -197,7 +210,12 @@ export function ProductDetailScreen({ sku }: { sku: string }) {
             <button type="button" className={styles.ghost} onClick={() => setStorageOpen(false)}>
               {t('products.cancel')}
             </button>
-            <button type="button" className={styles.primary} disabled={changeStorage.isPending} onClick={submitStorage}>
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={changeStorage.isPending}
+              onClick={submitStorage}
+            >
               {t('products.apply')}
             </button>
           </div>

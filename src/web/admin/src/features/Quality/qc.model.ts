@@ -26,7 +26,10 @@ export const QC_REJECT_REASONS = ['failedTemp', 'damaged', 'expired', 'labFail']
 const QC_KEY = ['qc', 'batches'];
 
 export function useQcBatches() {
-  return useQuery({ queryKey: QC_KEY, queryFn: () => api.get<QcBatch[]>('inventory/qc/batches') });
+  return useQuery({
+    queryKey: QC_KEY,
+    queryFn: () => api.get<QcBatch[]>('inventory/qc/batches'),
+  });
 }
 
 /**

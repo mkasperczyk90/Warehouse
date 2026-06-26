@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, FilterBar, KpiCard, StatusBadge, type FilterPill } from '@/shared/ui';
 import { useStockKpis, useStockRows, type StockRow } from './stock.model';
+import type { PillKey, StockSearch } from './stock.search';
 import styles from './StockScreen.module.css';
-
-type PillKey = 'all' | 'coldRoom' | 'blocked' | 'expiring';
 
 export function StockScreen() {
   const { t } = useTranslation();
@@ -15,8 +14,24 @@ export function StockScreen() {
   const kpis = useStockKpis();
   const rows = useStockRows();
 
-  const [search, setSearch] = useState('');
-  const [pill, setPill] = useState<PillKey>('all');
+  // The URL seeds the filters (deep-link / refresh) and mirrors every change, so
+  // the view is bookmarkable. Local state drives rendering between writes.
+  const initial = useSearch({ strict: false }) as StockSearch;
+  const [search, setSearchState] = useState(initial.q ?? '');
+  const [pill, setPillState] = useState<PillKey>(initial.pill ?? 'all');
+
+  const setSearch = (q: string) => {
+    setSearchState(q);
+    navigate({ to: '/stock', search: (prev) => ({ ...prev, q: q || undefined }), replace: true });
+  };
+  const setPill = (k: PillKey) => {
+    setPillState(k);
+    navigate({
+      to: '/stock',
+      search: (prev) => ({ ...prev, pill: k === 'all' ? undefined : k }),
+      replace: true,
+    });
+  };
 
   const pills: FilterPill[] = [
     { key: 'all', label: t('filter.all') },

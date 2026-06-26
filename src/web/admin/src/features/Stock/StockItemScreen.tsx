@@ -98,10 +98,25 @@ export function StockItemScreen({ id }: { id?: string }) {
         </div>
         <div className={styles.headRight}>
           <StatusBadge variant={d.status} label={d.statusLabel} />
-          <button type="button" className={styles.ghostAct} onClick={() => { setMoveTo(''); setAction('move'); }}>
+          <button
+            type="button"
+            className={styles.ghostAct}
+            onClick={() => {
+              setMoveTo('');
+              setAction('move');
+            }}
+          >
             <ArrowLeftRight size={14} aria-hidden /> {t('stockItem.move')}
           </button>
-          <button type="button" className={styles.dangerAct} onClick={() => { setBlockReason(''); setBlockNote(''); setAction('block'); }}>
+          <button
+            type="button"
+            className={styles.dangerAct}
+            onClick={() => {
+              setBlockReason('');
+              setBlockNote('');
+              setAction('block');
+            }}
+          >
             <Ban size={14} aria-hidden /> {t('stockItem.block')}
           </button>
           <button
@@ -163,7 +178,10 @@ export function StockItemScreen({ id }: { id?: string }) {
             className={styles.primary}
             disabled={!compatible || move.isPending}
             onClick={() =>
-              move.mutate({ toLocation: moveTo }, { onSuccess: () => afterWrite(t('stockItem.moved')) })
+              move.mutate(
+                { toLocation: moveTo },
+                { onSuccess: () => afterWrite(t('stockItem.moved')) },
+              )
             }
           >
             {t('stockItem.moveConfirm')}
@@ -191,7 +209,11 @@ export function StockItemScreen({ id }: { id?: string }) {
         </label>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>{t('stockItem.blockNote')}</span>
-          <input className={styles.input} value={blockNote} onChange={(e) => setBlockNote(e.target.value)} />
+          <input
+            className={styles.input}
+            value={blockNote}
+            onChange={(e) => setBlockNote(e.target.value)}
+          />
         </label>
 
         <div className={styles.dialogActions}>
@@ -204,7 +226,10 @@ export function StockItemScreen({ id }: { id?: string }) {
             disabled={!blockReason || block.isPending}
             onClick={() =>
               block.mutate(
-                { reason: blockReason as BlockReason, note: blockNote || undefined },
+                {
+                  reason: blockReason as BlockReason,
+                  note: blockNote || undefined,
+                },
                 { onSuccess: () => afterWrite(t('stockItem.blocked')) },
               )
             }

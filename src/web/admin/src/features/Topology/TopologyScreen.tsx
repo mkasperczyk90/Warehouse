@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   AlertTriangle,
   ArrowDownToLine,
@@ -25,6 +26,7 @@ import {
   type RoomType,
   type TopologyNode,
 } from './topology.model';
+import type { SelectionSearch } from '@/navigation/search';
 import styles from './TopologyScreen.module.css';
 
 const ICONS: Record<string, LucideIcon> = {
@@ -38,19 +40,36 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 const ROOM_TYPES: RoomType[] = ['cold', 'freezer', 'standard', 'hazmat', 'dock'];
-const emptyRoom = () => ({ code: '', warehouse: '', type: 'cold' as RoomType, tempMin: 2, tempMax: 6 });
+const emptyRoom = () => ({
+  code: '',
+  warehouse: '',
+  type: 'cold' as RoomType,
+  tempMin: 2,
+  tempMax: 6,
+});
 
 export function TopologyScreen() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const tree = useTopologyTree();
-  const [selected, setSelected] = useState<string | null>(null);
+  // The selected room lives in the URL (?selected=…) so a chosen room is
+  // deep-linkable and refresh-safe; local state drives rendering between writes.
+  const initial = useSearch({ strict: false }) as SelectionSearch;
+  const [selected, setSelectedState] = useState<string | null>(initial.selected ?? null);
+  const setSelected = (id: string | null) => {
+    setSelectedState(id);
+    navigate({ to: '/topology', search: { selected: id ?? undefined }, replace: true });
+  };
 
   const firstRoom = useMemo(
     () => tree.data?.find((n) => n.kind === 'room')?.id ?? null,
     [tree.data],
   );
   const warehouseOptions = useMemo(
-    () => (tree.data ?? []).filter((n) => n.kind === 'warehouse').map((n) => ({ id: n.id, label: n.label })),
+    () =>
+      (tree.data ?? [])
+        .filter((n) => n.kind === 'warehouse')
+        .map((n) => ({ id: n.id, label: n.label })),
     [tree.data],
   );
   const selectedId = selected ?? firstRoom;
@@ -62,9 +81,16 @@ export function TopologyScreen() {
   const queryClient = useQueryClient();
 
   // Editable room fields, seeded when the room loads.
-  const [form, setForm] = useState<{ type: RoomType; tempMin: number; tempMax: number } | null>(null);
+  const [form, setForm] = useState<{ type: RoomType; tempMin: number; tempMax: number } | null>(
+    null,
+  );
   useEffect(() => {
-    if (room.data) setForm({ type: room.data.type, tempMin: room.data.tempMin, tempMax: room.data.tempMax });
+    if (room.data)
+      setForm({
+        type: room.data.type,
+        tempMin: room.data.tempMin,
+        tempMax: room.data.tempMax,
+      });
   }, [room.data]);
 
   const [editLoc, setEditLoc] = useState<LocationRow | null>(null);
@@ -98,13 +124,27 @@ export function TopologyScreen() {
     if (!editLoc) return;
     saveLocation.mutate(
       { id: editLoc.id, capacity: editForm.capacity, loadLimit: editForm.loadLimit },
-      { onSuccess: () => { setEditLoc(null); invalidateRoom(); } },
+      {
+        onSuccess: () => {
+          setEditLoc(null);
+          invalidateRoom();
+        },
+      },
     );
   };
   const submitAdd = () => {
     addLocation.mutate(
-      { address: addForm.address.trim(), capacity: addForm.capacity, loadLimit: addForm.loadLimit },
-      { onSuccess: () => { setAddOpen(false); invalidateRoom(); } },
+      {
+        address: addForm.address.trim(),
+        capacity: addForm.capacity,
+        loadLimit: addForm.loadLimit,
+      },
+      {
+        onSuccess: () => {
+          setAddOpen(false);
+          invalidateRoom();
+        },
+      },
     );
   };
 
@@ -116,7 +156,10 @@ export function TopologyScreen() {
             type="button"
             className={styles.addRoom}
             onClick={() => {
-              setRoomForm({ ...emptyRoom(), warehouse: warehouseOptions[0]?.id ?? '' });
+              setRoomForm({
+                ...emptyRoom(),
+                warehouse: warehouseOptions[0]?.id ?? '',
+              });
               setRoomOpen(true);
             }}
           >
@@ -330,7 +373,11 @@ export function TopologyScreen() {
                       <td className={styles.num}>{loc.loadLimit.toLocaleString()}</td>
                       <td className={styles.num}>{loc.occupied}</td>
                       <td>
-                        <button type="button" className={styles.editLink} onClick={() => openEdit(loc)}>
+                        <button
+                          type="button"
+                          className={styles.editLink}
+                          onClick={() => openEdit(loc)}
+                        >
                           {t('topology.edit')}
                         </button>
                       </td>
@@ -343,7 +390,11 @@ export function TopologyScreen() {
               </div>
             </section>
 
-            <Modal open={!!editLoc} title={t('topology.editLoc.title')} onClose={() => setEditLoc(null)}>
+            <Modal
+              open={!!editLoc}
+              title={t('topology.editLoc.title')}
+              onClose={() => setEditLoc(null)}
+            >
               {editLoc ? (
                 <>
                   <p className={styles.dialogHint}>{editLoc.address}</p>
@@ -354,7 +405,12 @@ export function TopologyScreen() {
                       className={styles.input}
                       value={editForm.capacity}
                       aria-label={t('topology.capacity')}
-                      onChange={(e) => setEditForm((f) => ({ ...f, capacity: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setEditForm((f) => ({
+                          ...f,
+                          capacity: Number(e.target.value),
+                        }))
+                      }
                     />
                   </label>
                   <label className={styles.field}>
@@ -364,14 +420,24 @@ export function TopologyScreen() {
                       className={styles.input}
                       value={editForm.loadLimit}
                       aria-label={t('topology.loadLimit')}
-                      onChange={(e) => setEditForm((f) => ({ ...f, loadLimit: Number(e.target.value) }))}
+                      onChange={(e) =>
+                        setEditForm((f) => ({
+                          ...f,
+                          loadLimit: Number(e.target.value),
+                        }))
+                      }
                     />
                   </label>
                   <div className={styles.dialogActions}>
                     <button type="button" className={styles.ghost} onClick={() => setEditLoc(null)}>
                       {t('topology.cancel')}
                     </button>
-                    <button type="button" className={styles.primary} disabled={saveLocation.isPending} onClick={submitEdit}>
+                    <button
+                      type="button"
+                      className={styles.primary}
+                      disabled={saveLocation.isPending}
+                      onClick={submitEdit}
+                    >
                       {t('topology.editLoc.submit')}
                     </button>
                   </div>
@@ -379,7 +445,11 @@ export function TopologyScreen() {
               ) : null}
             </Modal>
 
-            <Modal open={addOpen} title={t('topology.addLoc.title')} onClose={() => setAddOpen(false)}>
+            <Modal
+              open={addOpen}
+              title={t('topology.addLoc.title')}
+              onClose={() => setAddOpen(false)}
+            >
               <label className={styles.field}>
                 <span className={styles.fieldLabel}>{t('topology.address')}</span>
                 <input
@@ -396,7 +466,12 @@ export function TopologyScreen() {
                   className={styles.input}
                   value={addForm.capacity}
                   aria-label={t('topology.capacity')}
-                  onChange={(e) => setAddForm((f) => ({ ...f, capacity: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setAddForm((f) => ({
+                      ...f,
+                      capacity: Number(e.target.value),
+                    }))
+                  }
                 />
               </label>
               <label className={styles.field}>
@@ -406,7 +481,12 @@ export function TopologyScreen() {
                   className={styles.input}
                   value={addForm.loadLimit}
                   aria-label={t('topology.loadLimit')}
-                  onChange={(e) => setAddForm((f) => ({ ...f, loadLimit: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setAddForm((f) => ({
+                      ...f,
+                      loadLimit: Number(e.target.value),
+                    }))
+                  }
                 />
               </label>
               <div className={styles.dialogActions}>

@@ -353,7 +353,11 @@ export const pl = {
       plt: 'paleta (plt)',
       ctn: 'karton (ctn)',
     },
-    storageOpt: { Ambient: 'Otoczenie', ColdChain: 'Łańcuch chłodniczy', Hazardous: 'Niebezpieczne' },
+    storageOpt: {
+      Ambient: 'Otoczenie',
+      ColdChain: 'Łańcuch chłodniczy',
+      Hazardous: 'Niebezpieczne',
+    },
     batchChip: 'Partia',
     fefoChip: 'FEFO',
     defineTitle: 'Zdefiniuj produkt',
@@ -394,7 +398,13 @@ export const pl = {
     cancel: 'Anuluj',
     room: 'Pomieszczenie',
     type: 'Typ',
-    typeOpt: { cold: 'Chłodnia', freezer: 'Zamrażalnia', standard: 'Standard', hazmat: 'Strefa ADR', dock: 'Doki' },
+    typeOpt: {
+      cold: 'Chłodnia',
+      freezer: 'Zamrażalnia',
+      standard: 'Standard',
+      hazmat: 'Strefa ADR',
+      dock: 'Doki',
+    },
     tempMin: 'Temp. min (°C)',
     tempMax: 'Temp. maks (°C)',
     locations: 'Lokalizacje',
@@ -405,7 +415,8 @@ export const pl = {
     loadLimit: 'Limit obciążenia (kg)',
     occupied: 'Zajęcie',
     edit: 'Edytuj',
-    deleteWarn: 'Pomieszczeń i lokalizacji z zapasem nie można usunąć — najpierw wyprowadź zapas (UC-14).',
+    deleteWarn:
+      'Pomieszczeń i lokalizacji z zapasem nie można usunąć — najpierw wyprowadź zapas (UC-14).',
     editLoc: {
       title: 'Edytuj lokalizację',
       submit: 'Zapisz lokalizację',
@@ -519,5 +530,26 @@ export const pl = {
   },
   placeholder: {
     body: 'Ten ekran powstanie w kolejnej fazie.',
+  },
+  // Komunikaty toastów wg stabilnego kodu błędu domenowego (DomainException).
+  // Nieznane kody wpadają na komunikat z API, a potem na `generic` — patrz `formatApiError`.
+  errors: {
+    generic: 'Coś poszło nie tak. Spróbuj ponownie.',
+    put_away_incompatible:
+      'Niezgodna lokalizacja — temperatura pomieszczenia nie pasuje do produktu.',
+    location_not_found: 'Ta lokalizacja już nie istnieje.',
+    stock_item_not_found: 'Ta pozycja zapasu już nie istnieje.',
+    quantity_negative: 'Zapas nie może spaść poniżej zera.',
+    movement_quantity_zero: 'Brak zmiany do zaksięgowania — korekta nic nie zmienia.',
+    qc_decision_invalid: 'Ta partia została już rozstrzygnięta.',
+    batch_already_rejected: 'Ta partia została już odrzucona.',
+    reservation_fully_allocated: 'Ta rezerwacja jest już w pełni przydzielona.',
+    order_not_cancellable: 'Tego zamówienia nie można już anulować.',
+    order_invalid_status: 'Ta akcja jest niedozwolona w bieżącym statusie zamówienia.',
+    product_sku_duplicate: 'Produkt o tym SKU już istnieje.',
+    product_ean_duplicate: 'Produkt o tym EAN już istnieje.',
+    ean_invalid: 'Nieprawidłowy kod EAN.',
+    stocktake_already_approved: 'Ta inwentaryzacja została już zatwierdzona.',
+    stocktake_not_open: 'Ta inwentaryzacja nie jest już otwarta do liczenia.',
   },
 } as const;
