@@ -59,7 +59,39 @@ internal static class LogisticsSeeder
             WarehouseRef.Of("WH02"), now.AddDays(2),
             [OrderLine("BERRY-1KG", 12, "pcs")]));
 
+        // Dispatch board demo: packed orders, each with a shipment at a different lifecycle stage so the
+        // board's columns (awaiting carrier → carrier assigned → pickup notice sent) are populated.
+        var awaiting = PackedShipment("Hotel Vega", "WH01", "MILK-1L");
+
+        var assigned = PackedShipment("Bistro 24", "WH01", "YOG-400");
+        assigned.Shipment.AssignCarrier(new PartyRoleRef("DH"), "Tue 14:00");
+
+        var noticeSent = PackedShipment("Poznań Catering", "WH02", "BERRY-1KG");
+        noticeSent.Shipment.AssignCarrier(new PartyRoleRef("GL"), "Wed 09:00");
+        noticeSent.Shipment.SendPickupNotice();
+
+        foreach (var (order, shipment) in new[] { awaiting, assigned, noticeSent })
+        {
+            db.Orders.Add(order);
+            db.Shipments.Add(shipment);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>A packed order with its shipment opened on the dispatch board (AwaitingCarrier).</summary>
+    private static (OutboundOrder Order, Shipment Shipment) PackedShipment(string customer, string warehouse, string sku)
+    {
+        var order = OutboundOrder.Create(
+            new PartyRoleRef(customer), Address.Of("ul. Dostawcza 1", "—", "00-000", "PL"),
+            WarehouseRef.Of(warehouse), DateTimeOffset.UtcNow.AddDays(1), [OrderLine(sku, 24, "pcs")]);
+        order.MarkReserved(fully: true);
+        order.StartPicking();
+        order.MarkPacked();
+
+        var shipment = Shipment.CreateAwaitingCarrier(order.Id);
+        shipment.AddPackage(Weight.FromKilograms(12), PackageDimensions.Of(60, 40, 40));
+        return (order, shipment);
     }
 
     private static (ProductCode, Quantity, DeliveryPack?) Line(string sku, decimal qty, string unit) =>

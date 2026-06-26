@@ -10,7 +10,7 @@ public sealed class SearchMapperTests
     [Fact]
     public void Empty_query_returns_no_hits()
     {
-        var hits = SearchMapper.Build("  ", [new ProductView("MILK-1L", "Milk")], [], [], [], []);
+        var hits = SearchMapper.Build("  ", [new ProductView("MILK-1L", "Milk")], [], [], [], [], []);
         Assert.Empty(hits);
     }
 
@@ -23,10 +23,11 @@ public sealed class SearchMapperTests
             [new SearchStockView("S1", "Whole milk 1 L", "MILK-1L", "LOT-1", "CR1-A01")],
             [new DeliverySummaryView("ASN-1", "WH01", When, "Announced", 2)],
             [new OrderSummaryView("SO-1", "WH01", When, "Created", 1)],
+            [new DispatchShipmentView("SHP-1", "Milk Bar")],
             [new LocationView("MILK-BAY", "Cold room CR1", "WH01")]);
 
         Assert.Equal(
-            [("product", "MILK-1L"), ("stock", "S1"), ("location", "MILK-BAY")],
+            [("product", "MILK-1L"), ("stock", "S1"), ("shipment", "SHP-1"), ("location", "MILK-BAY")],
             hits.Select(h => (h.Type, h.RefId)));
         Assert.Equal("CR1-A01 · MILK-1L", hits.Single(h => h.Type == "stock").Sublabel);
     }
@@ -38,6 +39,7 @@ public sealed class SearchMapperTests
             "SO-1", [], [],
             [new DeliverySummaryView("ASN-9", "WH01", When, "Announced", 1)],
             [new OrderSummaryView("SO-1", "WH01", When, "Created", 1)],
+            [],
             []);
 
         var hit = Assert.Single(hits);
@@ -51,7 +53,7 @@ public sealed class SearchMapperTests
         var products = Enumerable.Range(1, 20)
             .Select(i => new ProductView($"SKU-{i}", $"Widget {i}")).ToList();
 
-        var hits = SearchMapper.Build("widget", products, [], [], [], []);
+        var hits = SearchMapper.Build("widget", products, [], [], [], [], []);
 
         Assert.Equal(8, hits.Count);
     }

@@ -7,10 +7,11 @@ import {
   type ReactNode,
 } from 'react';
 import i18n from '@/shared/i18n/i18n';
-import { api, setActiveWarehouse } from '@/core/api/client';
-import type { CurrentUser } from '@/features/Auth/auth.model';
+import { api, setActiveWarehouse, setAuthToken } from '@/core/api/client';
+import type { CurrentUser, LoginResponse } from '@/features/Auth/auth.model';
 
 const STORAGE_KEY = 'wh.currentUser';
+const TOKEN_KEY = 'wh.authToken';
 
 interface AuthContextValue {
   user: CurrentUser | null;
@@ -44,12 +45,27 @@ function persist(user: CurrentUser) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const stored = readStored();
-    if (stored) void i18n.changeLanguage(stored.language);
+    if (stored) {
+      void i18n.changeLanguage(stored.language);
+      // Re-arm the api seam with the persisted token so refresh-safe sessions stay authorised.
+      try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) setAuthToken(token);
+      } catch {
+        /* ignore */
+      }
+    }
     return stored;
   });
 
   const login = useCallback(async (badge: string) => {
-    const u = await api.post<CurrentUser>('auth/login', { badge });
+    const { accessToken, user: u } = await api.post<LoginResponse>('auth/login', { badge });
+    setAuthToken(accessToken);
+    try {
+      localStorage.setItem(TOKEN_KEY, accessToken);
+    } catch {
+      /* private mode / quota — the session still works, it just won't survive a reload */
+    }
     persist(u);
     setUser(u);
   }, []);
@@ -57,9 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     } catch {
       /* ignore */
     }
+    setAuthToken(null);
     setActiveWarehouse(null);
     setUser(null);
   }, []);

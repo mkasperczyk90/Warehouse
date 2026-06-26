@@ -65,6 +65,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapInboundEndpoints();
 app.MapOutboundEndpoints();
+app.MapDispatchEndpoints();
 
 app.MapGet("/", () => "Warehouse Logistics API");
 

@@ -49,7 +49,8 @@ public enum PickTaskStatus
 
 public enum ShipmentStatus
 {
-    Packing = 0,
-    ReadyForPickup = 1,
-    Dispatched = 2,
+    AwaitingCarrier = 0,
+    CarrierAssigned = 1,
+    ReadyForPickup = 2,
+    Dispatched = 3,
 }

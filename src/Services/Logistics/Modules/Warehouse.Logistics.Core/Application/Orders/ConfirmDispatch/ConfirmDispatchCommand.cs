@@ -7,10 +7,10 @@ using Wolverine.EntityFrameworkCore;
 
 namespace Warehouse.Logistics.Core.Application.Orders.ConfirmDispatch;
 
-/// <summary>UC-12 — the carrier collected the packed order: open the shipment for the assigned carrier,
-/// record the handed-over package (weight) and optional tracking number, dispatch it, and announce
-/// <see cref="ShipmentDispatchedV1"/> so Inventory deducts the stock. The order must already be
-/// <c>Packed</c> (UC-11).</summary>
+/// <summary>UC-12 — the carrier collected the packed order: fast-forward its shipment (opened at packing,
+/// UC-11) through carrier assignment + pickup notice to <c>Dispatched</c>, record the optional tracking
+/// number, and announce <see cref="ShipmentDispatchedV1"/> so Inventory deducts the stock. This is the
+/// terminal's one-shot path; the admin dispatch board walks the same states column by column.</summary>
 public sealed record ConfirmDispatchCommand(
     Guid OrderId, string CarrierRoleId, string? TrackingNumber, decimal PackageWeightKg);
 
@@ -19,11 +19,6 @@ public sealed class ConfirmDispatchHandler(
     IShipmentRepository shipments,
     IDbContextOutbox<LogisticsDbContext> outbox)
 {
-    // Dimensions aren't captured at the dispatch handover (the operator only weighs the parcel); a
-    // single consolidated package defaults to a standard carton until the packing flow (UC-11)
-    // records per-package dimensions.
-    private static readonly PackageDimensions DefaultCarton = PackageDimensions.Of(60, 40, 40);
-
     public async Task HandleAsync(ConfirmDispatchCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -31,9 +26,19 @@ public sealed class ConfirmDispatchHandler(
         var order = await orders.GetByIdAsync(orderId, cancellationToken)
             ?? throw new KeyNotFoundException($"Order {command.OrderId} not found.");
 
-        var shipment = Shipment.CreateFor(orderId, new PartyRoleRef(command.CarrierRoleId));
-        shipment.AddPackage(Weight.FromKilograms(command.PackageWeightKg), DefaultCarton);
-        shipment.MarkReadyForPickup();
+        var shipment = await shipments.GetByOrderAsync(orderId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Order {command.OrderId} has no shipment to dispatch.");
+
+        // Fast-forward to ReadyForPickup from wherever the board left it (terminal's direct dispatch).
+        if (shipment.Status == ShipmentStatus.AwaitingCarrier)
+        {
+            shipment.AssignCarrier(new PartyRoleRef(command.CarrierRoleId), pickup: "immediate");
+        }
+
+        if (shipment.Status == ShipmentStatus.CarrierAssigned)
+        {
+            shipment.SendPickupNotice();
+        }
 
         if (command.TrackingNumber is { } tracking)
         {
@@ -41,7 +46,7 @@ public sealed class ConfirmDispatchHandler(
         }
 
         shipment.Dispatch();
-        shipments.Add(shipment);
+        shipments.Update(shipment);
 
         order.MarkDispatched();
         orders.Update(order);
@@ -50,7 +55,7 @@ public sealed class ConfirmDispatchHandler(
             order.Id.Value,
             shipment.Id.Value,
             order.Warehouse.Code,
-            shipment.Carrier.Value,
+            shipment.Carrier!.Value.Value,
             command.TrackingNumber,
             DateTimeOffset.UtcNow));
 

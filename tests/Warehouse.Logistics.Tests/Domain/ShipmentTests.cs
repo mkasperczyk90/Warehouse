@@ -9,26 +9,29 @@ namespace Warehouse.Logistics.Tests.Domain;
 public sealed class ShipmentTests
 {
     private static readonly PackageDimensions Carton = PackageDimensions.Of(40, 30, 20);
+    private static readonly PartyRoleRef Carrier = new("DH");
 
-    private static Shipment NewShipment() =>
-        Shipment.CreateFor(OrderId.New(), new PartyRoleRef(Guid.NewGuid().ToString()));
+    private static Shipment Packed()
+    {
+        var shipment = Shipment.CreateAwaitingCarrier(OrderId.New());
+        shipment.AddPackage(Weight.FromKilograms(5), Carton);
+        return shipment;
+    }
 
     [Fact]
-    public void CreateFor_starts_in_Packing_for_the_carrier()
+    public void CreateAwaitingCarrier_starts_on_the_board_with_no_carrier()
     {
-        var carrier = new PartyRoleRef(Guid.NewGuid().ToString());
+        var shipment = Shipment.CreateAwaitingCarrier(OrderId.New());
 
-        var shipment = Shipment.CreateFor(OrderId.New(), carrier);
-
-        Assert.Equal(ShipmentStatus.Packing, shipment.Status);
-        Assert.Equal(carrier, shipment.Carrier);
+        Assert.Equal(ShipmentStatus.AwaitingCarrier, shipment.Status);
+        Assert.Null(shipment.Carrier);
         Assert.Empty(shipment.Packages);
     }
 
     [Fact]
     public void AddPackage_numbers_packages_from_one()
     {
-        var shipment = NewShipment();
+        var shipment = Shipment.CreateAwaitingCarrier(OrderId.New());
 
         shipment.AddPackage(Weight.FromKilograms(5), Carton);
         shipment.AddPackage(Weight.FromKilograms(3), Carton);
@@ -37,19 +40,30 @@ public sealed class ShipmentTests
     }
 
     [Fact]
-    public void MarkReadyForPickup_requires_at_least_one_package()
+    public void AssignCarrier_requires_at_least_one_package()
     {
-        var shipment = NewShipment();
+        var shipment = Shipment.CreateAwaitingCarrier(OrderId.New());
 
-        Expect.DomainError("shipment_empty", shipment.MarkReadyForPickup);
+        Expect.DomainError("shipment_empty", () => shipment.AssignCarrier(Carrier, "Tue 14:00"));
     }
 
     [Fact]
-    public void Cannot_add_a_package_after_ready_for_pickup()
+    public void AssignCarrier_books_the_carrier_and_pickup_slot()
     {
-        var shipment = NewShipment();
-        shipment.AddPackage(Weight.FromKilograms(5), Carton);
-        shipment.MarkReadyForPickup();
+        var shipment = Packed();
+
+        shipment.AssignCarrier(Carrier, "Tue 14:00");
+
+        Assert.Equal(ShipmentStatus.CarrierAssigned, shipment.Status);
+        Assert.Equal(Carrier, shipment.Carrier);
+        Assert.Equal("Tue 14:00", shipment.Pickup);
+    }
+
+    [Fact]
+    public void Cannot_add_a_package_after_a_carrier_is_assigned()
+    {
+        var shipment = Packed();
+        shipment.AssignCarrier(Carrier, "Tue 14:00");
 
         Expect.DomainError("shipment_invalid_status", () => shipment.AddPackage(Weight.FromKilograms(1), Carton));
     }
@@ -57,18 +71,18 @@ public sealed class ShipmentTests
     [Fact]
     public void Dispatch_requires_ready_for_pickup()
     {
-        var shipment = NewShipment();
-        shipment.AddPackage(Weight.FromKilograms(5), Carton); // still Packing
+        var shipment = Packed();
+        shipment.AssignCarrier(Carrier, "Tue 14:00"); // CarrierAssigned, notice not yet sent
 
         Expect.DomainError("shipment_invalid_status", shipment.Dispatch);
     }
 
     [Fact]
-    public void Dispatch_completes_the_shipment_and_raises_event_with_tracking()
+    public void Full_lifecycle_dispatches_and_raises_event_with_tracking()
     {
-        var shipment = NewShipment();
-        shipment.AddPackage(Weight.FromKilograms(5), Carton);
-        shipment.MarkReadyForPickup();
+        var shipment = Packed();
+        shipment.AssignCarrier(Carrier, "Tue 14:00");
+        shipment.SendPickupNotice();
         shipment.AssignTracking(TrackingNumber.Of("1Z-999"));
 
         shipment.Dispatch();
@@ -77,6 +91,7 @@ public sealed class ShipmentTests
         Assert.NotNull(shipment.DispatchedAt);
         var dispatched = Assert.Single(shipment.DomainEvents.OfType<ShipmentDispatched>());
         Assert.Equal("1Z-999", dispatched.Tracking?.Value);
+        Assert.Equal(Carrier, dispatched.Carrier);
     }
 
     [Fact]

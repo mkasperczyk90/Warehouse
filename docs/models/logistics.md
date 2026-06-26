@@ -73,12 +73,14 @@ classDiagram
     class Shipment {
         <<AggregateRoot, id = ShipmentId>>
         +OrderId OrderId
-        +PartyRoleRef Carrier
+        +PartyRoleRef? Carrier
+        +string? Pickup
         +TrackingNumber? Tracking
         +ShipmentStatus Status
-        +CreateFor(orderId, carrier)$ Shipment
-        +AddPackage(weight, description?) Package
-        +MarkReadyForPickup()
+        +CreateAwaitingCarrier(orderId)$ Shipment
+        +AddPackage(weight, dimensions, description?) Package
+        +AssignCarrier(carrier, pickup)
+        +SendPickupNotice()
         +AssignTracking(tracking)
         +Dispatch()
     }
@@ -129,8 +131,21 @@ stateDiagram-v2
     }
 ```
 
-Every transition guard throws `delivery_invalid_status` / `order_invalid_status` /
-`shipment_invalid_status` when called out of order.
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "Shipment.Status" as S {
+        [*] --> AwaitingCarrier: CreateAwaitingCarrier (at MarkPacked)
+        AwaitingCarrier --> CarrierAssigned: AssignCarrier
+        CarrierAssigned --> ReadyForPickup: SendPickupNotice
+        ReadyForPickup --> Dispatched: Dispatch
+    }
+```
+
+The shipment opens when the order is packed (UC-11) and walks the dispatch board column by column
+(UC-12): the admin advances it a step at a time, while the terminal's `ConfirmDispatch` fast-forwards the
+same states to `Dispatched` in one call. Every transition guard throws `delivery_invalid_status` /
+`order_invalid_status` / `shipment_invalid_status` when called out of order.
 
 ## Notable rules
 

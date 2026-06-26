@@ -160,7 +160,6 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("Carrier")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("carrier_role_id");
 
@@ -171,6 +170,11 @@ namespace Warehouse.Logistics.Core.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid")
                         .HasColumnName("order_id");
+
+                    b.Property<string>("Pickup")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("pickup");
 
                     b.Property<string>("Status")
                         .IsRequired()
