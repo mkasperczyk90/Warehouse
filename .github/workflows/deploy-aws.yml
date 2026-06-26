@@ -1,0 +1,152 @@
+name: Deploy to AWS (manual)
+
+# Manually-triggered, on-demand ephemeral environment on ECS Fargate.
+#   action=up   -> build + push the 7 images to ECR, then `terraform apply` (spins the env up, ~3-5 min)
+#   action=down -> `terraform destroy` (tears everything down to ~$0; ECR repos stay, storage is cents)
+#
+# One-time setup (see infra/README.md): run infra/terraform/bootstrap, then add the repo VARIABLES
+# AWS_ROLE_ARN, TF_STATE_BUCKET and AWS_REGION (Settings -> Secrets and variables -> Actions -> Variables).
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "up = create/update the environment, down = destroy it"
+        type: choice
+        options: [up, down]
+        default: up
+      image_tag:
+        description: "Image tag to deploy (defaults to the commit SHA)"
+        type: string
+        default: ""
+      allowed_cidr:
+        description: "CIDR allowed to reach the ALB (e.g. 1.2.3.4/32). Default 0.0.0.0/0 is public."
+        type: string
+        default: "0.0.0.0/0"
+
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+permissions:
+  id-token: write   # for AWS OIDC
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  IMAGE_TAG: ${{ inputs.image_tag != '' && inputs.image_tag || github.sha }}
+
+jobs:
+  # Build + push all images. Skipped entirely on `down`.
+  build-images:
+    if: inputs.action == 'up'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - repo: warehouse-gateway
+            context: .
+            dockerfile: src/Gateway/Warehouse.Gateway/Dockerfile
+          - repo: warehouse-masterdata-api
+            context: .
+            dockerfile: src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile
+          - repo: warehouse-warehousing-api
+            context: .
+            dockerfile: src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile
+          - repo: warehouse-logistics-api
+            context: .
+            dockerfile: src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile
+          - repo: warehouse-admin
+            context: src/web/admin
+            dockerfile: src/web/admin/Dockerfile
+            build_args: VITE_USE_MOCKS=false   # call the real Gateway, not MSW fixtures.
+          - repo: warehouse-terminal
+            context: src/web/terminal
+            dockerfile: src/web/terminal/Dockerfile
+            build_args: EXPO_PUBLIC_USE_MOCKS=false
+          - repo: warehouse-keycloak
+            context: src/Identity
+            dockerfile: infra/docker/keycloak/Dockerfile
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build & push ${{ matrix.repo }}
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: ${{ matrix.build_args }}
+          tags: ${{ steps.ecr.outputs.registry }}/${{ matrix.repo }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=${{ matrix.repo }}
+          cache-to: type=gha,scope=${{ matrix.repo }},mode=max
+
+  terraform:
+    needs: build-images
+    # Run after a successful build on `up`, and unconditionally on `down` (where build-images is skipped).
+    if: always() && (inputs.action == 'down' || needs.build-images.result == 'success')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform/environment
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.10"
+
+      - name: Terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Terraform apply (up)
+        if: inputs.action == 'up'
+        run: |
+          terraform apply -auto-approve \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="image_tag=${{ env.IMAGE_TAG }}" \
+            -var="allowed_cidr=${{ inputs.allowed_cidr }}"
+
+      - name: Show URLs (up)
+        if: inputs.action == 'up'
+        run: |
+          {
+            echo "### Warehouse environment is up :rocket:"
+            echo ""
+            echo "- Admin:    $(terraform output -raw admin_url)"
+            echo "- Terminal: $(terraform output -raw terminal_url)"
+            echo "- Gateway:  $(terraform output -raw gateway_url)"
+            echo ""
+            echo "_The task boots ~10 containers; give it a couple of minutes before the targets go healthy._"
+            echo "Run this workflow again with **action=down** when finished."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform destroy (down)
+        if: inputs.action == 'down'
+        run: |
+          terraform destroy -auto-approve \
+            -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="image_tag=${{ env.IMAGE_TAG }}" \
+            -var="allowed_cidr=${{ inputs.allowed_cidr }}"

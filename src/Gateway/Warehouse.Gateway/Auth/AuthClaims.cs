@@ -41,6 +41,10 @@ internal static class AuthClaims
             language);
     }
 
+    /// <summary>The raw token payload, for callers that need a claim beyond the desk-user view
+    /// (e.g. the profile's phone and last-login time). Same no-signature-check caveat as <see cref="ToUser"/>.</summary>
+    internal static JsonElement Payload(string accessToken) => DecodePayload(accessToken);
+
     /// <summary>The first realm role that is one of the desk roles (Keycloak adds default roles too).</summary>
     private static string ExtractRole(JsonElement payload)
     {

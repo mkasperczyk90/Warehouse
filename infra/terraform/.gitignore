@@ -1,0 +1,9 @@
+# Terraform working dirs and state — never commit.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Provider lock is regenerated per-platform (CI runs on linux); avoids windows-only-hash init failures.
+.terraform.lock.hcl

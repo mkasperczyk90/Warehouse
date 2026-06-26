@@ -18,12 +18,13 @@ import {
   type AsnSummary,
   type NewAsnLine,
 } from './inbound.model';
+import { useWarehouses, warehouseLabel } from '@/features/Warehouses';
 import styles from './InboundScreen.module.css';
 
-const WAREHOUSES = ['WH-01 Wrocław', 'WH-02 Poznań'];
 const UNITS = ['ea', 'kg', 'l', 'case'];
 const emptyLine = (): NewAsnLine => ({ sku: '', product: '', planned: 0, unit: 'ea' });
-const emptyForm = () => ({ supplier: '', warehouse: WAREHOUSES[0], dockSlot: '', lines: [emptyLine()] });
+// warehouse is filled from the live site list (see useWarehouses) once the create modal renders.
+const emptyForm = () => ({ supplier: '', warehouse: '', dockSlot: '', lines: [emptyLine()] });
 
 export function InboundScreen() {
   const { t } = useTranslation();
@@ -31,9 +32,13 @@ export function InboundScreen() {
   const navigate = useNavigate();
   const list = useAsnList();
   const create = useCreateAsn();
+  const warehouses = useWarehouses();
   const [selected, setSelected] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
+  // The site list owns the codes (WH01, …) the backend expects; default to the first one.
+  const warehouseOptions = warehouses.data ?? [];
+  const selectedWarehouse = form.warehouse || warehouseOptions[0]?.code || '';
 
   // Default to the first ASN until the coordinator picks another.
   const selectedId = selected ?? list.data?.[0]?.id ?? null;
@@ -67,11 +72,11 @@ export function InboundScreen() {
     setForm((f) => ({ ...f, lines: f.lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)) }));
 
   const validLines = form.lines.filter((l) => l.sku.trim() && l.planned > 0);
-  const canCreate = form.supplier.trim() !== '' && validLines.length > 0;
+  const canCreate = form.supplier.trim() !== '' && selectedWarehouse !== '' && validLines.length > 0;
 
   const submit = () =>
     create.mutate(
-      { supplier: form.supplier.trim(), warehouse: form.warehouse, dockSlot: form.dockSlot.trim() || 'slot pending', lines: validLines },
+      { supplier: form.supplier.trim(), warehouse: selectedWarehouse, dockSlot: form.dockSlot.trim() || 'slot pending', lines: validLines },
       {
         onSuccess: (data) => {
           setCreateOpen(false);
@@ -259,12 +264,12 @@ export function InboundScreen() {
             <span className={styles.createLabel}>{t('inbound.create.warehouse')}</span>
             <select
               className={styles.input}
-              value={form.warehouse}
+              value={selectedWarehouse}
               onChange={(e) => setForm((f) => ({ ...f, warehouse: e.target.value }))}
             >
-              {WAREHOUSES.map((w) => (
-                <option key={w} value={w}>
-                  {w}
+              {warehouseOptions.map((w) => (
+                <option key={w.id} value={w.code}>
+                  {warehouseLabel(w)}
                 </option>
               ))}
             </select>

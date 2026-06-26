@@ -40,6 +40,9 @@ builder.Services.AddHttpClient(BffClients.MasterData, c => c.BaseAddress = new U
 builder.Services.AddScoped<BffFetch>();
 builder.Services.AddScoped<WorklistService>();
 builder.Services.AddScoped<SearchService>();
+// Profile is derived from the caller's token + an in-memory prefs overlay, so it is a singleton (the
+// overlay must outlive a single request). No downstream call, hence no scoped HttpClient.
+builder.Services.AddSingleton<ProfileService>();
 
 var app = builder.Build();
 
@@ -69,7 +72,30 @@ app.MapGet("/api/search", async (string? q, HttpRequest request, SearchService s
     return Results.Ok(await search.SearchAsync(q ?? string.Empty, warehouseId, ct));
 }).RequireAuthorization();
 
+// Desk profile — identity from the token + editable prefs (admin Profile screen). The desk reads and
+// writes only its OWN profile, so the route id must match the token subject (else 404).
+app.MapGet("/api/profile/{id}", (string id, HttpContext http, ProfileService profiles) =>
+{
+    var profile = profiles.Build(BearerToken(http), id);
+    return profile is null ? Results.NotFound() : Results.Ok(profile);
+}).RequireAuthorization();
+
+app.MapPost("/api/profile/{id}", (string id, ProfilePrefsDto prefs, HttpContext http, ProfileService profiles) =>
+{
+    var profile = profiles.Update(BearerToken(http), id, prefs);
+    return profile is null ? Results.NotFound() : Results.Ok(profile);
+}).RequireAuthorization();
+
 // Everything proxied to the services requires a valid token (the desk is authenticated at the edge).
 app.MapReverseProxy().RequireAuthorization();
 
 app.Run();
+
+// The validated bearer token, reused to shape the caller's profile (RequireAuthorization guarantees it).
+static string BearerToken(HttpContext http)
+{
+    var header = http.Request.Headers.Authorization.ToString();
+    return header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+        ? header["Bearer ".Length..]
+        : header;
+}
