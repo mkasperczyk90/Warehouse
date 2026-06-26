@@ -12,6 +12,17 @@
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
+  <!-- Build/version stamping. Safe baseline that works everywhere (incl. Docker builds
+       with no .git): CI overrides it from the release-please tag, e.g.
+       `dotnet build -p:Version=2.1.0 -p:SourceRevisionId=$GIT_SHA`. The value surfaces at
+       the `/version` endpoint (see ServiceDefaults). To derive it from git automatically,
+       wire Nerdbank.GitVersioning — see docs/github-setup.md (needs fetch-depth:0 + a .git
+       in the Docker build context). -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
   <!-- Test projects: relax doc/analyzer noise (covers *.Tests and ArchitectureTests) -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <IsPackable>false</IsPackable>

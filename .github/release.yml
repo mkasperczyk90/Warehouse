@@ -1,0 +1,38 @@
+# Categories for GitHub's auto-generated release notes (used by manual releases and
+# as a fallback). release-please owns the per-component CHANGELOGs; this keeps any
+# GitHub-native "Generate release notes" output consistent with the same taxonomy.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - dependencies # surfaced in their own section below
+  categories:
+    - title: ⚠️ Breaking changes
+      labels:
+        - breaking
+    - title: 🚀 Features
+      labels:
+        - feat
+        - enhancement
+    - title: 🐛 Fixes
+      labels:
+        - fix
+        - bug
+    - title: ⚡ Performance
+      labels:
+        - perf
+    - title: 🧹 Refactoring & chores
+      labels:
+        - refactor
+        - chore
+        - ci
+        - build
+    - title: 📝 Documentation
+      labels:
+        - docs
+    - title: 📦 Dependencies
+      labels:
+        - dependencies
+    - title: Other changes
+      labels:
+        - '*'

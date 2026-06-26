@@ -41,7 +41,11 @@ export function useWarehouses() {
     // sent as `X-Warehouse-Id`.
     queryFn: async () => {
       const sites = await api.get<WarehouseSummary[]>('topology/warehouses');
-      return sites.map<Warehouse>((w) => ({ id: w.code, code: w.code, name: w.city }));
+      return sites.map<Warehouse>((w) => ({
+        id: w.code,
+        code: w.code,
+        name: w.city,
+      }));
     },
     // The site list rarely changes within a session.
     staleTime: Infinity,

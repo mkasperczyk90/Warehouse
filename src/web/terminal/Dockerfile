@@ -20,6 +20,9 @@ RUN npm ci
 # --build-arg EXPO_PUBLIC_USE_MOCKS=false to turn MSW off and have the app call the real Gateway.
 ARG EXPO_PUBLIC_USE_MOCKS=true
 ENV EXPO_PUBLIC_USE_MOCKS=$EXPO_PUBLIC_USE_MOCKS
+# Build version (image tag), available to the app as process.env.EXPO_PUBLIC_APP_VERSION.
+ARG VERSION=0.1.0
+ENV EXPO_PUBLIC_APP_VERSION=$VERSION
 COPY . .
 RUN npm run mock:init && npm run build:web
 

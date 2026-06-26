@@ -1,5 +1,7 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -122,6 +124,40 @@ public static class Extensions
             });
         }
 
+        // `/version` is safe to expose in every environment — it carries no secrets and
+        // makes "what exactly is running in prod?" answerable. The version is stamped at
+        // build time (Nerdbank.GitVersioning) into the informational version
+        // (`1.2.3+<sha>`); the git sha / build time can also be injected via env.
+        app.MapGet("/version", () => Results.Json(VersionInfo.Current));
+
         return app;
+    }
+
+    /// <summary>Build/version metadata surfaced at <c>/version</c>.</summary>
+    private static class VersionInfo
+    {
+        public static readonly object Current = Build();
+
+        private static object Build()
+        {
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var informational =
+                assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                ?? assembly.GetName().Version?.ToString()
+                ?? "unknown";
+
+            // SourceLink / Nerdbank.GitVersioning encode the commit as "<version>+<sha>".
+            var plus = informational.IndexOf('+', StringComparison.Ordinal);
+            var version = plus >= 0 ? informational[..plus] : informational;
+            var shaFromVersion = plus >= 0 ? informational[(plus + 1)..] : null;
+
+            return new
+            {
+                service = assembly.GetName().Name,
+                version,
+                gitSha = Environment.GetEnvironmentVariable("BUILD_GIT_SHA") ?? shaFromVersion,
+                buildTime = Environment.GetEnvironmentVariable("BUILD_TIME"),
+            };
+        }
     }
 }

@@ -36,5 +36,8 @@ export interface Worklist {
 }
 
 export function useWorklist() {
-  return useQuery({ queryKey: ['worklist'], queryFn: () => api.get<Worklist>('worklist') });
+  return useQuery({
+    queryKey: ['worklist'],
+    queryFn: () => api.get<Worklist>('worklist'),
+  });
 }

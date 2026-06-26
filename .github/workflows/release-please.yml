@@ -1,0 +1,81 @@
+name: Release Please
+
+# Maintains a per-component "release PR" (version bump + CHANGELOG). Merging it tags the
+# component (e.g. admin-v1.4.0, warehouse-v2.1.0), cuts a GitHub Release, and — in the same
+# run — builds & pushes the released component's image to GHCR with semver tags + cosign.
+# Config: release-please-config.json + .release-please-manifest.json.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create tags, releases, and the release PR
+      pull-requests: write
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      # Always valid JSON so the downstream matrix never evaluates fromJSON('').
+      matrix: ${{ steps.matrix.outputs.matrix || '{"include":[]}' }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          # The default GITHUB_TOKEN won't re-trigger other workflows on the release PR;
+          # image publishing is chained in this same run (below) to avoid that limitation.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Turn the released component paths into a build matrix for publish-image.yml.
+      - name: Build publish matrix
+        id: matrix
+        if: ${{ steps.release.outputs.releases_created == 'true' }}
+        uses: actions/github-script@v7
+        env:
+          RP_OUTPUTS: ${{ toJSON(steps.release.outputs) }}
+        with:
+          script: |
+            const outputs = JSON.parse(process.env.RP_OUTPUTS || '{}');
+            const map = {
+              'src/web/admin': { name: 'admin', context: 'src/web/admin', dockerfile: 'src/web/admin/Dockerfile' },
+              'src/web/terminal': { name: 'terminal', context: 'src/web/terminal', dockerfile: 'src/web/terminal/Dockerfile' },
+              'src/Gateway/Warehouse.Gateway': { name: 'gateway', context: '.', dockerfile: 'src/Gateway/Warehouse.Gateway/Dockerfile' },
+              'src/Services/Warehousing': { name: 'warehousing-api', context: '.', dockerfile: 'src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile' },
+              'src/Services/Logistics': { name: 'logistics-api', context: '.', dockerfile: 'src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile' },
+              'src/Services/MasterData': { name: 'masterdata-api', context: '.', dockerfile: 'src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile' },
+            };
+            const paths = JSON.parse(outputs['paths_released'] || '[]');
+            const include = [];
+            for (const p of paths) {
+              const m = map[p];
+              if (m) include.push({ ...m, version: outputs[`${p}--version`] });
+            }
+            core.setOutput('matrix', JSON.stringify({ include }));
+
+  publish-images:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.release-please.outputs.matrix) }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      name: ${{ matrix.name }}
+      context: ${{ matrix.context }}
+      dockerfile: ${{ matrix.dockerfile }}
+      version: ${{ matrix.version }}
+      channel: release

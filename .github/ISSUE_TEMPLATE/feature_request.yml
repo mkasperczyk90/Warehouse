@@ -1,0 +1,43 @@
+name: Feature / change request
+description: Propose a capability, use case, or improvement
+labels: ['enhancement', 'triage']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What user need or pain is this solving? Tie it to a use case (UC-xx) if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend — Warehousing
+        - Backend — Logistics
+        - Backend — MasterData
+        - Gateway / BFF
+        - Web — Admin
+        - Web — Terminal
+        - Infra / CI-CD
+        - Cross-cutting
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Notes
+      options:
+        - label: This likely needs an ADR (notable architectural decision)
+        - label: This is a breaking change (API/contract/DB)

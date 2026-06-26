@@ -254,7 +254,11 @@ export function parseProductsCsv(text: string): ParsedCsv {
       Number.isNaN(maxCelsius);
 
     if (numbersBad) {
-      errors.push({ sku: sku || `#${i}`, code: 'csv_invalid_number', message: `row ${i}` });
+      errors.push({
+        sku: sku || `#${i}`,
+        code: 'csv_invalid_number',
+        message: `row ${i}`,
+      });
       continue;
     }
 

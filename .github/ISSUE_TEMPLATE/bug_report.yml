@@ -1,0 +1,50 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. Please fill in enough for a clean repro.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend — Warehousing (Inventory/Topology)
+        - Backend — Logistics
+        - Backend — MasterData (Catalog/Partners)
+        - Gateway / BFF
+        - Web — Admin
+        - Web — Terminal
+        - Infra / CI-CD
+        - Other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected vs. what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Do …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Output of the service `/version` endpoint, or the commit SHA.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / trace id
+      description: Relevant logs, an OpenTelemetry trace id, or a stack trace.
+      render: shell
