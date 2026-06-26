@@ -204,11 +204,34 @@ The app already calls `fetch` through the single `src/core/api/client.ts` seam; 
         unit-tested mappers (`WorklistMapper`/`SearchMapper`, new `Warehouse.Gateway.Tests`). Worklist
         aggregates QC + expiring stock (≤7 d) + partial orders + inbound + stocktakes-to-approve; Search
         spans products, stock, ASN, orders and locations (a new flat `GET topology/locations` read backs the
-        location hits). The FE contract is unchanged (`useWorklist`/`useGlobalSearch` already hit these
-        paths; MSW keeps serving them in dev), so going live is turning MSW off. **Search shipments** join
-        once the dispatch read model lands (below).
-- [ ] Auth: attach the bearer token / session to requests in the seam once Identity is in (out of scope
-      in pass 1 per blog #11, but the seam is the single place to add it).
+        location hits) **and shipments** (off the dispatch board, below). The FE contract is unchanged
+        (`useWorklist`/`useGlobalSearch` already hit these paths; MSW keeps serving them in dev), so going
+        live is turning MSW off.
+      - [x] **Dispatch board (UC-12)** — *wired, with a domain rework.* The board's four columns
+        (awaiting carrier → carrier assigned → pickup notice sent → dispatched) are now real lifecycle
+        states: the **`Shipment` aggregate** gained `AwaitingCarrier`/`CarrierAssigned` states, a nullable
+        carrier + `Pickup`, and `CreateAwaitingCarrier`/`AssignCarrier`/`SendPickupNotice` transitions
+        (migration `ShipmentCarrierLifecycle`). `MarkPacked` now **opens the shipment** (it lands on the
+        board); the admin walks it column by column via `GET /dispatch/board` + `POST /dispatch/{id}/assign`
+        + `/advance` (Logistics `GetDispatchBoard`/`AssignCarrier`/`AdvanceShipment`, gateway route
+        `/api/dispatch` → logistics); the terminal's `ConfirmDispatch` fast-forwards the same states in one
+        shot. `LogisticsSeeder` ships packed orders with shipments across the columns, and the doc model now
+        carries the `Shipment.Status` state machine. FE/MSW contract unchanged — going live is turning MSW
+        off.
+      - [~] **Auth / Identity (Keycloak)** — *wired; needs a local run to verify the Keycloak path.* The
+        deferred IdP decision is made: **self-hosted Keycloak** (a container in the AppHost) with a custom
+        **badge Direct-Grant authenticator** (Java SPI, `src/Identity/keycloak-badge-authenticator`) so the
+        desk's badge-scan issues real JWTs. The gateway **brokers** sign-in (`POST /api/auth/login` →
+        Keycloak token endpoint, confidential client secret server-side → returns `{ accessToken, user }`)
+        and **validates** every other call (`AddJwtBearer`, `RequireAuthorization` on the BFF + proxy);
+        services trust the gateway (blog #11). The FE seam attaches `Authorization: Bearer` (token persisted
+        for refresh-safe sessions); `AuthContext` stores token + user; MSW returns the same shape with a fake
+        token, so **dev/tests are unchanged** and going live is turning MSW off. **Verified in-session:** the
+        .NET (gateway broker/claims, AppHost wiring) builds + `AuthClaims` unit tests, and the FE
+        (typecheck + tests). **Not verifiable in-session** (needs Maven + Docker): the Java jar build, the
+        realm import, and the end-to-end token flow — see `src/Identity/README.md` for the local steps.
+        Follow-up: pin a `ValidIssuer` once a stable public Keycloak URL is in front; add role-based
+        authorization policies; per-service validation for zero-trust.
 
 ## 2. Cross-cutting UX the design system calls for
 
