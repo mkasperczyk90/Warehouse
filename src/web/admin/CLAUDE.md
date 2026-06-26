@@ -20,15 +20,16 @@ app calls `fetch` from day one — going live is turning MSW off, never a rewrit
    (`available | reserved | blocked | expired | transit`). Quantities use `QuantityWithUnit` (never a bare
    number where a unit is meaningful).
 2. **One API seam.** All data goes through `src/core/api/client.ts` (`api.get/post/put`). Never `fetch`
-   directly in a component. Fixtures live in `src/core/mocks/handlers.ts` and are the *contract*; the
+   directly in a component. Fixtures live in `src/core/mocks/handlers.ts` and are the _contract_; the
    `x.model.ts` types are the spec.
 3. **Feature slices.** Each screen is a folder under `src/features/<Name>/`: `x.model.ts` (types + Query/
    mutation hooks), `XScreen.tsx` (view), `XScreen.module.css`, `index.ts` (public API), `XScreen.test.tsx`.
    Cross-feature imports go through `index.ts`; UI primitives through `@/shared/ui`. `@/*` → `src/*`.
-4. **Every string is translated, in EN *and* PL.** Add keys to both `src/shared/i18n/en.ts` and `pl.ts`
+4. **Every string is translated, in EN _and_ PL.** Add keys to both `src/shared/i18n/en.ts` and `pl.ts`
    (nested objects, same shape). No literal user-facing text in components.
-5. **Definition of done:** `npm run typecheck` clean, `npm run test:run` green, `npm run build` green.
-   Update EN+PL i18n and `TODO.md` for anything you finish or discover.
+5. **Definition of done:** `npm run typecheck` clean, `npm run lint` clean, `npm run test:run` green,
+   `npm run build` green (run `npm run format` to apply Prettier). Update EN+PL i18n and `TODO.md` for
+   anything you finish or discover.
 
 ## Patterns to reuse (don't reinvent)
 
@@ -80,7 +81,7 @@ QC uses an optimistic update (`onMutate`/`onError`/`onSettled`) as the reference
 - Don't assert locale-formatted numbers (`toLocaleString` uses a space separator in Node, comma in the
   browser) — assert labels or unique text instead.
 - **Stateful mocks persist across tests in a file** (module state, isolated per file). Order tests so a
-  mutating test runs *after* tests that assert the pre-mutation state, or assert on records other tests
+  mutating test runs _after_ tests that assert the pre-mutation state, or assert on records other tests
   don't touch.
 
 ## Commands
@@ -89,13 +90,15 @@ QC uses an optimistic update (`onMutate`/`onError`/`onSettled`) as the reference
 npm run dev        # Vite dev server (MSW serves fixtures)
 npm run mock:init  # one-time: generate public/mockServiceWorker.js (gitignored)
 npm run typecheck  # tsc --noEmit
+npm run lint       # eslint .   (flat config)
+npm run format     # prettier --write .   (format:check to verify)
 npm run test:run   # vitest run
 npm run build      # tsc --noEmit && vite build
 ```
 
 ## Out of scope (don't build without asking)
 
-High-contrast theme (terminal-only), BI dashboards (the worklist landing is *not* BI), external-actor
+High-contrast theme (terminal-only), BI dashboards (the worklist landing is _not_ BI), external-actor
 portals. These are deferred in [`../../../docs/design/README.md`](../../../docs/design/README.md#scope).
 (Auth/identity is now built — badge-scan sign-in in `features/Auth` + `shared/auth`, profile in
 `features/Profile` — but it is **mock-only**: a real token/session still attaches at the api seam.)

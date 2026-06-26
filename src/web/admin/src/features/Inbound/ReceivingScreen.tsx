@@ -46,7 +46,10 @@ export function ReceivingScreen({ id }: { id?: string }) {
         header: () => t('inbound.receiving.col.status'),
         accessorKey: 'status',
         cell: ({ row }) => (
-          <StatusBadge variant={STATUS_VARIANT[row.original.status]} label={row.original.statusLabel} />
+          <StatusBadge
+            variant={STATUS_VARIANT[row.original.status]}
+            label={row.original.statusLabel}
+          />
         ),
       },
     ],
@@ -54,7 +57,8 @@ export function ReceivingScreen({ id }: { id?: string }) {
   );
 
   if (receiving.isLoading) return <p className={styles.state}>{t('state.loading')}</p>;
-  if (receiving.isError || !receiving.data) return <p className={styles.state}>{t('state.error')}</p>;
+  if (receiving.isError || !receiving.data)
+    return <p className={styles.state}>{t('state.error')}</p>;
 
   const r = receiving.data;
   const percent = r.totalLines === 0 ? 0 : Math.round((r.receivedLines / r.totalLines) * 100);
@@ -77,7 +81,10 @@ export function ReceivingScreen({ id }: { id?: string }) {
           <div className={styles.fill} style={{ width: `${percent}%` }} />
         </div>
         <div className={styles.progressText}>
-          {t('inbound.receiving.progress', { received: r.receivedLines, total: r.totalLines })}
+          {t('inbound.receiving.progress', {
+            received: r.receivedLines,
+            total: r.totalLines,
+          })}
         </div>
       </div>
 

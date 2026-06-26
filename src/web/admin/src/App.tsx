@@ -2,6 +2,7 @@ import { RouterProvider } from '@tanstack/react-router';
 
 import { AuthProvider, useAuth } from '@/shared/auth/AuthContext';
 import { WarehouseProvider } from '@/shared/warehouse/WarehouseContext';
+import { ToastProvider } from '@/shared/toast';
 import { LoginScreen } from '@/features/Auth';
 import { router } from './router';
 
@@ -22,8 +23,10 @@ function Gate() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <Gate />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
+    </ToastProvider>
   );
 }

@@ -139,7 +139,8 @@ const toDetail = (d: DeliveryDto): AsnDetail => {
 export function useAsnList() {
   return useQuery({
     queryKey: ['asn', 'list'],
-    queryFn: async () => (await api.get<DeliverySummaryDto[]>('logistics/deliveries')).map(toSummary),
+    queryFn: async () =>
+      (await api.get<DeliverySummaryDto[]>('logistics/deliveries')).map(toSummary),
   });
 }
 
@@ -175,7 +176,11 @@ export function useCreateAsn() {
         supplierRoleId: body.supplier,
         warehouseCode: body.warehouse,
         plannedAt: new Date().toISOString(),
-        lines: body.lines.map((l) => ({ productCode: l.sku, quantity: l.planned, unit: l.unit })),
+        lines: body.lines.map((l) => ({
+          productCode: l.sku,
+          quantity: l.planned,
+          unit: l.unit,
+        })),
       }),
   });
 }
@@ -200,7 +205,10 @@ function windowToRange(window: string): { from: string; to: string } {
 export function useAssignDock(id: string | null | undefined) {
   return useMutation({
     mutationFn: (body: { dock: string; window: string }) =>
-      api.post(`logistics/deliveries/${id}/dock-slot`, { dockCode: body.dock, ...windowToRange(body.window) }),
+      api.post(`logistics/deliveries/${id}/dock-slot`, {
+        dockCode: body.dock,
+        ...windowToRange(body.window),
+      }),
   });
 }
 
@@ -255,7 +263,11 @@ const RECEIVING_LABEL: Record<ReceivingLineStatus, string> = {
 function toReceivingLine(l: DeliveryLineDto): ReceivingLine {
   const received = l.actualQuantity ?? 0;
   const status: ReceivingLineStatus =
-    received >= l.expectedQuantity && received > 0 ? 'received' : received > 0 ? 'receiving' : 'pending';
+    received >= l.expectedQuantity && received > 0
+      ? 'received'
+      : received > 0
+        ? 'receiving'
+        : 'pending';
   return {
     id: String(l.lineNo),
     sku: l.productCode,

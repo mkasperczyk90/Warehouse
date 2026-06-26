@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { renderWithProviders } from '@/test/render';
 import { OutboundScreen } from './OutboundScreen';
+
+// Selection mirrors to the URL; stub the router hooks (no router in component
+// tests). `useSearch` seeds an empty selection so the first order stays default.
+vi.mock('@tanstack/react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
+  useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
+}));
 
 describe('OutboundScreen', () => {
   it('lists orders and shows the first one (with its lines) by default', async () => {

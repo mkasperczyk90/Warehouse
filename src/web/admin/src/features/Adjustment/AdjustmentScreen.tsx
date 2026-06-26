@@ -51,7 +51,8 @@ export function AdjustmentScreen({ itemId }: { itemId?: string } = {}) {
 
   const item = draft.data;
   const newQuantity = watch('newQuantity');
-  const delta = (Number.isFinite(newQuantity) ? newQuantity : item.systemOnHand) - item.systemOnHand;
+  const delta =
+    (Number.isFinite(newQuantity) ? newQuantity : item.systemOnHand) - item.systemOnHand;
 
   // Validation runs first (handleSubmit); only a valid form opens the confirm.
   const onSubmit = (values: AdjustmentForm) => setConfirm(values);
@@ -65,110 +66,109 @@ export function AdjustmentScreen({ itemId }: { itemId?: string } = {}) {
 
   return (
     <>
-    <form className={styles.content} onSubmit={handleSubmit(onSubmit)}>
-      <div className={styles.head}>
-        <h2 className={styles.title}>{t('adjustment.title')}</h2>
-        <div className={styles.sub}>{t('adjustment.subtitle')}</div>
-      </div>
-
-      <section className={styles.card}>
-        <h3 className={styles.cardTitle}>{t('adjustment.itemTitle')}</h3>
-        <div className={styles.item}>
-          <div>
-            <b>
-              {item.product} · {item.batch}
-            </b>
-            <div className={styles.itemSku}>
-              SKU {item.sku} · {item.location} · {item.room}
-            </div>
-          </div>
-          <span className={styles.itemBadge}>
-            <StatusBadge variant={item.status} label={item.statusLabel} />
-          </span>
+      <form className={styles.content} onSubmit={handleSubmit(onSubmit)}>
+        <div className={styles.head}>
+          <h2 className={styles.title}>{t('adjustment.title')}</h2>
+          <div className={styles.sub}>{t('adjustment.subtitle')}</div>
         </div>
-      </section>
 
-      <section className={styles.card}>
-        <h3 className={styles.cardTitle}>{t('adjustment.adjustmentTitle')}</h3>
-        <div className={styles.grid}>
-          <Field label={t('adjustment.systemOnHand')}>
-            <div className={`${styles.input} ${styles.ro}`}>
-              {item.systemOnHand.toLocaleString()} {item.unit}
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>{t('adjustment.itemTitle')}</h3>
+          <div className={styles.item}>
+            <div>
+              <b>
+                {item.product} · {item.batch}
+              </b>
+              <div className={styles.itemSku}>
+                SKU {item.sku} · {item.location} · {item.room}
+              </div>
             </div>
-          </Field>
+            <span className={styles.itemBadge}>
+              <StatusBadge variant={item.status} label={item.statusLabel} />
+            </span>
+          </div>
+        </section>
 
-          <Field
-            label={t('adjustment.newQuantity')}
-            error={errors.newQuantity?.message}
-          >
-            <input
-              type="number"
-              className={styles.input}
-              {...register('newQuantity', { valueAsNumber: true })}
-            />
-          </Field>
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>{t('adjustment.adjustmentTitle')}</h3>
+          <div className={styles.grid}>
+            <Field label={t('adjustment.systemOnHand')}>
+              <div className={`${styles.input} ${styles.ro}`}>
+                {item.systemOnHand.toLocaleString()} {item.unit}
+              </div>
+            </Field>
 
-          <Field label={t('adjustment.delta')}>
-            <div className={`${styles.delta} ${delta > 0 ? styles.pos : delta < 0 ? styles.neg : ''}`}>
+            <Field label={t('adjustment.newQuantity')} error={errors.newQuantity?.message}>
+              <input
+                type="number"
+                className={styles.input}
+                {...register('newQuantity', { valueAsNumber: true })}
+              />
+            </Field>
+
+            <Field label={t('adjustment.delta')}>
+              <div
+                className={`${styles.delta} ${delta > 0 ? styles.pos : delta < 0 ? styles.neg : ''}`}
+              >
+                {delta > 0 ? '+' : ''}
+                {delta}
+              </div>
+            </Field>
+
+            <Field
+              label={`${t('adjustment.reason')} *`}
+              error={errors.reason ? t('adjustment.reasonRequired') : undefined}
+            >
+              <select className={styles.input} defaultValue="" {...register('reason')}>
+                <option value="" disabled>
+                  {t('adjustment.selectReason')}
+                </option>
+                {ADJUSTMENT_REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {t(`adjustment.reasonOpt.${r}`)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label={t('adjustment.note')} span={2}>
+              <input className={styles.input} {...register('note')} />
+            </Field>
+          </div>
+
+          <div className={styles.result}>
+            <span className={styles.resultLabel}>{t('adjustment.afterPosting')}</span>
+            <span className={styles.resultValue}>
+              {(Number.isFinite(newQuantity) ? newQuantity : item.systemOnHand).toLocaleString()}{' '}
+              {item.unit} {t('adjustment.onHand')}
+            </span>
+            <span className={styles.resultLabel}>{t('adjustment.ledgerMovement')}</span>
+            <span className={styles.resultValue}>
               {delta > 0 ? '+' : ''}
               {delta}
-            </div>
-          </Field>
+            </span>
+          </div>
 
-          <Field
-            label={`${t('adjustment.reason')} *`}
-            error={errors.reason ? t('adjustment.reasonRequired') : undefined}
-          >
-            <select className={styles.input} defaultValue="" {...register('reason')}>
-              <option value="" disabled>
-                {t('adjustment.selectReason')}
-              </option>
-              {ADJUSTMENT_REASONS.map((r) => (
-                <option key={r} value={r}>
-                  {t(`adjustment.reasonOpt.${r}`)}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <div className={styles.audit}>
+            <Lock size={14} aria-hidden /> {t('adjustment.audit')}
+          </div>
+        </section>
 
-          <Field label={t('adjustment.note')} span={2}>
-            <input className={styles.input} {...register('note')} />
-          </Field>
+        {mutation.isSuccess ? (
+          <div className={styles.success}>{t('adjustment.posted')}</div>
+        ) : mutation.isError ? (
+          <div className={styles.error}>{t('state.error')}</div>
+        ) : null}
+
+        <div className={styles.actions}>
+          <button type="button" className={styles.ghost} onClick={() => reset()}>
+            {t('adjustment.cancel')}
+          </button>
+          <button type="submit" className={styles.primary} disabled={mutation.isPending}>
+            {t('adjustment.post')}
+          </button>
         </div>
-
-        <div className={styles.result}>
-          <span className={styles.resultLabel}>{t('adjustment.afterPosting')}</span>
-          <span className={styles.resultValue}>
-            {(Number.isFinite(newQuantity) ? newQuantity : item.systemOnHand).toLocaleString()} {item.unit}{' '}
-            {t('adjustment.onHand')}
-          </span>
-          <span className={styles.resultLabel}>{t('adjustment.ledgerMovement')}</span>
-          <span className={styles.resultValue}>
-            {delta > 0 ? '+' : ''}
-            {delta}
-          </span>
-        </div>
-
-        <div className={styles.audit}>
-          <Lock size={14} aria-hidden /> {t('adjustment.audit')}
-        </div>
-      </section>
-
-      {mutation.isSuccess ? (
-        <div className={styles.success}>{t('adjustment.posted')}</div>
-      ) : mutation.isError ? (
-        <div className={styles.error}>{t('state.error')}</div>
-      ) : null}
-
-      <div className={styles.actions}>
-        <button type="button" className={styles.ghost} onClick={() => reset()}>
-          {t('adjustment.cancel')}
-        </button>
-        <button type="submit" className={styles.primary} disabled={mutation.isPending}>
-          {t('adjustment.post')}
-        </button>
-      </div>
-    </form>
+      </form>
 
       <Modal
         open={!!confirm}

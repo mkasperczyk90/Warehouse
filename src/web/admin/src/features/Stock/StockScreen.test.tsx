@@ -5,10 +5,12 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/render';
 import { StockScreen } from './StockScreen';
 
-// Rows navigate to the drill-down on click; stub the router hook.
+// Rows navigate to the drill-down on click and filters mirror to the URL; stub
+// the router hooks (no router in component tests). `useSearch` seeds empty filters.
 vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@tanstack/react-router')>()),
   useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
 }));
 
 describe('StockScreen', () => {

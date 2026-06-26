@@ -15,7 +15,9 @@ describe('ProductDetailScreen', () => {
   it('renders the product card from the mocked gateway', async () => {
     renderWithProviders(<ProductDetailScreen sku="MILK-1L" />);
 
-    expect(await screen.findByRole('heading', { name: 'Whole milk 3.2% — 1 L carton' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Whole milk 3.2% — 1 L carton' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Refrigerated')).toBeInTheDocument();
   });
 
@@ -42,6 +44,8 @@ describe('ProductDetailScreen', () => {
     await user.type(input, 'Skim milk 0.5% — 1 L carton');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(await screen.findByRole('heading', { name: 'Skim milk 0.5% — 1 L carton' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Skim milk 0.5% — 1 L carton' }),
+    ).toBeInTheDocument();
   });
 });

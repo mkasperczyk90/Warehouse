@@ -9,7 +9,7 @@ Given('the manager opens the product catalogue', async ({ products }) => {
 });
 
 Given('the manager opens the product {string}', async ({ products }, sku: string) => {
-  await products.openEdit(sku);
+  await products.openDetail(sku);
 });
 
 Then('the product catalogue is shown', async ({ products }) => {
@@ -32,31 +32,16 @@ When('the manager filters products by category {string}', async ({ products }, l
   await products.filterByCategory(label);
 });
 
-// --- Edit / create ---------------------------------------------------------
-Then('the product name field shows {string}', async ({ products }, value: string) => {
-  await products.expectName(value);
+// --- Detail + rename -------------------------------------------------------
+Then('the product detail shows {string}', async ({ products }, name: string) => {
+  await products.expectDetailName(name);
 });
 
-When('the manager saves the product', async ({ products }) => {
-  await products.save();
+When('the manager renames the product to {string}', async ({ products }, name: string) => {
+  await products.rename(name);
 });
 
-Then('the product is saved', async ({ products }) => {
-  await products.expectSaved();
-});
-
-Then('the product is not saved', async ({ products }) => {
-  await products.expectNotSaved();
-});
-
-When('the manager sets the minimum temperature to {string}', async ({ products }, value: string) => {
-  await products.setTempMin(value);
-});
-
-Then('the temperature-range error is shown', async ({ products }) => {
-  await products.expectTempError();
-});
-
+// --- Define (create) -------------------------------------------------------
 When('the manager starts a new product', async ({ products }) => {
   await products.openNew();
 });
@@ -65,8 +50,23 @@ Then('the new-product form is shown', async ({ products }) => {
   await products.expectCreateShown();
 });
 
+When('the manager fills in a valid SKU and name', async ({ products }) => {
+  await products.fillValidSkuAndName();
+});
+
+When(
+  'the manager sets cold-chain storage with min {string} and max {string}',
+  async ({ products }, min: string, max: string) => {
+    await products.setColdChainRange(min, max);
+  },
+);
+
 When('the manager creates the product', async ({ products }) => {
   await products.createProduct();
+});
+
+Then('the temperature-range error is shown', async ({ products }) => {
+  await products.expectTempError();
 });
 
 Then('the SKU-length error is shown', async ({ products }) => {

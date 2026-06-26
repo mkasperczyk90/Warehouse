@@ -1,9 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { renderWithProviders } from '@/test/render';
 import { TopologyScreen } from './TopologyScreen';
+
+// Selection (the chosen room) mirrors to the URL; stub the router hooks (no router
+// in component tests). `useSearch` seeds an empty selection so the first room stays default.
+vi.mock('@tanstack/react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@tanstack/react-router')>()),
+  useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
+}));
 
 describe('TopologyScreen', () => {
   it('renders the tree and the first room detail by default', async () => {
@@ -24,9 +32,7 @@ describe('TopologyScreen', () => {
 
     expect(await screen.findByText('Freezer 1 — WH-01')).toBeInTheDocument();
     expect(screen.getByText('FZ1-B02-R4-S1')).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.queryByText('Cold room 1 — WH-01')).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByText('Cold room 1 — WH-01')).not.toBeInTheDocument());
   });
 
   it('adds a location to the room', async () => {

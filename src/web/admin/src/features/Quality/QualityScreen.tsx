@@ -38,7 +38,12 @@ export function QualityScreen() {
   const close = () => setPending(null);
   const confirm = () => {
     if (!pending || !reason) return;
-    decide.mutate({ id: pending.id, decision: pending.decision, reason, note: note || undefined });
+    decide.mutate({
+      id: pending.id,
+      decision: pending.decision,
+      reason,
+      note: note || undefined,
+    });
     close();
   };
 
@@ -162,7 +167,9 @@ export function QualityScreen() {
               </button>
               <button
                 type="button"
-                className={pending.decision === 'reject' ? styles.confirmReject : styles.confirmRelease}
+                className={
+                  pending.decision === 'reject' ? styles.confirmReject : styles.confirmRelease
+                }
                 disabled={!reason}
                 onClick={confirm}
               >

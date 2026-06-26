@@ -1,6 +1,6 @@
 Feature: Manage products (UC-13)
   As a warehouse manager
-  I want to browse the catalogue and create/edit products
+  I want to browse the catalogue and define/maintain products
   So that master data (SKU, storage requirements, tracking) is correct
 
   Scenario: The catalogue lists products with a create affordance
@@ -17,22 +17,23 @@ Feature: Manage products (UC-13)
 
   Scenario: Filtering the catalogue by category
     Given the manager opens the product catalogue
-    When the manager filters products by category "Packaging"
+    When the manager filters products by category "Dry goods"
     Then the product "Cardboard box L" is shown
     And the product "Whole milk 3.2% — 1 L carton" is not shown
 
-  Scenario: Editing a product seeds the form and saves
-    Given the manager opens the product "4006381333931"
-    Then the product name field shows "Whole milk 3.2% — 1 L carton"
-    When the manager saves the product
-    Then the product is saved
+  Scenario: Renaming a product updates its detail (UC-13)
+    Given the manager opens the product "MILK-1L"
+    Then the product detail shows "Whole milk 3.2% — 1 L carton"
+    When the manager renames the product to "Whole milk 1 L"
+    Then the product detail shows "Whole milk 1 L"
 
-  Scenario: An inverted temperature range is rejected on save (UC-13 invariant)
-    Given the manager opens the product "4006381333931"
-    When the manager sets the minimum temperature to "10"
-    And the manager saves the product
+  Scenario: An inverted temperature range is rejected (UC-13 invariant)
+    Given the manager opens the product catalogue
+    When the manager starts a new product
+    And the manager fills in a valid SKU and name
+    And the manager sets cold-chain storage with min "10" and max "2"
+    And the manager creates the product
     Then the temperature-range error is shown
-    And the product is not saved
 
   Scenario: Creating a product requires a valid SKU
     Given the manager opens the product catalogue

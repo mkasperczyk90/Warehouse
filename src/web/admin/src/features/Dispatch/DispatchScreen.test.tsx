@@ -26,9 +26,7 @@ describe('DispatchScreen', () => {
   it('shows tracking on dispatched shipments', async () => {
     renderWithProviders(<DispatchScreen />);
 
-    expect(
-      await screen.findByText(/Tracking GLS-PL-99213 · waybill issued/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Tracking GLS-PL-99213 · waybill issued/)).toBeInTheDocument();
   });
 
   it('assigns a carrier and moves the shipment off the packed queue', async () => {
@@ -70,7 +68,9 @@ describe('DispatchScreen', () => {
     renderWithProviders(<DispatchScreen />);
     await screen.findByText('Dispatched');
 
-    expect((await screen.findAllByRole('button', { name: /Print waybill/ })).length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByRole('button', { name: /Print waybill/ })).length,
+    ).toBeGreaterThan(0);
   });
 
   it('filters the board by carrier', async () => {

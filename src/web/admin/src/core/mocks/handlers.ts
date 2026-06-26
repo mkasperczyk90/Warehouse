@@ -28,8 +28,24 @@ import type { UserProfile } from '@/features/Profile';
 // Mirrors the Topology backend's `WarehouseSummaryDto` (GET /topology/warehouses). The switcher maps
 // each to { id: code, code, name: city }; the code is the identity sent as `X-Warehouse-Id`.
 const warehouses: WarehouseSummary[] = [
-  { code: 'WH-01', name: 'Wrocław DC', city: 'Wrocław', countryCode: 'PL', roomCount: 3, dockCount: 2, locationCount: 120 },
-  { code: 'WH-02', name: 'Poznań DC', city: 'Poznań', countryCode: 'PL', roomCount: 2, dockCount: 1, locationCount: 80 },
+  {
+    code: 'WH-01',
+    name: 'Wrocław DC',
+    city: 'Wrocław',
+    countryCode: 'PL',
+    roomCount: 3,
+    dockCount: 2,
+    locationCount: 120,
+  },
+  {
+    code: 'WH-02',
+    name: 'Poznań DC',
+    city: 'Poznań',
+    countryCode: 'PL',
+    roomCount: 2,
+    dockCount: 1,
+    locationCount: 80,
+  },
 ];
 
 /** The active warehouse for a request (defaults to WH-01 when the header is absent). */
@@ -40,8 +56,10 @@ const wh = (request: Request) => request.headers.get('X-Warehouse-Id') ?? 'WH-01
  * across entities, so one set keeps the scoping declarative and low-touch.
  */
 const WH02 = new Set([
-  '6', '7', // stock rows
-  'm11', 'm12', // movements
+  '6',
+  '7', // stock rows
+  'm11',
+  'm12', // movements
   'ASN-3001', // inbound
   'SO-5001', // outbound
   'B-0500', // qc
@@ -68,31 +86,54 @@ function kpisFor(warehouse: string): StockKpis {
 // --- Desk users (badge → user, resolved at sign-in) ------------------------
 const users: Record<string, UserProfile> = {
   'U-1': {
-    id: 'U-1', badge: '1001', name: 'K. Manager', role: 'manager',
-    email: 'k.manager@warehouse.example', phone: '+48 600 100 100',
-    defaultWarehouseId: 'WH-01', language: 'en', lastLogin: '2026-06-22 07:02',
+    id: 'U-1',
+    badge: '1001',
+    name: 'K. Manager',
+    role: 'manager',
+    email: 'k.manager@warehouse.example',
+    phone: '+48 600 100 100',
+    defaultWarehouseId: 'WH-01',
+    language: 'en',
+    lastLogin: '2026-06-22 07:02',
     recentSessions: [
       { id: 's1', when: '2026-06-22 07:02', device: 'Desk · Chrome / Windows' },
       { id: 's2', when: '2026-06-21 06:58', device: 'Desk · Chrome / Windows' },
     ],
   },
   'U-2': {
-    id: 'U-2', badge: '1002', name: 'A. Coordinator', role: 'coordinator',
-    email: 'a.coordinator@warehouse.example', phone: '+48 600 100 200',
-    defaultWarehouseId: 'WH-01', language: 'pl', lastLogin: '2026-06-22 06:40',
+    id: 'U-2',
+    badge: '1002',
+    name: 'A. Coordinator',
+    role: 'coordinator',
+    email: 'a.coordinator@warehouse.example',
+    phone: '+48 600 100 200',
+    defaultWarehouseId: 'WH-01',
+    language: 'pl',
+    lastLogin: '2026-06-22 06:40',
     recentSessions: [{ id: 's1', when: '2026-06-22 06:40', device: 'Desk · Edge / Windows' }],
   },
   'U-3': {
-    id: 'U-3', badge: '1003', name: 'M. Inspector', role: 'inspector',
-    email: 'm.inspector@warehouse.example', phone: '+48 600 100 300',
-    defaultWarehouseId: 'WH-02', language: 'en', lastLogin: '2026-06-21 14:15',
+    id: 'U-3',
+    badge: '1003',
+    name: 'M. Inspector',
+    role: 'inspector',
+    email: 'm.inspector@warehouse.example',
+    phone: '+48 600 100 300',
+    defaultWarehouseId: 'WH-02',
+    language: 'en',
+    lastLogin: '2026-06-21 14:15',
     recentSessions: [{ id: 's1', when: '2026-06-21 14:15', device: 'Desk · Firefox / Linux' }],
   },
 };
 
 const toCurrentUser = (p: UserProfile): CurrentUser => ({
-  id: p.id, badge: p.badge, name: p.name, role: p.role,
-  email: p.email, defaultWarehouseId: p.defaultWarehouseId, language: p.language,
+  id: p.id,
+  badge: p.badge,
+  name: p.name,
+  role: p.role,
+  email: p.email,
+  defaultWarehouseId: p.defaultWarehouseId,
+  language: p.language,
 });
 
 const rows: StockRow[] = [
@@ -245,9 +286,30 @@ const asnDetails: Record<string, AsnDetail> = {
     status: 'transit',
     statusLabel: 'Arrived · receiving',
     lines: [
-      { id: '1', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', planned: 240, unit: 'ea', tracking: 'Batch + BBE' },
-      { id: '2', sku: '5901234123457', product: 'Greek yoghurt 400 g', planned: 1_440, unit: 'ea', tracking: 'Batch + BBE' },
-      { id: '3', sku: '5900512331027', product: 'Butter block 250 g', planned: 600, unit: 'ea', tracking: 'Batch + BBE' },
+      {
+        id: '1',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        planned: 240,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
+      {
+        id: '2',
+        sku: '5901234123457',
+        product: 'Greek yoghurt 400 g',
+        planned: 1_440,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
+      {
+        id: '3',
+        sku: '5900512331027',
+        product: 'Butter block 250 g',
+        planned: 600,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
       {
         id: '4',
         sku: '—',
@@ -268,8 +330,22 @@ const asnDetails: Record<string, AsnDetail> = {
     status: 'reserved',
     statusLabel: 'Announced',
     lines: [
-      { id: '1', sku: '5601012009873', product: 'Frozen berries 1 kg', planned: 320, unit: 'ea', tracking: 'Batch + BBE' },
-      { id: '2', sku: '5601012009880', product: 'Frozen peas 1 kg', planned: 480, unit: 'ea', tracking: 'Batch + BBE' },
+      {
+        id: '1',
+        sku: '5601012009873',
+        product: 'Frozen berries 1 kg',
+        planned: 320,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
+      {
+        id: '2',
+        sku: '5601012009880',
+        product: 'Frozen peas 1 kg',
+        planned: 480,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
     ],
   },
   'ASN-2208': {
@@ -281,9 +357,30 @@ const asnDetails: Record<string, AsnDetail> = {
     status: 'reserved',
     statusLabel: 'Announced',
     lines: [
-      { id: '1', sku: '5901111000017', product: 'Cardboard box L', planned: 200, unit: 'ea', tracking: 'None' },
-      { id: '2', sku: '5901111000024', product: 'Pallet wrap film', planned: 50, unit: 'roll', tracking: 'None' },
-      { id: '3', sku: '5901111000031', product: 'Shipping label roll', planned: 30, unit: 'roll', tracking: 'None' },
+      {
+        id: '1',
+        sku: '5901111000017',
+        product: 'Cardboard box L',
+        planned: 200,
+        unit: 'ea',
+        tracking: 'None',
+      },
+      {
+        id: '2',
+        sku: '5901111000024',
+        product: 'Pallet wrap film',
+        planned: 50,
+        unit: 'roll',
+        tracking: 'None',
+      },
+      {
+        id: '3',
+        sku: '5901111000031',
+        product: 'Shipping label roll',
+        planned: 30,
+        unit: 'roll',
+        tracking: 'None',
+      },
     ],
   },
   'ASN-2205': {
@@ -295,8 +392,22 @@ const asnDetails: Record<string, AsnDetail> = {
     status: 'available',
     statusLabel: 'Completed',
     lines: [
-      { id: '1', sku: '5900512331027', product: 'Butter block 250 g', planned: 600, unit: 'ea', tracking: 'Received' },
-      { id: '2', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', planned: 240, unit: 'ea', tracking: 'Received' },
+      {
+        id: '1',
+        sku: '5900512331027',
+        product: 'Butter block 250 g',
+        planned: 600,
+        unit: 'ea',
+        tracking: 'Received',
+      },
+      {
+        id: '2',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        planned: 240,
+        unit: 'ea',
+        tracking: 'Received',
+      },
     ],
   },
   'ASN-3001': {
@@ -308,19 +419,63 @@ const asnDetails: Record<string, AsnDetail> = {
     status: 'reserved',
     statusLabel: 'Announced',
     lines: [
-      { id: '1', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', planned: 480, unit: 'ea', tracking: 'Batch + BBE' },
-      { id: '2', sku: '5601012009880', product: 'Frozen peas 1 kg', planned: 150, unit: 'ea', tracking: 'Batch + BBE' },
+      {
+        id: '1',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        planned: 480,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
+      {
+        id: '2',
+        sku: '5601012009880',
+        product: 'Frozen peas 1 kg',
+        planned: 150,
+        unit: 'ea',
+        tracking: 'Batch + BBE',
+      },
     ],
   },
 };
 
 // --- Outbound orders (UC-09, admin-5-outbound) -----------------------------
 const orderList: SoSummary[] = [
-  { id: 'SO-4471', customer: 'Fresh Market sp. z o.o.', status: 'reserved', statusLabel: 'Reserved', meta: 'Required 2026-06-16 · 3 lines' },
-  { id: 'SO-4472', customer: 'Bistro 24', status: 'transit', statusLabel: 'Partially reserved', meta: 'Required 2026-06-16 · 5 lines' },
-  { id: 'SO-4470', customer: 'Hotel Vega', status: 'available', statusLabel: 'Picking', meta: 'Wave W-2206 · 4 lines' },
-  { id: 'SO-4469', customer: 'Fresh Market sp. z o.o.', status: 'reserved', statusLabel: 'Created', meta: 'Required 2026-06-18 · 2 lines' },
-  { id: 'SO-5001', customer: 'Poznań Catering sp. z o.o.', status: 'reserved', statusLabel: 'Reserved', meta: 'Required 2026-06-17 · 2 lines' },
+  {
+    id: 'SO-4471',
+    customer: 'Fresh Market sp. z o.o.',
+    status: 'reserved',
+    statusLabel: 'Reserved',
+    meta: 'Required 2026-06-16 · 3 lines',
+  },
+  {
+    id: 'SO-4472',
+    customer: 'Bistro 24',
+    status: 'transit',
+    statusLabel: 'Partially reserved',
+    meta: 'Required 2026-06-16 · 5 lines',
+  },
+  {
+    id: 'SO-4470',
+    customer: 'Hotel Vega',
+    status: 'available',
+    statusLabel: 'Picking',
+    meta: 'Wave W-2206 · 4 lines',
+  },
+  {
+    id: 'SO-4469',
+    customer: 'Fresh Market sp. z o.o.',
+    status: 'reserved',
+    statusLabel: 'Created',
+    meta: 'Required 2026-06-18 · 2 lines',
+  },
+  {
+    id: 'SO-5001',
+    customer: 'Poznań Catering sp. z o.o.',
+    status: 'reserved',
+    statusLabel: 'Reserved',
+    meta: 'Required 2026-06-17 · 2 lines',
+  },
 ];
 
 const orderDetails: Record<string, SoDetail> = {
@@ -334,9 +489,36 @@ const orderDetails: Record<string, SoDetail> = {
     reservedUnits: 42,
     shipTo: 'Wrocław, Powstańców 12',
     lines: [
-      { id: '1', sku: '5901234123457', product: 'Greek yoghurt 400 g', ordered: 24, atpAtOrder: 960, reserved: 24, status: 'reserved', statusLabel: 'Reserved' },
-      { id: '2', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', ordered: 12, atpAtOrder: 216, reserved: 12, status: 'reserved', statusLabel: 'Reserved' },
-      { id: '3', sku: '5900512331027', product: 'Butter block 250 g', ordered: 6, atpAtOrder: 8, reserved: 6, status: 'reserved', statusLabel: 'Reserved' },
+      {
+        id: '1',
+        sku: '5901234123457',
+        product: 'Greek yoghurt 400 g',
+        ordered: 24,
+        atpAtOrder: 960,
+        reserved: 24,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
+      {
+        id: '2',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        ordered: 12,
+        atpAtOrder: 216,
+        reserved: 12,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
+      {
+        id: '3',
+        sku: '5900512331027',
+        product: 'Butter block 250 g',
+        ordered: 6,
+        atpAtOrder: 8,
+        reserved: 6,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
     ],
   },
   'SO-4472': {
@@ -349,8 +531,26 @@ const orderDetails: Record<string, SoDetail> = {
     reservedUnits: 68,
     shipTo: 'Wrocław, Rynek 7',
     lines: [
-      { id: '1', sku: '5901234123457', product: 'Greek yoghurt 400 g', ordered: 36, atpAtOrder: 936, reserved: 36, status: 'reserved', statusLabel: 'Reserved' },
-      { id: '2', sku: '5900512331027', product: 'Butter block 250 g', ordered: 20, atpAtOrder: 8, reserved: 8, status: 'transit', statusLabel: 'Partial' },
+      {
+        id: '1',
+        sku: '5901234123457',
+        product: 'Greek yoghurt 400 g',
+        ordered: 36,
+        atpAtOrder: 936,
+        reserved: 36,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
+      {
+        id: '2',
+        sku: '5900512331027',
+        product: 'Butter block 250 g',
+        ordered: 20,
+        atpAtOrder: 8,
+        reserved: 8,
+        status: 'transit',
+        statusLabel: 'Partial',
+      },
     ],
   },
   'SO-4470': {
@@ -363,8 +563,26 @@ const orderDetails: Record<string, SoDetail> = {
     reservedUnits: 96,
     shipTo: 'Wrocław, Kazimierza 3',
     lines: [
-      { id: '1', sku: '5601012009873', product: 'Frozen berries 1 kg', ordered: 48, atpAtOrder: 320, reserved: 48, status: 'available', statusLabel: 'Allocated' },
-      { id: '2', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', ordered: 48, atpAtOrder: 216, reserved: 48, status: 'available', statusLabel: 'Allocated' },
+      {
+        id: '1',
+        sku: '5601012009873',
+        product: 'Frozen berries 1 kg',
+        ordered: 48,
+        atpAtOrder: 320,
+        reserved: 48,
+        status: 'available',
+        statusLabel: 'Allocated',
+      },
+      {
+        id: '2',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        ordered: 48,
+        atpAtOrder: 216,
+        reserved: 48,
+        status: 'available',
+        statusLabel: 'Allocated',
+      },
     ],
   },
   'SO-4469': {
@@ -377,8 +595,26 @@ const orderDetails: Record<string, SoDetail> = {
     reservedUnits: 0,
     shipTo: 'Wrocław, Powstańców 12',
     lines: [
-      { id: '1', sku: '5901234123457', product: 'Greek yoghurt 400 g', ordered: 60, atpAtOrder: 960, reserved: 0, status: 'reserved', statusLabel: 'Created' },
-      { id: '2', sku: '5900512331027', product: 'Butter block 250 g', ordered: 10, atpAtOrder: 8, reserved: 0, status: 'reserved', statusLabel: 'Created' },
+      {
+        id: '1',
+        sku: '5901234123457',
+        product: 'Greek yoghurt 400 g',
+        ordered: 60,
+        atpAtOrder: 960,
+        reserved: 0,
+        status: 'reserved',
+        statusLabel: 'Created',
+      },
+      {
+        id: '2',
+        sku: '5900512331027',
+        product: 'Butter block 250 g',
+        ordered: 10,
+        atpAtOrder: 8,
+        reserved: 0,
+        status: 'reserved',
+        statusLabel: 'Created',
+      },
     ],
   },
   'SO-5001': {
@@ -391,8 +627,26 @@ const orderDetails: Record<string, SoDetail> = {
     reservedUnits: 36,
     shipTo: 'Poznań, Półwiejska 4',
     lines: [
-      { id: '1', sku: '4006381333931', product: 'Whole milk 3.2% 1 L', ordered: 24, atpAtOrder: 480, reserved: 24, status: 'reserved', statusLabel: 'Reserved' },
-      { id: '2', sku: '5601012009880', product: 'Frozen peas 1 kg', ordered: 12, atpAtOrder: 90, reserved: 12, status: 'reserved', statusLabel: 'Reserved' },
+      {
+        id: '1',
+        sku: '4006381333931',
+        product: 'Whole milk 3.2% 1 L',
+        ordered: 24,
+        atpAtOrder: 480,
+        reserved: 24,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
+      {
+        id: '2',
+        sku: '5601012009880',
+        product: 'Frozen peas 1 kg',
+        ordered: 12,
+        atpAtOrder: 90,
+        reserved: 12,
+        status: 'reserved',
+        statusLabel: 'Reserved',
+      },
     ],
   },
 };
@@ -404,14 +658,31 @@ const dispatchBoard: DispatchColumn[] = [
     shipments: [
       { id: 'SHP-3310', customer: 'Hotel Vega', summary: '2 pkg · 28 kg', canAssign: true },
       { id: 'SHP-3311', customer: 'Bistro 24', summary: '1 pkg · 9 kg', canAssign: true },
-      { id: 'SHP-3400', customer: 'Poznań Catering', summary: '3 pkg · 34 kg', canAssign: true },
+      {
+        id: 'SHP-3400',
+        customer: 'Poznań Catering',
+        summary: '3 pkg · 34 kg',
+        canAssign: true,
+      },
     ],
   },
   {
     key: 'assigned',
     shipments: [
-      { id: 'SHP-3308', customer: 'Fresh Market', summary: '3 pkg · 41 kg', carrier: { code: 'DH', name: 'DHL' }, pickup: 'pickup 14:00' },
-      { id: 'SHP-3309', customer: 'Resto Group', summary: '4 pkg · 63 kg', carrier: { code: 'GL', name: 'GLS' }, pickup: 'pickup 15:30' },
+      {
+        id: 'SHP-3308',
+        customer: 'Fresh Market',
+        summary: '3 pkg · 41 kg',
+        carrier: { code: 'DH', name: 'DHL' },
+        pickup: 'pickup 14:00',
+      },
+      {
+        id: 'SHP-3309',
+        customer: 'Resto Group',
+        summary: '4 pkg · 63 kg',
+        carrier: { code: 'GL', name: 'GLS' },
+        pickup: 'pickup 15:30',
+      },
     ],
   },
   {
@@ -478,11 +749,55 @@ const stocktakesById: Record<string, Stocktake> = {
       netVariance: -86,
     },
     diffs: [
-      { id: '1', location: 'CR1-A01-R1-S4', product: 'Butter block 250 g', batch: 'LOT-0331', system: 600, counted: 588, delta: -12, defaultReason: 'damage' },
-      { id: '2', location: 'CR1-A02-R3-S2', product: 'Whole milk 3.2% 1 L', batch: 'LOT-0425-A', system: 240, counted: 216, delta: -24, defaultReason: 'loss' },
-      { id: '3', location: 'CR1-A02-R4-S1', product: 'Greek yoghurt 400 g', batch: 'LOT-0419', system: 1_440, counted: 1_392, delta: -48, defaultReason: 'pickError' },
-      { id: '4', location: 'CR1-A03-R2-S1', product: 'Cream 30% 0.5 L', batch: 'LOT-0410', system: 120, counted: 122, delta: 2, defaultReason: 'countCorrection' },
-      { id: '5', location: 'CR1-A03-R2-S3', product: 'Kefir 1 L', batch: 'LOT-0388', system: 90, counted: 86, delta: -4 },
+      {
+        id: '1',
+        location: 'CR1-A01-R1-S4',
+        product: 'Butter block 250 g',
+        batch: 'LOT-0331',
+        system: 600,
+        counted: 588,
+        delta: -12,
+        defaultReason: 'damage',
+      },
+      {
+        id: '2',
+        location: 'CR1-A02-R3-S2',
+        product: 'Whole milk 3.2% 1 L',
+        batch: 'LOT-0425-A',
+        system: 240,
+        counted: 216,
+        delta: -24,
+        defaultReason: 'loss',
+      },
+      {
+        id: '3',
+        location: 'CR1-A02-R4-S1',
+        product: 'Greek yoghurt 400 g',
+        batch: 'LOT-0419',
+        system: 1_440,
+        counted: 1_392,
+        delta: -48,
+        defaultReason: 'pickError',
+      },
+      {
+        id: '4',
+        location: 'CR1-A03-R2-S1',
+        product: 'Cream 30% 0.5 L',
+        batch: 'LOT-0410',
+        system: 120,
+        counted: 122,
+        delta: 2,
+        defaultReason: 'countCorrection',
+      },
+      {
+        id: '5',
+        location: 'CR1-A03-R2-S3',
+        product: 'Kefir 1 L',
+        batch: 'LOT-0388',
+        system: 90,
+        counted: 86,
+        delta: -4,
+      },
     ],
   },
   'ST-117': {
@@ -526,8 +841,26 @@ const stocktakesById: Record<string, Stocktake> = {
       netVariance: -18,
     },
     diffs: [
-      { id: '1', location: 'PZ-CR1-A01-R1-S1', product: 'Whole milk 3.2% 1 L', batch: 'LOT-0512-PZ', system: 480, counted: 468, delta: -12, defaultReason: 'loss' },
-      { id: '2', location: 'PZ-FZ1-B01-R2-S3', product: 'Frozen peas 1 kg', batch: 'LOT-0490-PZ', system: 150, counted: 144, delta: -6, defaultReason: 'damage' },
+      {
+        id: '1',
+        location: 'PZ-CR1-A01-R1-S1',
+        product: 'Whole milk 3.2% 1 L',
+        batch: 'LOT-0512-PZ',
+        system: 480,
+        counted: 468,
+        delta: -12,
+        defaultReason: 'loss',
+      },
+      {
+        id: '2',
+        location: 'PZ-FZ1-B01-R2-S3',
+        product: 'Frozen peas 1 kg',
+        batch: 'LOT-0490-PZ',
+        system: 150,
+        counted: 144,
+        delta: -6,
+        defaultReason: 'damage',
+      },
     ],
   },
 };
@@ -545,11 +878,66 @@ const stocktakeListItem = (s: Stocktake): StocktakeListItem => ({
 
 // --- QC worklist (UC-03, admin-8-qc) — stateful: decisions remove the batch -
 let qcBatches: QcBatch[] = [
-  { id: 'B-0402', batch: 'LOT-0402', product: 'Cheese wheel 5 kg', sku: '5902860004417', fromReceipt: 'GR-2206 · Dairy Farms', location: 'QC-HOLD-02', qty: 48, unit: 'ea', status: 'blocked', statusLabel: 'Quarantine' },
-  { id: 'B-0331', batch: 'LOT-0331', product: 'Butter block 250 g', sku: '5900512331027', fromReceipt: 'GR-2205 · Dairy Farms', location: 'QC-HOLD-01', qty: 120, unit: 'ea', status: 'blocked', statusLabel: 'Quarantine' },
-  { id: 'B-0419', batch: 'LOT-0419', product: 'Greek yoghurt 400 g', sku: '5901234123457', fromReceipt: 'GR-2206 · Dairy Farms', location: 'QC-HOLD-02', qty: 48, unit: 'ea', status: 'blocked', statusLabel: 'Quarantine' },
-  { id: 'B-0288', batch: 'LOT-0288', product: 'Frozen berries 1 kg', sku: '5601012009873', fromReceipt: 'GR-2204 · Nordic Frozen', location: 'QC-HOLD-03', qty: 20, unit: 'ea', status: 'expired', statusLabel: 'Damaged on receipt' },
-  { id: 'B-0500', batch: 'LOT-0500-PZ', product: 'Frozen peas 1 kg', sku: '5601012009880', fromReceipt: 'GR-3100 · Wielkopolska', location: 'PZ-QC-HOLD-01', qty: 30, unit: 'ea', status: 'blocked', statusLabel: 'Quarantine' },
+  {
+    id: 'B-0402',
+    batch: 'LOT-0402',
+    product: 'Cheese wheel 5 kg',
+    sku: '5902860004417',
+    fromReceipt: 'GR-2206 · Dairy Farms',
+    location: 'QC-HOLD-02',
+    qty: 48,
+    unit: 'ea',
+    status: 'blocked',
+    statusLabel: 'Quarantine',
+  },
+  {
+    id: 'B-0331',
+    batch: 'LOT-0331',
+    product: 'Butter block 250 g',
+    sku: '5900512331027',
+    fromReceipt: 'GR-2205 · Dairy Farms',
+    location: 'QC-HOLD-01',
+    qty: 120,
+    unit: 'ea',
+    status: 'blocked',
+    statusLabel: 'Quarantine',
+  },
+  {
+    id: 'B-0419',
+    batch: 'LOT-0419',
+    product: 'Greek yoghurt 400 g',
+    sku: '5901234123457',
+    fromReceipt: 'GR-2206 · Dairy Farms',
+    location: 'QC-HOLD-02',
+    qty: 48,
+    unit: 'ea',
+    status: 'blocked',
+    statusLabel: 'Quarantine',
+  },
+  {
+    id: 'B-0288',
+    batch: 'LOT-0288',
+    product: 'Frozen berries 1 kg',
+    sku: '5601012009873',
+    fromReceipt: 'GR-2204 · Nordic Frozen',
+    location: 'QC-HOLD-03',
+    qty: 20,
+    unit: 'ea',
+    status: 'expired',
+    statusLabel: 'Damaged on receipt',
+  },
+  {
+    id: 'B-0500',
+    batch: 'LOT-0500-PZ',
+    product: 'Frozen peas 1 kg',
+    sku: '5601012009880',
+    fromReceipt: 'GR-3100 · Wielkopolska',
+    location: 'PZ-QC-HOLD-01',
+    qty: 30,
+    unit: 'ea',
+    status: 'blocked',
+    statusLabel: 'Quarantine',
+  },
 ];
 
 // --- Products (UC-13, admin-4-product) — stateful: define adds to the catalogue.
@@ -577,12 +965,84 @@ const hazmat: Product['storage'] = {
 };
 
 const catalogBySku: Record<string, Product> = {
-  'MILK-1L': { sku: 'MILK-1L', name: 'Whole milk 3.2% — 1 L carton', ean: '4006381333931', category: 'Refrigerated', dimensions: { lengthCm: 7, widthCm: 7, heightCm: 20 }, unitWeightKg: 1.03, baseUnit: 'pcs', storage: cold(2, 6), isBatchTracked: true, hasExpiryDate: true, unitConversions: [{ unit: 'ctn', factorToBase: 24 }] },
-  'YOG-400': { sku: 'YOG-400', name: 'Greek yoghurt 400 g', ean: '5901234123457', category: 'Refrigerated', dimensions: { lengthCm: 9.5, widthCm: 9.5, heightCm: 6 }, unitWeightKg: 0.41, baseUnit: 'pcs', storage: cold(2, 6), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
-  'BERRY-1KG': { sku: 'BERRY-1KG', name: 'Frozen berries 1 kg', ean: '5601012009873', category: 'Frozen', dimensions: { lengthCm: 20, widthCm: 14, heightCm: 6 }, unitWeightKg: 1, baseUnit: 'pcs', storage: cold(-18, -18), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
-  'CHEESE-5KG': { sku: 'CHEESE-5KG', name: 'Cheese wheel 5 kg', ean: '5902860004417', category: 'Refrigerated', dimensions: { lengthCm: 25, widthCm: 25, heightCm: 12 }, unitWeightKg: 5, baseUnit: 'kg', storage: cold(2, 8), isBatchTracked: true, hasExpiryDate: true, unitConversions: [] },
-  'SOLV-5L': { sku: 'SOLV-5L', name: 'Cleaning solvent 5 L', ean: null, category: 'Hazardous', dimensions: { lengthCm: 20, widthCm: 20, heightCm: 30 }, unitWeightKg: 5.2, baseUnit: 'l', storage: hazmat, isBatchTracked: true, hasExpiryDate: false, unitConversions: [] },
-  'BOX-L': { sku: 'BOX-L', name: 'Cardboard box L', ean: '5901111000017', category: 'DryGoods', dimensions: { lengthCm: 60, widthCm: 40, heightCm: 40 }, unitWeightKg: 0.32, baseUnit: 'pcs', storage: ambient, isBatchTracked: false, hasExpiryDate: false, unitConversions: [] },
+  'MILK-1L': {
+    sku: 'MILK-1L',
+    name: 'Whole milk 3.2% — 1 L carton',
+    ean: '4006381333931',
+    category: 'Refrigerated',
+    dimensions: { lengthCm: 7, widthCm: 7, heightCm: 20 },
+    unitWeightKg: 1.03,
+    baseUnit: 'pcs',
+    storage: cold(2, 6),
+    isBatchTracked: true,
+    hasExpiryDate: true,
+    unitConversions: [{ unit: 'ctn', factorToBase: 24 }],
+  },
+  'YOG-400': {
+    sku: 'YOG-400',
+    name: 'Greek yoghurt 400 g',
+    ean: '5901234123457',
+    category: 'Refrigerated',
+    dimensions: { lengthCm: 9.5, widthCm: 9.5, heightCm: 6 },
+    unitWeightKg: 0.41,
+    baseUnit: 'pcs',
+    storage: cold(2, 6),
+    isBatchTracked: true,
+    hasExpiryDate: true,
+    unitConversions: [],
+  },
+  'BERRY-1KG': {
+    sku: 'BERRY-1KG',
+    name: 'Frozen berries 1 kg',
+    ean: '5601012009873',
+    category: 'Frozen',
+    dimensions: { lengthCm: 20, widthCm: 14, heightCm: 6 },
+    unitWeightKg: 1,
+    baseUnit: 'pcs',
+    storage: cold(-18, -18),
+    isBatchTracked: true,
+    hasExpiryDate: true,
+    unitConversions: [],
+  },
+  'CHEESE-5KG': {
+    sku: 'CHEESE-5KG',
+    name: 'Cheese wheel 5 kg',
+    ean: '5902860004417',
+    category: 'Refrigerated',
+    dimensions: { lengthCm: 25, widthCm: 25, heightCm: 12 },
+    unitWeightKg: 5,
+    baseUnit: 'kg',
+    storage: cold(2, 8),
+    isBatchTracked: true,
+    hasExpiryDate: true,
+    unitConversions: [],
+  },
+  'SOLV-5L': {
+    sku: 'SOLV-5L',
+    name: 'Cleaning solvent 5 L',
+    ean: null,
+    category: 'Hazardous',
+    dimensions: { lengthCm: 20, widthCm: 20, heightCm: 30 },
+    unitWeightKg: 5.2,
+    baseUnit: 'l',
+    storage: hazmat,
+    isBatchTracked: true,
+    hasExpiryDate: false,
+    unitConversions: [],
+  },
+  'BOX-L': {
+    sku: 'BOX-L',
+    name: 'Cardboard box L',
+    ean: '5901111000017',
+    category: 'DryGoods',
+    dimensions: { lengthCm: 60, widthCm: 40, heightCm: 40 },
+    unitWeightKg: 0.32,
+    baseUnit: 'pcs',
+    storage: ambient,
+    isBatchTracked: false,
+    hasExpiryDate: false,
+    unitConversions: [],
+  },
 };
 
 const toSummary = (p: Product): ProductSummary => ({
@@ -609,29 +1069,68 @@ const topologyTree: TopologyNode[] = [
 
 const topologyRooms: Record<string, RoomDetail> = {
   CR1: {
-    id: 'CR1', name: 'Cold room 1', warehouse: 'WH-01', type: 'cold', tempMin: 2, tempMax: 6, shownCount: 2, totalCount: 96,
+    id: 'CR1',
+    name: 'Cold room 1',
+    warehouse: 'WH-01',
+    type: 'cold',
+    tempMin: 2,
+    tempMax: 6,
+    shownCount: 2,
+    totalCount: 96,
     locations: [
       { id: '1', address: 'CR1-A01-R1-S4', capacity: 1.2, loadLimit: 500, occupied: '85%' },
       { id: '2', address: 'CR1-A03-R2-S1', capacity: 1.2, loadLimit: 500, occupied: '33%' },
     ],
   },
   FZ1: {
-    id: 'FZ1', name: 'Freezer 1', warehouse: 'WH-01', type: 'freezer', tempMin: -18, tempMax: -18, shownCount: 1, totalCount: 48,
-    locations: [{ id: '1', address: 'FZ1-B02-R4-S1', capacity: 1.5, loadLimit: 600, occupied: '50%' }],
+    id: 'FZ1',
+    name: 'Freezer 1',
+    warehouse: 'WH-01',
+    type: 'freezer',
+    tempMin: -18,
+    tempMax: -18,
+    shownCount: 1,
+    totalCount: 48,
+    locations: [
+      { id: '1', address: 'FZ1-B02-R4-S1', capacity: 1.5, loadLimit: 600, occupied: '50%' },
+    ],
   },
   STD: {
-    id: 'STD', name: 'Standard hall A', warehouse: 'WH-01', type: 'standard', tempMin: 15, tempMax: 25, shownCount: 2, totalCount: 240,
+    id: 'STD',
+    name: 'Standard hall A',
+    warehouse: 'WH-01',
+    type: 'standard',
+    tempMin: 15,
+    tempMax: 25,
+    shownCount: 2,
+    totalCount: 240,
     locations: [
       { id: '1', address: 'A2-A07-R3-S2', capacity: 2.0, loadLimit: 800, occupied: '60%' },
       { id: '2', address: 'A2-A07-R3-S3', capacity: 2.0, loadLimit: 800, occupied: '12%' },
     ],
   },
   HZ: {
-    id: 'HZ', name: 'Hazmat zone', warehouse: 'WH-01', type: 'hazmat', tempMin: 10, tempMax: 25, shownCount: 1, totalCount: 12,
-    locations: [{ id: '1', address: 'HZ-A01-R1-S1', capacity: 1.0, loadLimit: 400, occupied: '20%' }],
+    id: 'HZ',
+    name: 'Hazmat zone',
+    warehouse: 'WH-01',
+    type: 'hazmat',
+    tempMin: 10,
+    tempMax: 25,
+    shownCount: 1,
+    totalCount: 12,
+    locations: [
+      { id: '1', address: 'HZ-A01-R1-S1', capacity: 1.0, loadLimit: 400, occupied: '20%' },
+    ],
   },
   DOCK: {
-    id: 'DOCK', name: 'Docks', warehouse: 'WH-01', type: 'dock', tempMin: 0, tempMax: 30, shownCount: 1, totalCount: 6,
+    id: 'DOCK',
+    name: 'Docks',
+    warehouse: 'WH-01',
+    type: 'dock',
+    tempMin: 0,
+    tempMax: 30,
+    shownCount: 1,
+    totalCount: 6,
     locations: [{ id: '1', address: 'D-3', capacity: 0, loadLimit: 0, occupied: '—' }],
   },
 };
@@ -654,10 +1153,24 @@ function stockItemDetail(r: StockRow): StockItemDetail {
     status: r.status,
     statusLabel: r.statusLabel,
     movements: [
-      { id: 'm1', date: '2026-06-10', type: 'Goods receipt', qty: r.onHand, reference: 'GR-2206' },
+      {
+        id: 'm1',
+        date: '2026-06-10',
+        type: 'Goods receipt',
+        qty: r.onHand,
+        reference: 'GR-2206',
+      },
       { id: 'm2', date: '2026-06-10', type: 'Put-away', qty: 0, reference: 'PA-1180' },
       ...(picked > 0
-        ? [{ id: 'm3', date: '2026-06-14', type: 'Pick', qty: -picked, reference: 'SO-4470' }]
+        ? [
+            {
+              id: 'm3',
+              date: '2026-06-14',
+              type: 'Pick',
+              qty: -picked,
+              reference: 'SO-4470',
+            },
+          ]
         : []),
     ],
   };
@@ -703,7 +1216,12 @@ function searchAll(query: string, warehouse: string): SearchResult[] {
   for (const room of Object.values(topologyRooms)) {
     for (const loc of room.locations) {
       if (hit(loc.address))
-        out.push({ type: 'location', refId: loc.address, label: loc.address, sublabel: room.name });
+        out.push({
+          type: 'location',
+          refId: loc.address,
+          label: loc.address,
+          sublabel: room.name,
+        });
     }
   }
   return out.slice(0, 8);
@@ -803,18 +1321,162 @@ function allLocations() {
 
 // --- Movements ledger (read-only projection source) ------------------------
 const movements: MovementRow[] = [
-  { id: 'm1', date: '2026-06-20 09:34', type: 'receipt', typeLabel: 'Goods receipt', product: 'Whole milk 3.2% 1 L', sku: '4006381333931', batch: 'LOT-0425-A', location: 'Dock D-3', qty: 240, unit: 'ea', reference: 'GR-2206' },
-  { id: 'm2', date: '2026-06-20 10:12', type: 'putaway', typeLabel: 'Put-away', product: 'Whole milk 3.2% 1 L', sku: '4006381333931', batch: 'LOT-0425-A', location: 'CR1-A03-R2-S1', qty: 240, unit: 'ea', reference: 'PA-1180' },
-  { id: 'm3', date: '2026-06-20 11:05', type: 'pick', typeLabel: 'Pick', product: 'Greek yoghurt 400 g', sku: '5901234123457', batch: 'LOT-0419', location: 'A2-A07-R3-S2', qty: -480, unit: 'ea', reference: 'SO-4470' },
-  { id: 'm4', date: '2026-06-20 13:20', type: 'move', typeLabel: 'Move', product: 'Butter block 250 g', sku: '5900512331027', batch: 'LOT-0331', location: 'CR1-A01-R1-S4', qty: 600, unit: 'ea', reference: 'MV-0442' },
-  { id: 'm5', date: '2026-06-20 14:02', type: 'adjustment', typeLabel: 'Adjustment', product: 'Butter block 250 g', sku: '5900512331027', batch: 'LOT-0331', location: 'CR1-A01-R1-S4', qty: -12, unit: 'ea', reference: 'ADJ-0091' },
-  { id: 'm6', date: '2026-06-19 08:50', type: 'receipt', typeLabel: 'Goods receipt', product: 'Frozen berries 1 kg', sku: '5601012009873', batch: 'LOT-0288', location: 'Dock D-5', qty: 320, unit: 'ea', reference: 'GR-2204' },
-  { id: 'm7', date: '2026-06-19 09:30', type: 'putaway', typeLabel: 'Put-away', product: 'Frozen berries 1 kg', sku: '5601012009873', batch: 'LOT-0288', location: 'FZ1-B02-R4-S1', qty: 320, unit: 'ea', reference: 'PA-1176' },
-  { id: 'm8', date: '2026-06-19 15:40', type: 'pick', typeLabel: 'Pick', product: 'Whole milk 3.2% 1 L', sku: '4006381333931', batch: 'LOT-0425-A', location: 'CR1-A03-R2-S1', qty: -24, unit: 'ea', reference: 'SO-4471' },
-  { id: 'm9', date: '2026-06-18 12:10', type: 'adjustment', typeLabel: 'Adjustment', product: 'Greek yoghurt 400 g', sku: '5901234123457', batch: 'LOT-0419', location: 'A2-A07-R3-S2', qty: -48, unit: 'ea', reference: 'ST-118' },
-  { id: 'm10', date: '2026-06-18 16:25', type: 'move', typeLabel: 'Move', product: 'Cheese wheel 5 kg', sku: '5902860004417', batch: 'LOT-0402', location: 'QC-HOLD-02', qty: 48, unit: 'ea', reference: 'MV-0438' },
-  { id: 'm11', date: '2026-06-20 08:15', type: 'receipt', typeLabel: 'Goods receipt', product: 'Whole milk 3.2% 1 L', sku: '4006381333931', batch: 'LOT-0512-PZ', location: 'Dock PZ-1', qty: 480, unit: 'ea', reference: 'GR-3101' },
-  { id: 'm12', date: '2026-06-20 09:40', type: 'putaway', typeLabel: 'Put-away', product: 'Whole milk 3.2% 1 L', sku: '4006381333931', batch: 'LOT-0512-PZ', location: 'PZ-CR1-A01-R1-S1', qty: 480, unit: 'ea', reference: 'PA-3055' },
+  {
+    id: 'm1',
+    date: '2026-06-20 09:34',
+    type: 'receipt',
+    typeLabel: 'Goods receipt',
+    product: 'Whole milk 3.2% 1 L',
+    sku: '4006381333931',
+    batch: 'LOT-0425-A',
+    location: 'Dock D-3',
+    qty: 240,
+    unit: 'ea',
+    reference: 'GR-2206',
+  },
+  {
+    id: 'm2',
+    date: '2026-06-20 10:12',
+    type: 'putaway',
+    typeLabel: 'Put-away',
+    product: 'Whole milk 3.2% 1 L',
+    sku: '4006381333931',
+    batch: 'LOT-0425-A',
+    location: 'CR1-A03-R2-S1',
+    qty: 240,
+    unit: 'ea',
+    reference: 'PA-1180',
+  },
+  {
+    id: 'm3',
+    date: '2026-06-20 11:05',
+    type: 'pick',
+    typeLabel: 'Pick',
+    product: 'Greek yoghurt 400 g',
+    sku: '5901234123457',
+    batch: 'LOT-0419',
+    location: 'A2-A07-R3-S2',
+    qty: -480,
+    unit: 'ea',
+    reference: 'SO-4470',
+  },
+  {
+    id: 'm4',
+    date: '2026-06-20 13:20',
+    type: 'move',
+    typeLabel: 'Move',
+    product: 'Butter block 250 g',
+    sku: '5900512331027',
+    batch: 'LOT-0331',
+    location: 'CR1-A01-R1-S4',
+    qty: 600,
+    unit: 'ea',
+    reference: 'MV-0442',
+  },
+  {
+    id: 'm5',
+    date: '2026-06-20 14:02',
+    type: 'adjustment',
+    typeLabel: 'Adjustment',
+    product: 'Butter block 250 g',
+    sku: '5900512331027',
+    batch: 'LOT-0331',
+    location: 'CR1-A01-R1-S4',
+    qty: -12,
+    unit: 'ea',
+    reference: 'ADJ-0091',
+  },
+  {
+    id: 'm6',
+    date: '2026-06-19 08:50',
+    type: 'receipt',
+    typeLabel: 'Goods receipt',
+    product: 'Frozen berries 1 kg',
+    sku: '5601012009873',
+    batch: 'LOT-0288',
+    location: 'Dock D-5',
+    qty: 320,
+    unit: 'ea',
+    reference: 'GR-2204',
+  },
+  {
+    id: 'm7',
+    date: '2026-06-19 09:30',
+    type: 'putaway',
+    typeLabel: 'Put-away',
+    product: 'Frozen berries 1 kg',
+    sku: '5601012009873',
+    batch: 'LOT-0288',
+    location: 'FZ1-B02-R4-S1',
+    qty: 320,
+    unit: 'ea',
+    reference: 'PA-1176',
+  },
+  {
+    id: 'm8',
+    date: '2026-06-19 15:40',
+    type: 'pick',
+    typeLabel: 'Pick',
+    product: 'Whole milk 3.2% 1 L',
+    sku: '4006381333931',
+    batch: 'LOT-0425-A',
+    location: 'CR1-A03-R2-S1',
+    qty: -24,
+    unit: 'ea',
+    reference: 'SO-4471',
+  },
+  {
+    id: 'm9',
+    date: '2026-06-18 12:10',
+    type: 'adjustment',
+    typeLabel: 'Adjustment',
+    product: 'Greek yoghurt 400 g',
+    sku: '5901234123457',
+    batch: 'LOT-0419',
+    location: 'A2-A07-R3-S2',
+    qty: -48,
+    unit: 'ea',
+    reference: 'ST-118',
+  },
+  {
+    id: 'm10',
+    date: '2026-06-18 16:25',
+    type: 'move',
+    typeLabel: 'Move',
+    product: 'Cheese wheel 5 kg',
+    sku: '5902860004417',
+    batch: 'LOT-0402',
+    location: 'QC-HOLD-02',
+    qty: 48,
+    unit: 'ea',
+    reference: 'MV-0438',
+  },
+  {
+    id: 'm11',
+    date: '2026-06-20 08:15',
+    type: 'receipt',
+    typeLabel: 'Goods receipt',
+    product: 'Whole milk 3.2% 1 L',
+    sku: '4006381333931',
+    batch: 'LOT-0512-PZ',
+    location: 'Dock PZ-1',
+    qty: 480,
+    unit: 'ea',
+    reference: 'GR-3101',
+  },
+  {
+    id: 'm12',
+    date: '2026-06-20 09:40',
+    type: 'putaway',
+    typeLabel: 'Put-away',
+    product: 'Whole milk 3.2% 1 L',
+    sku: '4006381333931',
+    batch: 'LOT-0512-PZ',
+    location: 'PZ-CR1-A01-R1-S1',
+    qty: 480,
+    unit: 'ea',
+    reference: 'PA-3055',
+  },
 ];
 
 // --- Inbound: adapt the view-model seed to the Logistics backend wire shapes -----------------
@@ -868,7 +1530,11 @@ function deliverySlotDto(id: string, dockSlot: string) {
     to.setHours(Number(m[3]), Number(m[4]), 0, 0);
     return { dockCode, from: from.toISOString(), to: to.toISOString() };
   }
-  return { dockCode, from: base.toISOString(), to: new Date(base.getTime() + 3_600_000).toISOString() };
+  return {
+    dockCode,
+    from: base.toISOString(),
+    to: new Date(base.getTime() + 3_600_000).toISOString(),
+  };
 }
 
 function deliveryDto(d: AsnDetail) {
@@ -928,7 +1594,12 @@ function orderSummaryDto(s: SoSummary) {
 
 function shipToDto(shipTo: string) {
   const parts = shipTo.split(',').map((p) => p.trim());
-  return { street: parts.slice(1).join(', ') || parts[0] || '—', city: parts[0] || '—', postalCode: '00-000', countryCode: 'PL' };
+  return {
+    street: parts.slice(1).join(', ') || parts[0] || '—',
+    city: parts[0] || '—',
+    postalCode: '00-000',
+    countryCode: 'PL',
+  };
 }
 
 function orderDto(d: SoDetail) {
@@ -939,7 +1610,12 @@ function orderDto(d: SoDetail) {
     requiredAt: '2026-06-16T00:00:00.000Z',
     status: toOrderStatus(d.statusLabel),
     shipTo: shipToDto(d.shipTo),
-    lines: d.lines.map((l) => ({ lineNo: Number(l.id), productCode: l.sku, quantity: l.ordered, unit: 'ea' })),
+    lines: d.lines.map((l) => ({
+      lineNo: Number(l.id),
+      productCode: l.sku,
+      quantity: l.ordered,
+      unit: 'ea',
+    })),
   };
 }
 
@@ -1027,13 +1703,13 @@ export const handlers = [
   }),
   // --- Inbound deliveries (Logistics service: logistics/deliveries/...) ---
   http.get('/api/logistics/deliveries', ({ request }) =>
-    HttpResponse.json(
-      asnList.filter((a) => whOf(a.id) === wh(request)).map(deliverySummaryDto),
-    ),
+    HttpResponse.json(asnList.filter((a) => whOf(a.id) === wh(request)).map(deliverySummaryDto)),
   ),
   http.get('/api/logistics/deliveries/:id', ({ params }) => {
     const detail = asnDetails[params.id as string];
-    return detail ? HttpResponse.json(deliveryDto(detail)) : new HttpResponse(null, { status: 404 });
+    return detail
+      ? HttpResponse.json(deliveryDto(detail))
+      : new HttpResponse(null, { status: 404 });
   }),
   http.post('/api/logistics/deliveries', async ({ request }) => {
     const body = (await request.json()) as {
@@ -1097,7 +1773,10 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
   // Inert resolve stub — the backend rejects unknown SKUs at announce time, so lines are never flagged.
-  http.post('/api/logistics/deliveries/:id/lines/:lineId/resolve', () => new HttpResponse(null, { status: 204 })),
+  http.post(
+    '/api/logistics/deliveries/:id/lines/:lineId/resolve',
+    () => new HttpResponse(null, { status: 204 }),
+  ),
   // --- Outbound orders (Logistics service: logistics/orders/...) ---
   http.get('/api/logistics/orders', ({ request }) =>
     HttpResponse.json(orderList.filter((o) => whOf(o.id) === wh(request)).map(orderSummaryDto)),
@@ -1210,7 +1889,10 @@ export const handlers = [
       ...ship,
       canAssign: false,
       badge: undefined,
-      carrier: { code: body.carrierCode, name: carrierNames[body.carrierCode] ?? body.carrierCode },
+      carrier: {
+        code: body.carrierCode,
+        name: carrierNames[body.carrierCode] ?? body.carrierCode,
+      },
       pickup: body.pickup,
     });
     return new HttpResponse(null, { status: 204 });
@@ -1344,7 +2026,11 @@ export const handlers = [
     let created = 0;
     for (const body of products) {
       if (catalogBySku[body.sku]) {
-        failed.push({ sku: body.sku, code: 'product_sku_duplicate', message: `SKU ${body.sku} already exists.` });
+        failed.push({
+          sku: body.sku,
+          code: 'product_sku_duplicate',
+          message: `SKU ${body.sku} already exists.`,
+        });
         continue;
       }
       const coldChain = body.storage === 'ColdChain';
@@ -1353,7 +2039,11 @@ export const handlers = [
         name: body.name,
         ean: body.ean ?? null,
         category: body.category,
-        dimensions: { lengthCm: body.lengthCm, widthCm: body.widthCm, heightCm: body.heightCm },
+        dimensions: {
+          lengthCm: body.lengthCm,
+          widthCm: body.widthCm,
+          heightCm: body.heightCm,
+        },
         unitWeightKg: body.unitWeightKg,
         baseUnit: body.baseUnit,
         storage: {
@@ -1381,7 +2071,11 @@ export const handlers = [
   }),
   http.post('/api/catalog/products/:sku/storage', async ({ params, request }) => {
     const sku = params.sku as string;
-    const body = (await request.json()) as { storage: StorageMode; minCelsius: number | null; maxCelsius: number | null };
+    const body = (await request.json()) as {
+      storage: StorageMode;
+      minCelsius: number | null;
+      maxCelsius: number | null;
+    };
     const product = catalogBySku[sku];
     if (!product) return new HttpResponse(null, { status: 404 });
     catalogBySku[sku] = {
@@ -1404,7 +2098,10 @@ export const handlers = [
   }),
   http.post('/api/topology/room/:id', () => new HttpResponse(null, { status: 204 })),
   http.post('/api/topology/room/:roomId/location/:id', async ({ params, request }) => {
-    const { capacity, loadLimit } = (await request.json()) as { capacity: number; loadLimit: number };
+    const { capacity, loadLimit } = (await request.json()) as {
+      capacity: number;
+      loadLimit: number;
+    };
     const room = topologyRooms[params.roomId as string];
     const loc = room?.locations.find((l) => l.id === params.id);
     if (!loc) return new HttpResponse(null, { status: 404 });
@@ -1420,7 +2117,13 @@ export const handlers = [
     };
     const room = topologyRooms[params.roomId as string];
     if (!room) return new HttpResponse(null, { status: 404 });
-    room.locations.push({ id: `L-${Date.now()}`, address, capacity, loadLimit, occupied: '0%' });
+    room.locations.push({
+      id: `L-${Date.now()}`,
+      address,
+      capacity,
+      loadLimit,
+      occupied: '0%',
+    });
     room.shownCount = room.locations.length;
     room.totalCount += 1;
     return new HttpResponse(null, { status: 204 });
@@ -1443,8 +2146,25 @@ export const handlers = [
     };
     const name = `${ROOM_LABEL[type]} ${code}`;
     const id = `${warehouse}:${code}`; // tree node id: "{warehouseCode}:{roomCode}"
-    topologyRooms[id] = { id, name, warehouse, type, tempMin, tempMax, shownCount: 0, totalCount: 0, locations: [] };
-    const node: TopologyNode = { id, level: 2, label: name, kind: 'room', icon: type, tag: `${tempMin}–${tempMax} °C` };
+    topologyRooms[id] = {
+      id,
+      name,
+      warehouse,
+      type,
+      tempMin,
+      tempMax,
+      shownCount: 0,
+      totalCount: 0,
+      locations: [],
+    };
+    const node: TopologyNode = {
+      id,
+      level: 2,
+      label: name,
+      kind: 'room',
+      icon: type,
+      tag: `${tempMin}–${tempMax} °C`,
+    };
     const whIdx = topologyTree.findIndex((n) => n.id === warehouse);
     if (whIdx >= 0) {
       // Insert as the last room of this warehouse — before the next warehouse node.

@@ -121,7 +121,10 @@ export function ProfileScreen() {
               className={styles.input}
               value={form.language}
               onChange={(e) => {
-                setForm({ ...form, language: e.target.value as ProfilePrefs['language'] });
+                setForm({
+                  ...form,
+                  language: e.target.value as ProfilePrefs['language'],
+                });
                 setSaved(false);
               }}
             >
