@@ -153,7 +153,10 @@ internal sealed class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
         builder.Property(s => s.Id).HasConversion(id => id.Value, v => new ShipmentId(v)).HasColumnName("id");
         builder.Property(s => s.OrderId).HasConversion(id => id.Value, v => new OrderId(v)).HasColumnName("order_id");
         builder.HasIndex(s => s.OrderId);
-        builder.Property(s => s.Carrier).HasConversion(r => r.Value, v => new PartyRoleRef(v)).HasColumnName("carrier_role_id");
+        builder.Property(s => s.Carrier)
+            .HasConversion(r => r == null ? null : r.Value.Value, v => v == null ? null : new PartyRoleRef(v))
+            .HasColumnName("carrier_role_id");
+        builder.Property(s => s.Pickup).HasColumnName("pickup").HasMaxLength(128);
         builder.Property(s => s.Tracking)
             .HasConversion(t => t!.Value, v => TrackingNumber.Of(v))
             .HasColumnName("tracking_number").HasMaxLength(64);

@@ -13,3 +13,12 @@ export interface CurrentUser {
   defaultWarehouseId: string;
   language: 'en' | 'pl';
 }
+
+/** What `POST auth/login` returns: the bearer token (Keycloak JWT, brokered by the gateway) + the user
+ * shaped from its claims. In dev the MSW handler returns the same shape with a fake token. */
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string | null;
+  expiresIn?: number;
+  user: CurrentUser;
+}

@@ -24,9 +24,12 @@ public sealed class SearchService(BffFetch fetch)
         var locations = fetch.GetListAsync<LocationView>(warehousing, "topology/locations", cancellationToken);
         var deliveries = fetch.GetListAsync<DeliverySummaryView>(logistics, "logistics/deliveries", cancellationToken);
         var orders = fetch.GetListAsync<OrderSummaryView>(logistics, "logistics/orders", cancellationToken);
+        var board = fetch.GetListAsync<DispatchColumnView>(logistics, "dispatch/board", cancellationToken);
 
-        await Task.WhenAll(products, stock, locations, deliveries, orders);
+        await Task.WhenAll(products, stock, locations, deliveries, orders, board);
 
-        return SearchMapper.Build(query, products.Result, stock.Result, deliveries.Result, orders.Result, locations.Result);
+        var shipments = board.Result.SelectMany(c => c.Shipments).ToList();
+        return SearchMapper.Build(
+            query, products.Result, stock.Result, deliveries.Result, orders.Result, shipments, locations.Result);
     }
 }

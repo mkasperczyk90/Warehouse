@@ -28,9 +28,10 @@ public static class OutboundFulfillmentService
 
     /// <summary>
     /// Closes picking and opens a shipment: requires the pick list to belong to the order and to
-    /// have no pending tasks, marks the order <c>Packed</c>, and creates the shipment for a carrier.
+    /// have no pending tasks, marks the order <c>Packed</c>, and creates the shipment in
+    /// <c>AwaitingCarrier</c> (a carrier is booked later on the dispatch board, UC-12).
     /// </summary>
-    public static Shipment CompletePacking(OutboundOrder order, PickList pickList, PartyRoleRef carrier)
+    public static Shipment CompletePacking(OutboundOrder order, PickList pickList)
     {
         ArgumentNullException.ThrowIfNull(order);
         ArgumentNullException.ThrowIfNull(pickList);
@@ -50,6 +51,6 @@ public static class OutboundFulfillmentService
         }
 
         order.MarkPacked();
-        return Shipment.CreateFor(order.Id, carrier);
+        return Shipment.CreateAwaitingCarrier(order.Id);
     }
 }

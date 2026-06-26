@@ -11,3 +11,7 @@ internal sealed record ProductView(string Sku, string Name);
 internal sealed record SearchStockView(string Id, string Product, string Sku, string Batch, string Location);
 
 internal sealed record LocationView(string Code, string Room, string Warehouse);
+
+internal sealed record DispatchColumnView(IReadOnlyList<DispatchShipmentView> Shipments);
+
+internal sealed record DispatchShipmentView(string Id, string Customer);

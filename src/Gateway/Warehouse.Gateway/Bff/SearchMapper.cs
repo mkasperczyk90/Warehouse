@@ -15,6 +15,7 @@ internal static class SearchMapper
         IReadOnlyList<SearchStockView> stock,
         IReadOnlyList<DeliverySummaryView> deliveries,
         IReadOnlyList<OrderSummaryView> orders,
+        IReadOnlyList<DispatchShipmentView> shipments,
         IReadOnlyList<LocationView> locations)
     {
         var q = query.Trim();
@@ -46,6 +47,11 @@ internal static class SearchMapper
         foreach (var o in orders.Where(o => Hit(o.Id, o.WarehouseCode)))
         {
             hits.Add(new SearchResultDto("order", o.Id, o.Id, o.WarehouseCode));
+        }
+
+        foreach (var s in shipments.Where(s => Hit(s.Id, s.Customer)))
+        {
+            hits.Add(new SearchResultDto("shipment", s.Id, s.Id, s.Customer));
         }
 
         foreach (var l in locations.Where(l => Hit(l.Code)))

@@ -953,7 +953,13 @@ export const handlers = [
         { code: 'unknown_badge', message: 'Badge not recognised' },
         { status: 401 },
       );
-    return HttpResponse.json(toCurrentUser(user));
+    // Mirrors the gateway broker: a bearer token (fake in dev) + the desk user from its claims.
+    return HttpResponse.json({
+      accessToken: `dev.${user.id}.token`,
+      refreshToken: null,
+      expiresIn: 3600,
+      user: toCurrentUser(user),
+    });
   }),
   http.get('/api/profile/:id', ({ params }) => {
     const user = users[params.id as string];

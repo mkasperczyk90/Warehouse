@@ -1,0 +1,125 @@
+{
+  "realm": "warehouse",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": false,
+  "accessTokenLifespan": 3600,
+  "directGrantFlow": "badge direct grant",
+  "roles": {
+    "realm": [
+      { "name": "manager", "description": "Desk manager" },
+      { "name": "coordinator", "description": "Logistics coordinator" },
+      { "name": "inspector", "description": "Quality inspector" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "warehouse-admin",
+      "name": "Warehouse Admin (desk)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "warehouse-admin-secret-dev",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "badge",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "badge",
+            "claim.name": "badge",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "default_warehouse",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "default_warehouse",
+            "claim.name": "default_warehouse",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "language",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "language",
+            "claim.name": "language",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "1001",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "K.",
+      "lastName": "Manager",
+      "email": "manager@warehouse.example",
+      "attributes": { "badge": ["1001"], "default_warehouse": ["WH01"], "language": ["en"] },
+      "realmRoles": ["manager"]
+    },
+    {
+      "username": "1002",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "A.",
+      "lastName": "Coordinator",
+      "email": "coordinator@warehouse.example",
+      "attributes": { "badge": ["1002"], "default_warehouse": ["WH01"], "language": ["en"] },
+      "realmRoles": ["coordinator"]
+    },
+    {
+      "username": "1003",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "M.",
+      "lastName": "Inspector",
+      "email": "inspector@warehouse.example",
+      "attributes": { "badge": ["1003"], "default_warehouse": ["WH02"], "language": ["pl"] },
+      "realmRoles": ["inspector"]
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "badge direct grant",
+      "description": "Direct grant using a scanned badge number (no password).",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "badge-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ]
+}

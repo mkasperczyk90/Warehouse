@@ -9,6 +9,7 @@ using Warehouse.Logistics.Core.Application.Orders.StartPicking;
 using Warehouse.Logistics.Core.Domain;
 using Warehouse.Logistics.Tests.TestDoubles;
 using Warehouse.SharedKernel.Domain;
+using Warehouse.SharedKernel.ValueObjects;
 using Xunit;
 
 namespace Warehouse.Logistics.Tests.Application;
@@ -141,12 +142,17 @@ public sealed class OutboundHandlerTests
         var orders = new FakeOutboundOrderRepository();
         var order = Build.PickingOrder();
         orders.Seed(order);
+        var shipments = new FakeShipmentRepository();
         var uow = new FakeUnitOfWork();
-        var handler = new MarkPackedHandler(orders, uow);
+        var handler = new MarkPackedHandler(orders, shipments, uow);
 
         await handler.HandleAsync(new MarkPackedCommand(order.Id.Value));
 
         Assert.Equal(OrderStatus.Packed, order.Status);
+        // Packing opens the shipment on the board, awaiting a carrier.
+        var shipment = Assert.Single(shipments.Saved);
+        Assert.Equal(ShipmentStatus.AwaitingCarrier, shipment.Status);
+        Assert.Single(shipment.Packages);
         Assert.Equal(1, uow.SaveCount);
     }
 
@@ -158,6 +164,9 @@ public sealed class OutboundHandlerTests
         var order = Build.PackedOrder();
         orders.Seed(order);
         var shipments = new FakeShipmentRepository();
+        var awaiting = Shipment.CreateAwaitingCarrier(order.Id);   // opened when the order was packed
+        awaiting.AddPackage(Weight.FromKilograms(10), PackageDimensions.Of(60, 40, 40));
+        shipments.Add(awaiting);
         var outbox = Outbox.Create();
         var handler = new ConfirmDispatchHandler(orders, shipments, outbox);
         var carrier = Guid.NewGuid().ToString();
@@ -174,14 +183,15 @@ public sealed class OutboundHandlerTests
     }
 
     [Fact]
-    public async Task ConfirmDispatch_requires_a_packed_order()
+    public async Task ConfirmDispatch_requires_a_shipment_to_dispatch()
     {
         var orders = new FakeOutboundOrderRepository();
-        var order = Build.PickingOrder(); // not packed yet
+        var order = Build.PackedOrder();
         orders.Seed(order);
+        // No shipment seeded for the order (e.g. it was never packed through the real flow).
         var handler = new ConfirmDispatchHandler(orders, new FakeShipmentRepository(), Outbox.Create());
 
-        await Assert.ThrowsAsync<DomainException>(
+        await Assert.ThrowsAsync<KeyNotFoundException>(
             () => handler.HandleAsync(new ConfirmDispatchCommand(order.Id.Value, Guid.NewGuid().ToString(), null, 5m)));
     }
 

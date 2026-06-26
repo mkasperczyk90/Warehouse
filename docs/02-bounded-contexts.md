@@ -47,7 +47,7 @@ flowchart TB
     end
     subgraph Generic["GENERIC"]
         PRT["Partners"]
-        IAM["Identity & Access<br/>(off-the-shelf)"]
+        IAM["Identity & Access<br/>(Keycloak)"]
     end
 
     CAT -- "ProductDefined (event)<br/>[U]→[D] Conformist" --> INV

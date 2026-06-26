@@ -2,6 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Warehouse.Logistics.Core.Application.Deliveries.AnnounceDelivery;
 using Warehouse.Logistics.Core.Application.Deliveries.AssignDockSlot;
 using Warehouse.Logistics.Core.Application.Deliveries.CancelDelivery;
+using Warehouse.Logistics.Core.Application.Dispatch.AdvanceShipment;
+using Warehouse.Logistics.Core.Application.Dispatch.AssignCarrier;
+using Warehouse.Logistics.Core.Application.Dispatch.GetDispatchBoard;
 using Warehouse.Logistics.Core.Application.Orders.CancelOrder;
 using Warehouse.Logistics.Core.Application.Orders.ConfirmDispatch;
 using Warehouse.Logistics.Core.Application.PickLists.ConfirmPick;
@@ -49,6 +52,11 @@ public static class LogisticsApplication
         services.AddScoped<ResolvePartialOrderHandler>();
         services.AddScoped<GetOrderHandler>();
         services.AddScoped<ListOrdersHandler>();
+
+        // Dispatch board (UC-12)
+        services.AddScoped<AssignCarrierHandler>();
+        services.AddScoped<AdvanceShipmentHandler>();
+        services.AddScoped<GetDispatchBoardHandler>();
 
         // Picking (UC-10)
         services.AddScoped<ConfirmPickHandler>();

@@ -11,11 +11,10 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
 {
     private readonly List<Package> _packages = [];
 
-    private Shipment(ShipmentId id, OrderId orderId, PartyRoleRef carrier) : base(id)
+    private Shipment(ShipmentId id, OrderId orderId) : base(id)
     {
         OrderId = orderId;
-        Carrier = carrier;
-        Status = ShipmentStatus.Packing;
+        Status = ShipmentStatus.AwaitingCarrier;
     }
 
     private Shipment()
@@ -24,7 +23,11 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
 
     public OrderId OrderId { get; private set; }
 
-    public PartyRoleRef Carrier { get; private set; }
+    /// <summary>Set once a carrier is assigned (UC-12); null while the shipment awaits a carrier.</summary>
+    public PartyRoleRef? Carrier { get; private set; }
+
+    /// <summary>The booked pickup window/slot, recorded with the carrier assignment (free text in dev).</summary>
+    public string? Pickup { get; private set; }
 
     public TrackingNumber? Tracking { get; private set; }
 
@@ -34,26 +37,37 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
 
     public IReadOnlyCollection<Package> Packages => _packages.AsReadOnly();
 
-    public static Shipment CreateFor(OrderId orderId, PartyRoleRef carrier) =>
-        new(ShipmentId.New(), orderId, carrier);
+    /// <summary>Packed goods on the board, awaiting a carrier (created when the order is packed, UC-11).</summary>
+    public static Shipment CreateAwaitingCarrier(OrderId orderId) => new(ShipmentId.New(), orderId);
 
     public Package AddPackage(Weight weight, PackageDimensions dimensions, string? description = null)
     {
         ArgumentNullException.ThrowIfNull(dimensions);
-        EnsureStatus(ShipmentStatus.Packing, "add a package");
+        EnsureStatus(ShipmentStatus.AwaitingCarrier, "add a package");
         var package = new Package(_packages.Count + 1, weight, dimensions, description);
         _packages.Add(package);
         return package;
     }
 
-    public void MarkReadyForPickup()
+    /// <summary>Book a carrier and pickup slot — AwaitingCarrier → CarrierAssigned (UC-12).</summary>
+    public void AssignCarrier(PartyRoleRef carrier, string pickup)
     {
-        EnsureStatus(ShipmentStatus.Packing, "mark ready for pickup");
+        ArgumentException.ThrowIfNullOrWhiteSpace(pickup);
+        EnsureStatus(ShipmentStatus.AwaitingCarrier, "assign a carrier");
         if (_packages.Count == 0)
         {
             throw new DomainException("shipment_empty", $"Shipment {Id} has no packages.");
         }
 
+        Carrier = carrier;
+        Pickup = pickup;
+        Status = ShipmentStatus.CarrierAssigned;
+    }
+
+    /// <summary>Send the carrier its pickup notice — CarrierAssigned → ReadyForPickup (UC-12).</summary>
+    public void SendPickupNotice()
+    {
+        EnsureStatus(ShipmentStatus.CarrierAssigned, "send a pickup notice");
         Status = ShipmentStatus.ReadyForPickup;
     }
 
@@ -67,9 +81,14 @@ public sealed class Shipment : AggregateRoot<ShipmentId>
     public void Dispatch()
     {
         EnsureStatus(ShipmentStatus.ReadyForPickup, "dispatch");
+        if (Carrier is not { } carrier)
+        {
+            throw new DomainException("shipment_no_carrier", $"Shipment {Id} has no carrier assigned.");
+        }
+
         Status = ShipmentStatus.Dispatched;
         DispatchedAt = DateTimeOffset.UtcNow;
-        Raise(new ShipmentDispatched(Id, OrderId, Carrier, Tracking, DispatchedAt.Value));
+        Raise(new ShipmentDispatched(Id, OrderId, carrier, Tracking, DispatchedAt.Value));
     }
 
     private void EnsureStatus(ShipmentStatus expected, string action)

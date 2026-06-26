@@ -23,6 +23,15 @@ export function setActiveWarehouse(id: string | null) {
   activeWarehouseId = id;
 }
 
+/**
+ * The bearer token from sign-in (Keycloak JWT, brokered by the gateway). Set once at login and on
+ * reload from storage (see `AuthContext`); every request below carries it so the gateway can authorise.
+ */
+let authToken: string | null = null;
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
 class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -41,6 +50,7 @@ async function request<T>(method: string, resource: string, body?: unknown): Pro
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (activeWarehouseId) headers[WAREHOUSE_HEADER] = activeWarehouseId;
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
   const res = await fetch(`${GATEWAY}/${resource}`, {
     method,
