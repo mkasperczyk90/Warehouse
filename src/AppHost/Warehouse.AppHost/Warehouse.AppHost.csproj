@@ -3,9 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <UserSecretsId>7b28f080-ae6c-4d2b-8a1a-880c73486818</UserSecretsId>
-    <!-- NU1903: transitive MessagePack advisory (GHSA-hv8m-jj95-wg3x) reaches only the Aspire
-         dev-time dashboard/RPC here, not any deployed service. Tracked for the next Aspire SDK bump. -->
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <!-- NU1902/NU1903: transitive MessagePack advisories (GHSA-hv8m-jj95-wg3x and the moderate set)
+         reach only the Aspire dev-time dashboard/RPC here, not any deployed service. Tracked for the
+         next Aspire SDK bump. -->
+    <NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

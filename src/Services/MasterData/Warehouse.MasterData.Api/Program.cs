@@ -14,9 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Both contexts share the MasterData database ("masterdata"), each in its own schema.
-builder.AddNpgsqlDbContext<CatalogDbContext>("masterdata");
-builder.AddNpgsqlDbContext<PartnersDbContext>("masterdata");
+// Both contexts share the MasterData database ("masterdata"), each in its own schema. Retry is disabled:
+// command handlers open their own transaction via the Wolverine outbox (SaveChangesAndFlushMessagesAsync),
+// which an Npgsql retrying execution strategy refuses ("does not support user-initiated transactions").
+// Durability is covered by the durable outbox + Wolverine's message-level retries instead.
+builder.AddNpgsqlDbContext<CatalogDbContext>("masterdata", settings => settings.DisableRetry = true);
+builder.AddNpgsqlDbContext<PartnersDbContext>("masterdata", settings => settings.DisableRetry = true);
 builder.Services.AddCatalogRepositories();
 builder.Services.AddCatalogApplication();
 builder.Services.AddPartnersRepositories();
@@ -39,6 +42,14 @@ app.UseExceptionHandler();
 
 app.MapDefaultEndpoints();
 
+app.MapCatalogEndpoints();
+
+app.MapGet("/", () => "Warehouse MasterData API");
+
+// Start the host (and the Wolverine runtime) before seeding: the seeder replays products through the
+// real handler, which flushes ProductDefinedV2 onto the outbox — that requires a started runtime.
+await app.StartAsync();
+
 // Dev convenience: apply migrations on startup. Production uses a migration step in the pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -53,8 +64,4 @@ if (app.Environment.IsDevelopment())
         scope.ServiceProvider.GetRequiredService<ImportProductsHandler>(), catalogDb);
 }
 
-app.MapCatalogEndpoints();
-
-app.MapGet("/", () => "Warehouse MasterData API");
-
-app.Run();
+await app.WaitForShutdownAsync();

@@ -18,8 +18,10 @@ public sealed record TemperatureRange
 
     public decimal MaxCelsius { get; }
 
-    /// <summary>Typical ambient storage conditions.</summary>
-    public static TemperatureRange Ambient { get; } = new(5, 30);
+    /// <summary>Typical ambient storage conditions. Returns a fresh instance on each access: as an EF Core
+    /// owned value object a single shared instance cannot back more than one owner (the extras would persist
+    /// as null), and rooms default to this range.</summary>
+    public static TemperatureRange Ambient => new(5, 30);
 
     public static TemperatureRange Of(decimal minCelsius, decimal maxCelsius) =>
         minCelsius > maxCelsius

@@ -118,12 +118,14 @@ internal static class InventorySeeder
             var storageLocation = LocationCode.Of(location);
             var warehouse = WarehouseCode.Of(location[..location.IndexOf('-', StringComparison.Ordinal)]);
             var buffer = StockItem.CreateAt(DockBuffer.For(warehouse), s, batchNumber, unit);
-            var quantity = Quantity.Of(onHand, unit);
-            var receipt = buffer.Receive(quantity, MovementType.GoodsReceipt, "seed", reason: $"GR-{batchNo}");
+            // Each movement gets its own Quantity instance: the receipt and the put-away below are both
+            // persisted (owned qty_amount), and EF Core cannot back two owned dependents with one shared
+            // CLR instance — the second would persist as null. Same value, distinct instances.
+            var receipt = buffer.Receive(Quantity.Of(onHand, unit), MovementType.GoodsReceipt, "seed", reason: $"GR-{batchNo}");
 
             var storage = StockItem.CreateAt(storageLocation, s, batchNumber, unit);
             var putAway = StockTransferService.Transfer(
-                buffer, storage, quantity, MovementType.PutAway, "seed", reason: $"PA-{batchNo}");
+                buffer, storage, Quantity.Of(onHand, unit), MovementType.PutAway, "seed", reason: $"PA-{batchNo}");
 
             db.StockItems.Add(storage);
             db.StockMovements.Add(receipt);
