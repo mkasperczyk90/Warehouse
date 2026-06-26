@@ -11,13 +11,16 @@ import { AuthProvider, useAuth } from '@/shared/auth/AuthContext';
 import { LoginScreen } from '@/features/Auth';
 
 /**
- * Until the Gateway is wired up, the terminal runs against MSW fixtures
- * (ADR-0006) — a Service Worker on web, a request interceptor on a handheld.
- * Going live is making this a no-op (or gating it on an env flag); the `fetch`
- * calls and the screens stay exactly as they are. We hold the first render
- * until the mocks are armed so no screen fetches before MSW can intercept.
+ * MSW fixtures are the default (ADR-0006) — a Service Worker on web, a request interceptor on a
+ * handheld — so dev, tests and the standalone preview image keep working untouched. Build with
+ * `EXPO_PUBLIC_USE_MOCKS=false` to turn the mocks off and let the same `fetch` calls hit the real
+ * Gateway (proxied at /api by nginx). It is a build-time flag (Metro inlines EXPO_PUBLIC_* at export).
+ * We hold the first render until the mocks are armed so no screen fetches before MSW can intercept.
  */
+const USE_MOCKS = process.env.EXPO_PUBLIC_USE_MOCKS !== 'false';
+
 async function enableMocking() {
+  if (!USE_MOCKS) return;
   if (Platform.OS === 'web') {
     const { worker } = await import('@/core/mocks/browser');
     await worker.start({ onUnhandledRequest: 'bypass' });
