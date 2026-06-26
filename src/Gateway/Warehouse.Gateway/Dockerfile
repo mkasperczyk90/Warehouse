@@ -8,10 +8,15 @@
 # --- build stage ----------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
+# Version stamped into the assembly (surfaces at GET /version). CI overrides these from
+# the release-please tag; the defaults keep a plain `docker build` working locally.
+ARG VERSION=0.1.0
+ARG GIT_SHA=""
 COPY . .
 RUN dotnet restore "src/Gateway/Warehouse.Gateway/Warehouse.Gateway.csproj"
 RUN dotnet publish "src/Gateway/Warehouse.Gateway/Warehouse.Gateway.csproj" \
-    -c Release -o /app/publish --no-restore /p:UseAppHost=false
+    -c Release -o /app/publish --no-restore /p:UseAppHost=false \
+    /p:Version=${VERSION} /p:SourceRevisionId=${GIT_SHA}
 
 # --- runtime stage --------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime

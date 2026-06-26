@@ -19,6 +19,9 @@ RUN npm ci
 # --build-arg VITE_USE_MOCKS=false to turn MSW off and have the app call the real Gateway.
 ARG VITE_USE_MOCKS=true
 ENV VITE_USE_MOCKS=$VITE_USE_MOCKS
+# Build version (image tag), available to the app as import.meta.env.VITE_APP_VERSION.
+ARG VERSION=0.1.0
+ENV VITE_APP_VERSION=$VERSION
 COPY . .
 RUN npm run mock:init && npm run build
 

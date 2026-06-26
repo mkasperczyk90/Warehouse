@@ -51,7 +51,9 @@ describe('StockItemScreen', () => {
     await screen.findByText(/Greek yoghurt 400 g/);
     await user.click(screen.getByRole('button', { name: 'Block' }));
 
-    const confirm = screen.getByRole('button', { name: 'Block → quarantine' });
+    const confirm = screen.getByRole('button', {
+      name: 'Block → quarantine',
+    });
     expect(confirm).toBeDisabled();
 
     await user.selectOptions(screen.getByLabelText('Reason'), 'damage');

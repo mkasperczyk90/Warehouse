@@ -1,0 +1,37 @@
+# Path-based auto-labelling (actions/labeler v5 syntax). Keeps PRs labelled by area
+# so the release notes / changelog categories and CODEOWNERS stay meaningful.
+'area: backend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/Services/**'
+          - 'src/Gateway/**'
+          - 'src/SharedKernel/**'
+          - 'src/Contracts/**'
+          - 'src/ServiceDefaults/**'
+          - 'src/AppHost/**'
+
+'area: admin':
+  - changed-files:
+      - any-glob-to-any-file: 'src/web/admin/**'
+
+'area: terminal':
+  - changed-files:
+      - any-glob-to-any-file: 'src/web/terminal/**'
+
+'area: identity':
+  - changed-files:
+      - any-glob-to-any-file: 'src/Identity/**'
+
+'area: infra':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'infra/**'
+          - '.github/**'
+
+'area: tests':
+  - changed-files:
+      - any-glob-to-any-file: 'tests/**'
+
+'docs':
+  - changed-files:
+      - any-glob-to-any-file: 'docs/**'

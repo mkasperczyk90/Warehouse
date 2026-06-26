@@ -1,0 +1,32 @@
+# Code owners — auto-requests review and (optionally) gates merges by area.
+#
+# Solo project: every path resolves to the maintainer. This is intentionally NOT
+# wired as a *required* review in the ruleset (a solo dev can't approve their own
+# PR) — it's here for auto-assignment, future contributors, and a clear ownership
+# map. See docs/github-setup.md.
+
+# Default owner for everything
+*                               @mkasperczyk90
+
+# Backend services & platform
+/src/Services/                  @mkasperczyk90
+/src/Gateway/                   @mkasperczyk90
+/src/SharedKernel/              @mkasperczyk90
+/src/Contracts/                 @mkasperczyk90
+/src/ServiceDefaults/           @mkasperczyk90
+/src/AppHost/                   @mkasperczyk90
+/src/Identity/                  @mkasperczyk90
+
+# Front-ends
+/src/web/admin/                 @mkasperczyk90
+/src/web/terminal/              @mkasperczyk90
+
+# Tests
+/tests/                         @mkasperczyk90
+
+# CI/CD, governance and infra — the highest-blast-radius changes
+/.github/                       @mkasperczyk90
+/infra/                         @mkasperczyk90
+
+# Docs
+/docs/                          @mkasperczyk90

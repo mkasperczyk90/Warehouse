@@ -21,7 +21,9 @@ describe('StocktakeScreen', () => {
     await screen.findByText('Butter block 250 g · LOT-0331');
 
     // The pre-filled rows (4) are valid → approve is enabled by default.
-    const approve = screen.getByRole('button', { name: /Approve differences/ });
+    const approve = screen.getByRole('button', {
+      name: /Approve differences/,
+    });
     expect(approve).toBeEnabled();
 
     // Select the 5th row (no reason) → approval blocked until a reason is set.

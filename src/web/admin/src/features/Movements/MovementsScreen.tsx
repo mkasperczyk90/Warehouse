@@ -15,7 +15,10 @@ export function MovementsScreen() {
 
   const pills: FilterPill[] = [
     { key: 'all', label: t('filter.all') },
-    ...MOVEMENT_TYPES.map((m) => ({ key: m, label: t(`movements.type.${m}`) })),
+    ...MOVEMENT_TYPES.map((m) => ({
+      key: m,
+      label: t(`movements.type.${m}`),
+    })),
   ];
 
   const columns = useMemo<ColumnDef<MovementRow, unknown>[]>(
@@ -50,7 +53,10 @@ export function MovementsScreen() {
           </span>
         ),
       },
-      { header: () => t('movements.col.reference'), accessorKey: 'reference' },
+      {
+        header: () => t('movements.col.reference'),
+        accessorKey: 'reference',
+      },
     ],
     [t],
   );

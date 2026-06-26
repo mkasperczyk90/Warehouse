@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": true,
+  "include-component-in-tag": true,
+  "pull-request-title-pattern": "chore: release ${component} ${version}",
+  "changelog-sections": [
+    { "type": "feat", "section": "🚀 Features" },
+    { "type": "fix", "section": "🐛 Bug Fixes" },
+    { "type": "perf", "section": "⚡ Performance" },
+    { "type": "refactor", "section": "🧹 Refactoring" },
+    { "type": "docs", "section": "📝 Documentation" },
+    { "type": "build", "section": "📦 Build", "hidden": true },
+    { "type": "ci", "section": "🔧 CI", "hidden": true },
+    { "type": "test", "section": "✅ Tests", "hidden": true },
+    { "type": "chore", "section": "Chores", "hidden": true }
+  ],
+  "packages": {
+    "src/web/admin": { "release-type": "node", "component": "admin" },
+    "src/web/terminal": { "release-type": "node", "component": "terminal" },
+    "src/Gateway/Warehouse.Gateway": { "release-type": "simple", "component": "gateway" },
+    "src/Services/Warehousing": { "release-type": "simple", "component": "warehouse" },
+    "src/Services/Logistics": { "release-type": "simple", "component": "logistics" },
+    "src/Services/MasterData": { "release-type": "simple", "component": "masterdata" }
+  }
+}

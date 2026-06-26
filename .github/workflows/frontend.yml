@@ -74,9 +74,11 @@ jobs:
       - name: Unit tests
         run: npm run test:run --if-present -- --reporter=default --reporter=junit --outputFile=test-results/vitest-junit.xml
 
-      # Per-test pass/fail Check from the vitest JUnit output (admin only).
+      # Per-test pass/fail Check from the vitest JUnit output (admin only). Guarded on the
+      # report existing, so a failure in an earlier step (which skips the tests, leaving no
+      # report) doesn't add a confusing "No test report files were found" error on top.
       - name: Publish test report
-        if: ${{ !cancelled() && matrix.app == 'admin' }}
+        if: ${{ !cancelled() && matrix.app == 'admin' && hashFiles(format('{0}/test-results/vitest-junit.xml', matrix.dir)) != '' }}
         uses: dorny/test-reporter@v3
         with:
           name: Frontend tests (admin)

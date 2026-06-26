@@ -1,8 +1,9 @@
 name: Docker images
 
-# Validates that every app's Dockerfile builds (backend services + both SPAs).
-# Images are built with buildx + layer cache but NOT pushed anywhere — this is a
-# build gate, not a deployment.
+# On PRs: build every image as a gate (no push). On push to main: build + push to GHCR
+# tagged `edge` and `sha-<short>`, scanned (Trivy), signed (cosign) with SBOM + provenance.
+# Semver release tags (X.Y.Z / latest) are published by release-please.yml. The actual
+# build/scan/sign/attest logic lives in the reusable publish-image.yml.
 on:
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - '**/Dockerfile'
       - '.dockerignore'
       - '.github/workflows/docker.yml'
+      - '.github/workflows/publish-image.yml'
   pull_request:
     paths:
       - 'src/**'
@@ -24,6 +26,7 @@ on:
       - '**/Dockerfile'
       - '.dockerignore'
       - '.github/workflows/docker.yml'
+      - '.github/workflows/publish-image.yml'
 
 concurrency:
   group: docker-${{ github.ref }}
@@ -33,82 +36,40 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write   # upload the Trivy SARIF to the Security tab.
+  images:
     strategy:
       fail-fast: false
       matrix:
         include:
           # Backend services build from the repo root (cross-project references + Directory.*.props).
-          - name: gateway
-            context: .
-            dockerfile: src/Gateway/Warehouse.Gateway/Dockerfile
-          - name: masterdata-api
-            context: .
-            dockerfile: src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile
-          - name: warehousing-api
-            context: .
-            dockerfile: src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile
-          - name: logistics-api
-            context: .
-            dockerfile: src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile
+          - { name: gateway, context: ., dockerfile: src/Gateway/Warehouse.Gateway/Dockerfile }
+          - {
+              name: masterdata-api,
+              context: .,
+              dockerfile: src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile,
+            }
+          - {
+              name: warehousing-api,
+              context: .,
+              dockerfile: src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile,
+            }
+          - {
+              name: logistics-api,
+              context: .,
+              dockerfile: src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile,
+            }
           # SPAs build from their own directory.
-          - name: admin
-            context: src/web/admin
-            dockerfile: src/web/admin/Dockerfile
-          - name: terminal
-            context: src/web/terminal
-            dockerfile: src/web/terminal/Dockerfile
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build ${{ matrix.name }} image (no push)
-        uses: docker/build-push-action@v7
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.dockerfile }}
-          push: false
-          load: true             # keep the image locally so it can be scanned below.
-          tags: warehouse-${{ matrix.name }}:ci
-          cache-from: type=gha,scope=${{ matrix.name }}
-          cache-to: type=gha,scope=${{ matrix.name }},mode=max
-
-      # Scan the built image for known CVEs. Report-only (exit-code 0) — results land in the
-      # Security tab via SARIF rather than blocking the build; tighten exit-code later to gate.
-      - name: Scan image (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: warehouse-${{ matrix.name }}:ci
-          format: sarif
-          output: trivy-${{ matrix.name }}.sarif
-          severity: CRITICAL,HIGH
-          exit-code: '0'
-
-      - name: Upload Trivy results
-        if: ${{ !cancelled() }}
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-${{ matrix.name }}.sarif
-          category: trivy-${{ matrix.name }}
-
-      # Software bill of materials for the image — useful artifact for supply-chain auditing.
-      - name: Generate SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          image: warehouse-${{ matrix.name }}:ci
-          format: spdx-json
-          output-file: sbom-${{ matrix.name }}.spdx.json
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v7
-        with:
-          name: sbom-${{ matrix.name }}
-          path: sbom-${{ matrix.name }}.spdx.json
-          if-no-files-found: warn
+          - { name: admin, context: src/web/admin, dockerfile: src/web/admin/Dockerfile }
+          - { name: terminal, context: src/web/terminal, dockerfile: src/web/terminal/Dockerfile }
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      name: ${{ matrix.name }}
+      context: ${{ matrix.context }}
+      dockerfile: ${{ matrix.dockerfile }}
+      # PRs build only; pushes to main publish the `edge` + `sha-<short>` images.
+      channel: ${{ github.event_name == 'pull_request' && 'ci' || 'edge' }}

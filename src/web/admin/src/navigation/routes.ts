@@ -25,15 +25,39 @@ export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 export const ROUTE_META: Record<string, { groupKey: string; titleKey: string }> = {
   [ROUTES.today]: { groupKey: '', titleKey: 'nav.today' },
   [ROUTES.stock]: { groupKey: 'group.inventory', titleKey: 'nav.stock' },
-  [ROUTES.movements]: { groupKey: 'group.inventory', titleKey: 'nav.movements' },
-  [ROUTES.stocktake]: { groupKey: 'group.inventory', titleKey: 'nav.stocktake' },
-  [ROUTES.adjustment]: { groupKey: 'group.inventory', titleKey: 'nav.adjustment' },
+  [ROUTES.movements]: {
+    groupKey: 'group.inventory',
+    titleKey: 'nav.movements',
+  },
+  [ROUTES.stocktake]: {
+    groupKey: 'group.inventory',
+    titleKey: 'nav.stocktake',
+  },
+  [ROUTES.adjustment]: {
+    groupKey: 'group.inventory',
+    titleKey: 'nav.adjustment',
+  },
   [ROUTES.quality]: { groupKey: 'group.inventory', titleKey: 'nav.quality' },
   [ROUTES.inbound]: { groupKey: 'group.logistics', titleKey: 'nav.inbound' },
-  [ROUTES.outbound]: { groupKey: 'group.logistics', titleKey: 'nav.outbound' },
-  [ROUTES.dispatch]: { groupKey: 'group.logistics', titleKey: 'nav.dispatch' },
-  [ROUTES.products]: { groupKey: 'group.masterData', titleKey: 'nav.products' },
-  [ROUTES.topology]: { groupKey: 'group.masterData', titleKey: 'nav.topology' },
-  [ROUTES.partners]: { groupKey: 'group.masterData', titleKey: 'nav.partners' },
+  [ROUTES.outbound]: {
+    groupKey: 'group.logistics',
+    titleKey: 'nav.outbound',
+  },
+  [ROUTES.dispatch]: {
+    groupKey: 'group.logistics',
+    titleKey: 'nav.dispatch',
+  },
+  [ROUTES.products]: {
+    groupKey: 'group.masterData',
+    titleKey: 'nav.products',
+  },
+  [ROUTES.topology]: {
+    groupKey: 'group.masterData',
+    titleKey: 'nav.topology',
+  },
+  [ROUTES.partners]: {
+    groupKey: 'group.masterData',
+    titleKey: 'nav.partners',
+  },
   [ROUTES.profile]: { groupKey: '', titleKey: 'nav.profile' },
 };
