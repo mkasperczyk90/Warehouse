@@ -57,20 +57,22 @@ Settings → **Rules → Rulesets → New ruleset → Import a ruleset** → pic
 - Bypass: the **repository admin** may merge a PR even if a rule would otherwise block — handy for a solo
   repo. Remove the `bypass_actors` entry if you want zero bypass.
 
-### Required status checks — mind the path-filter trap
+### Required status checks — the gate pattern
 
-A check that is **skipped by a `paths:` filter never reports**, so requiring it blocks PRs that don't
-touch those paths *forever*. `Backend` and `Frontend` are path-filtered, so they are **not** in the
-required set. The ruleset requires only the checks that run on **every** PR and have unambiguous names:
+A check that is **skipped by a `paths:` filter never reports**, so requiring the raw `Build & test` /
+per-app jobs would block PRs that don't touch those paths *forever*. To avoid that, `backend.yml` and
+`frontend.yml` run on **every** PR, detect what changed, skip the heavy work when irrelevant, and end in
+an **always-running aggregate job** that reflects the result. Require those gate checks:
 
+- **`Backend gate`** — passes if `Build & test` succeeded or was skipped (no backend change)
+- **`Frontend gate`** — passes if the affected SPA built or nothing frontend changed
 - `Analyze csharp`, `Analyze javascript-typescript` (CodeQL)
 - `Gitleaks` (secret scan)
 
-To also gate Backend/Frontend cleanly, add a tiny **aggregator job** that always runs and `needs:` the
-real jobs (skipped jobs report success), then require *that* single check. Until then, rely on
-**strict** mode ("branches up to date") + a quick look at the PR's checks before you self-merge.
-Note: the `admin`/`terminal` job names are shared by `frontend.yml` and `e2e.yml` — don't require those
-two names directly (ambiguous).
+These are already in [`main-branch.json`](../.github/rulesets/main-branch.json). The gates always report,
+so they're safe to require even though the underlying build/test jobs are path-skipped. (Don't require
+the `admin` / `terminal` job names directly — they're shared by `frontend.yml` and `e2e.yml`, so they're
+ambiguous; require the gate instead.)
 
 ### Merge queue (optional for solo)
 
@@ -199,4 +201,6 @@ If you still want NBGV's git-height versioning for local/dev builds, add:
 - [ ] Import `main-branch.json` ruleset (`evaluate` → confirm → `active`)
 - [ ] Create the issue/PR labels; confirm the labeler runs
 - [ ] Confirm `pr-title-lint` and `release-please` run on the next PR / push
-- [ ] (Later) aggregator CI gate to require Backend/Frontend safely; NBGV or build-arg version stamping
+- [ ] Enable **"Allow GitHub Actions to create and approve pull requests"** (release-please needs it)
+- [ ] In the ruleset, require **`Backend gate`** + **`Frontend gate`** (the always-running aggregates)
+- [ ] (Later) NBGV or build-arg version stamping; coverage gate

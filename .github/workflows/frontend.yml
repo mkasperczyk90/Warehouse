@@ -1,18 +1,16 @@
 name: Frontend
 
-# The two SPAs (admin = Vite/React, terminal = Expo/React Native Web). Per app:
-# typecheck, lint/unit-test where the script exists, then build the static bundle
-# (MSW worker generated first) and upload dist/ as an artifact. No deployment.
+# The two SPAs (admin = Vite/React, terminal = Expo/React Native Web). A `detect` job works
+# out which app changed; only that app is typechecked/linted/tested/built. A `Frontend gate`
+# job always runs and reflects the result — require THAT check (it reports on every PR, so it
+# avoids the path-filter "skipped check never reports" trap).
 on:
   push:
     branches: [main]
     paths:
       - 'src/web/**'
       - '.github/workflows/frontend.yml'
-  pull_request:
-    paths:
-      - 'src/web/**'
-      - '.github/workflows/frontend.yml'
+  pull_request: {} # every PR, so the gate always reports
 
 concurrency:
   group: frontend-${{ github.ref }}
@@ -22,22 +20,48 @@ permissions:
   contents: read
 
 jobs:
+  detect:
+    name: Detect affected apps
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            admin:
+              - 'src/web/admin/**'
+            terminal:
+              - 'src/web/terminal/**'
+            workflow:
+              - '.github/workflows/frontend.yml'
+      - id: set
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const f = ${{ toJSON(steps.changes.outputs) }};
+            const t = (k) => f[k] === 'true';
+            const apps = [
+              { app: 'admin', dir: 'src/web/admin', build: 'build' },
+              { app: 'terminal', dir: 'src/web/terminal', build: 'build:web' },
+            ];
+            const include = apps.filter((a) => t('workflow') || t(a.app));
+            core.info('Apps to build: ' + (include.map((a) => a.app).join(', ') || '(none)'));
+            core.setOutput('matrix', JSON.stringify({ include }));
+
   build-test:
     name: ${{ matrix.app }}
+    needs: detect
+    if: ${{ needs.detect.outputs.matrix != '{"include":[]}' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - app: admin
-            dir: src/web/admin
-            build: build       # tsc --noEmit && vite build
-          - app: terminal
-            dir: src/web/terminal
-            build: build:web   # expo export --platform web
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
     permissions:
       contents: read
-      checks: write          # let the test reporter publish a per-test Check run.
+      checks: write # let the test reporter publish a per-test Check run.
     defaults:
       run:
         working-directory: ${{ matrix.dir }}
@@ -95,3 +119,21 @@ jobs:
           name: web-${{ matrix.app }}-dist
           path: ${{ matrix.dir }}/dist
           if-no-files-found: error
+
+  # Always-running aggregate status — this is the check to mark required in the ruleset.
+  frontend-gate:
+    name: Frontend gate
+    needs: [detect, build-test]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result
+        run: |
+          result="${{ needs.build-test.result }}"
+          echo "build-test result: $result"
+          if [ "$result" = "success" ] || [ "$result" = "skipped" ]; then
+            echo "Frontend OK (built the affected app, or nothing to build)."
+          else
+            echo "::error::Frontend build/test failed"
+            exit 1
+          fi

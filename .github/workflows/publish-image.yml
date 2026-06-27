@@ -34,6 +34,7 @@ jobs:
   publish:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 25 # a stuck multi-arch build fails instead of hanging the run for hours
     permissions:
       contents: read
       packages: write # push to GHCR

@@ -1,15 +1,15 @@
 name: Docker images
 
-# On PRs: build every image as a gate (no push). On push to main: build + push to GHCR
-# tagged `edge` and `sha-<short>`, scanned (Trivy), signed (cosign) with SBOM + provenance.
-# Semver release tags (X.Y.Z / latest) are published by release-please.yml. The actual
-# build/scan/sign/attest logic lives in the reusable publish-image.yml.
+# Monorepo-aware image builds. A `detect` job works out which images are affected by the
+# change (with shared deps fanning out to every backend image), then a dynamic matrix builds
+# only those. On PRs: build-only (channel ci). On push to main: build + push edge + sha-<short>
+# to GHCR, scanned (Trivy), signed (cosign) with SBOM + provenance. Semver release tags are
+# published by release-please.yml. The build/scan/sign logic lives in reusable publish-image.yml.
 on:
   push:
     branches: [main]
     paths:
       - 'src/**'
-      - 'tests/**'
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
       - 'global.json'
@@ -36,31 +36,72 @@ permissions:
   contents: read
 
 jobs:
+  detect:
+    name: Detect affected images
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            shared_backend:
+              - 'src/SharedKernel/**'
+              - 'src/Contracts/**'
+              - 'src/ServiceDefaults/**'
+              - 'Directory.Build.props'
+              - 'Directory.Packages.props'
+              - 'global.json'
+              - '.dockerignore'
+            pipeline:
+              - '.github/workflows/docker.yml'
+              - '.github/workflows/publish-image.yml'
+            gateway:
+              - 'src/Gateway/**'
+            masterdata:
+              - 'src/Services/MasterData/**'
+            warehousing:
+              - 'src/Services/Warehousing/**'
+            logistics:
+              - 'src/Services/Logistics/**'
+            admin:
+              - 'src/web/admin/**'
+            terminal:
+              - 'src/web/terminal/**'
+
+      - id: set
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const f = ${{ toJSON(steps.changes.outputs) }};
+            const t = (k) => f[k] === 'true';
+            const map = {
+              gateway:     { name: 'gateway',         context: '.', dockerfile: 'src/Gateway/Warehouse.Gateway/Dockerfile' },
+              masterdata:  { name: 'masterdata-api',  context: '.', dockerfile: 'src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile' },
+              warehousing: { name: 'warehousing-api', context: '.', dockerfile: 'src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile' },
+              logistics:   { name: 'logistics-api',   context: '.', dockerfile: 'src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile' },
+              admin:       { name: 'admin',           context: 'src/web/admin',    dockerfile: 'src/web/admin/Dockerfile' },
+              terminal:    { name: 'terminal',        context: 'src/web/terminal', dockerfile: 'src/web/terminal/Dockerfile' },
+            };
+            // A shared backend change (or a change to the build logic itself) rebuilds every backend image,
+            // because the service Dockerfiles build from the repo root with the shared props.
+            const allBackend = t('pipeline') || t('shared_backend');
+            const want = new Set();
+            for (const k of ['gateway', 'masterdata', 'warehousing', 'logistics']) if (allBackend || t(k)) want.add(k);
+            for (const k of ['admin', 'terminal']) if (t('pipeline') || t(k)) want.add(k);
+            const include = [...want].map((k) => map[k]);
+            core.info('Images to build: ' + (include.map((i) => i.name).join(', ') || '(none)'));
+            core.setOutput('matrix', JSON.stringify({ include }));
+
   images:
+    needs: detect
+    if: ${{ needs.detect.outputs.matrix != '{"include":[]}' }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          # Backend services build from the repo root (cross-project references + Directory.*.props).
-          - { name: gateway, context: ., dockerfile: src/Gateway/Warehouse.Gateway/Dockerfile }
-          - {
-              name: masterdata-api,
-              context: .,
-              dockerfile: src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile,
-            }
-          - {
-              name: warehousing-api,
-              context: .,
-              dockerfile: src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile,
-            }
-          - {
-              name: logistics-api,
-              context: .,
-              dockerfile: src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile,
-            }
-          # SPAs build from their own directory.
-          - { name: admin, context: src/web/admin, dockerfile: src/web/admin/Dockerfile }
-          - { name: terminal, context: src/web/terminal, dockerfile: src/web/terminal/Dockerfile }
+      matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
     permissions:
       contents: read
       packages: write
