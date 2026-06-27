@@ -1,8 +1,10 @@
 name: Backend
 
-# .NET 10 solution: build (warnings-as-errors doubles as the analyzer/format gate),
-# run every test project (unit + architecture + Testcontainers-backed integration),
-# then publish each deployable service as a downloadable artifact. No deployment.
+# .NET 10 solution: build (warnings-as-errors doubles as the analyzer gate), EF model-drift
+# check, run every test project (unit + architecture + Testcontainers-backed integration), then
+# publish each deployable service as an artifact. A `detect` job skips the heavy build on PRs
+# that don't touch the backend; a `Backend gate` job always runs and reflects the result —
+# require THAT check (it reports on every PR, avoiding the path-filter trap).
 on:
   push:
     branches: [main]
@@ -15,18 +17,8 @@ on:
       - 'global.json'
       - 'Warehouse.slnx'
       - '.github/workflows/backend.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - '!src/web/**'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'global.json'
-      - 'Warehouse.slnx'
-      - '.github/workflows/backend.yml'
+  pull_request: {} # every PR, so the gate always reports
 
-# A new push to the same branch/PR cancels the in-flight run.
 concurrency:
   group: backend-${{ github.ref }}
   cancel-in-progress: true
@@ -35,12 +27,40 @@ permissions:
   contents: read
 
 jobs:
+  detect:
+    name: Detect backend changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'src/Services/**'
+              - 'src/Gateway/**'
+              - 'src/SharedKernel/**'
+              - 'src/Contracts/**'
+              - 'src/ServiceDefaults/**'
+              - 'src/AppHost/**'
+              - 'tests/**'
+              - '!tests/e2e/**'
+              - 'Directory.Build.props'
+              - 'Directory.Packages.props'
+              - 'global.json'
+              - 'Warehouse.slnx'
+              - '.github/workflows/backend.yml'
+
   build-test:
     name: Build & test
-    runs-on: ubuntu-latest   # Docker is preinstalled here — the integration tests need it (Testcontainers).
+    needs: detect
+    if: ${{ needs.detect.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest # Docker is preinstalled here — the integration tests need it (Testcontainers).
     permissions:
       contents: read
-      checks: write          # let the test reporter publish a per-test Check run.
+      checks: write # let the test reporter publish a per-test Check run.
     steps:
       - uses: actions/checkout@v7
 
@@ -167,3 +187,21 @@ jobs:
           name: service-${{ matrix.name }}
           path: publish/${{ matrix.name }}
           if-no-files-found: error
+
+  # Always-running aggregate status — this is the check to mark required in the ruleset.
+  backend-gate:
+    name: Backend gate
+    needs: [detect, build-test]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check result
+        run: |
+          result="${{ needs.build-test.result }}"
+          echo "build-test result: $result"
+          if [ "$result" = "success" ] || [ "$result" = "skipped" ]; then
+            echo "Backend OK (built+tested, or no backend change)."
+          else
+            echo "::error::Backend build/test failed"
+            exit 1
+          fi

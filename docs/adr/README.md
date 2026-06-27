@@ -23,6 +23,8 @@ Rules we hold ourselves to:
 | [0005](0005-shared-design-tokens.md) | One design-token layer (`tokens.css`) across both front ends | Accepted | [#11](../blog/11-design-nfr-adr-and-design-system.md), [#18](../blog/18-the-admin-panel-architecture.md) |
 | [0006](0006-mock-at-the-network-boundary.md) | Mock the admin's backend at the network boundary (MSW) | Accepted | [#18](../blog/18-the-admin-panel-architecture.md) |
 | [0007](0007-vertical-slices-in-application-layer.md) | Vertical slices inside the Application layer (one folder per use-case) | Accepted | [#13](../blog/13-repository-unit-of-work-and-events.md), [#18](../blog/18-the-admin-panel-architecture.md) |
+| [0008](0008-automated-per-component-releases.md) | Automated, per-component releases (release-please + SemVer) | Accepted | — |
+| [0009](0009-monorepo-ci-and-signed-images.md) | Monorepo CI — affected-only builds, aggregate gates, signed images | Accepted | — |
 
 The remaining Part I decisions (the `StockItem` aggregate over `Warehouse`, one-aggregate-per-site
 Topology, the small SharedKernel) are being captured the same way as the series continues.

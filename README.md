@@ -162,6 +162,24 @@ Prerequisites (.NET 10 SDK, Node 20, Docker), full build/test matrix, and the CI
 
 ---
 
+## CI/CD & releases
+
+Monorepo-aware pipeline — CI scales with the **blast radius** of a change, not the size of the repo
+([full guide](docs/cicd.md)):
+
+- **Affected-only builds.** A `detect` step works out which components changed (shared backend deps fan
+  out to all services) and a dynamic matrix builds **only those** — one admin commit builds one image,
+  not six. Always-running **`Backend gate` / `Frontend gate`** checks make branch protection enforceable
+  despite path filters ([ADR-0009](docs/adr/0009-monorepo-ci-and-signed-images.md)).
+- **Versions are computed, never typed.** Conventional-Commit PR titles + **release-please** cut
+  **per-component SemVer** tags and changelogs (`admin-v…`, `warehouse-v…`) — each unit releases on its
+  own cadence ([ADR-0008](docs/adr/0008-automated-per-component-releases.md)).
+- **Signed, attested, multi-arch images.** Every image is pushed to **GHCR**, **cosign-signed**
+  (keyless/OIDC), and carries an **SBOM + SLSA provenance** attestation; pushes are amd64 + arm64.
+- **Guardrails:** EF model-drift check, Trivy CVE scan, CodeQL, gitleaks, Dependabot, signed commits.
+
+---
+
 ## Documentation
 
 The design is written down as it was decided — start here to see *how* the system was reasoned about:
@@ -174,6 +192,7 @@ The design is written down as it was decided — start here to see *how* the sys
 | [`docs/03-use-cases.md`](docs/03-use-cases.md) | UC-01…UC-14 with sequence and state diagrams |
 | [`docs/04-domain-model.md`](docs/04-domain-model.md) | Archetypes, class diagrams per context, events |
 | [`docs/adr/`](docs/adr/README.md) | Architecture Decision Records (the *why* behind each call) |
+| [`docs/cicd.md`](docs/cicd.md) | CI/CD & releases — versioning, what's published, the gate pattern |
 | [`docs/models/`](docs/models/README.md) | As-built model reference — one file per module |
 | [`docs/design/`](docs/design/README.md) | Design system, flows, actors, and the admin front-end plan |
 

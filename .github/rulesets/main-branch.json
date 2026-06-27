@@ -30,6 +30,8 @@
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": true,
         "required_status_checks": [
+          { "context": "Backend gate" },
+          { "context": "Frontend gate" },
           { "context": "Analyze csharp" },
           { "context": "Analyze javascript-typescript" },
           { "context": "Gitleaks" }

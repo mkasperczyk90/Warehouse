@@ -11,9 +11,11 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: release-please-${{ github.ref }}
-  cancel-in-progress: false
+# No `concurrency` group on purpose: rapid back-to-back release-PR merges each get their own
+# run. A concurrency group would queue them and GitHub cancels the *intermediate* queued runs —
+# which previously dropped some component tags. release-please is safe to run in parallel (each
+# run reconciles its own merged release), and the tag is created by the fast `release-please`
+# job before the slower `publish-images` job, so a stuck image build can't block tagging.
 
 jobs:
   release-please:
