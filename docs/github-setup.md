@@ -97,6 +97,11 @@ We **squash-merge**, so the **PR title** becomes the commit on `main`. `pr-title
 
 ### release-please (the source of truth for versions/tags/changelogs)
 
+**Required one-time setting:** Settings → Actions → General → **Workflow permissions** → enable
+**"Allow GitHub Actions to create and approve pull requests"**. Without it release-please fails with
+*"GitHub Actions is not permitted to create or approve pull requests"* (the job's `pull-requests: write`
+permission alone is not enough). It then can't open its release PR, so **no tags are produced**.
+
 `release-please.yml` runs on every push to `main`. It keeps a **per-component release PR** that bumps the
 version and updates that component's `CHANGELOG.md`. Merging the release PR:
 
@@ -107,6 +112,11 @@ version and updates that component's `CHANGELOG.md`. Merging the release PR:
 
 So each service/SPA releases on its **own cadence** — the point of independent deployability. Web
 components (`node`) also bump their `package.json`; backend components (`simple`) are tag + changelog.
+
+> Only **`feat:`** (minor) and **`fix:`** (patch) bump a version — `ci:` / `chore:` / `docs:` do **not**,
+> so a release PR (and therefore a tag) only appears once a `feat`/`fix` lands in a component's path. To
+> cut the first `0.1.0` releases now, push a commit with a `Release-As: 0.1.0` footer (per component) or
+> just let the next real feature/fix trigger it.
 
 > Limitation: the default `GITHUB_TOKEN` won't re-trigger CI on the release PR. If a release must run the
 > full pipeline, swap in a **PAT** or **GitHub App** token in `release-please.yml`.

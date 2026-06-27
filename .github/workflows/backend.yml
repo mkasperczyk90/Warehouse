@@ -63,6 +63,29 @@ jobs:
       - name: Build (Release, warnings-as-errors)
         run: dotnet build Warehouse.slnx -c Release --no-restore
 
+      # Fail if an aggregate's EF model has drifted from its latest migration:
+      # `has-pending-model-changes` exits non-zero when a migration is missing. One check per
+      # DbContext (each has an IDesignTimeDbContextFactory), reusing the Release build above.
+      - name: Check EF model drift
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.9 || dotnet tool install --global dotnet-ef
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          fail=0
+          check() {
+            echo "::group::EF drift — $1"
+            if ! dotnet ef migrations has-pending-model-changes --configuration Release --project "$2" --context "$1"; then
+              echo "::error::Model drift in $1 — add a migration (dotnet ef migrations add ...)"
+              fail=1
+            fi
+            echo "::endgroup::"
+          }
+          check CatalogDbContext   src/Services/MasterData/Modules/Warehouse.MasterData.Catalog/Warehouse.MasterData.Catalog.csproj
+          check PartnersDbContext  src/Services/MasterData/Modules/Warehouse.MasterData.Partners/Warehouse.MasterData.Partners.csproj
+          check InventoryDbContext src/Services/Warehousing/Modules/Warehouse.Warehousing.Inventory/Warehouse.Warehousing.Inventory.csproj
+          check TopologyDbContext  src/Services/Warehousing/Modules/Warehouse.Warehousing.Topology/Warehouse.Warehousing.Topology.csproj
+          check LogisticsDbContext src/Services/Logistics/Modules/Warehouse.Logistics.Core/Warehouse.Logistics.Core.csproj
+          exit $fail
+
       - name: Test (unit + architecture + integration)
         run: >
           dotnet test Warehouse.slnx -c Release --no-build
