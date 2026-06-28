@@ -101,10 +101,11 @@ Odkładanie / Kompletacja / Przesunięcie* piles), so both catalogues are exerci
 
 ## Backend
 
-The terminal's backend is mocked with MSW (ADR-0006, `src/core/mocks`), intercepting the
-`fetch` calls the app makes from day one — so these tests are deterministic without any
-server. Writes are **stateful** (a confirmed task drops its pile, a short pick replans),
-and that state lives in the page, so the cross-screen journeys in `operator-flow.feature`
-navigate via the UI (tap → confirm → back) rather than `page.goto`, which would reload and
-reset it. When the real Gateway is wired up, turn the worker off (or stub with
-`page.route(...)`).
+The terminal app always calls the real Gateway (it no longer ships MSW), so the suite stubs
+the network at the Playwright layer: `fixtures/apiMocks.ts` intercepts `**/api/**` and answers
+with deterministic JSON shaped like the real Gateway DTOs — making these tests reproducible
+without a running backend. Writes are **stateful** (a confirmed task drops its pile, a short
+pick replans), and that state lives in the page-scoped stub, so the cross-screen journeys in
+`operator-flow.feature` navigate via the UI (tap → confirm → back) rather than `page.goto`,
+which would reload and reset it. The `page` fixture also seeds a signed-in session
+(`wms-operator` + `wms-token`) so screen tests don't land on the sign-in gate.

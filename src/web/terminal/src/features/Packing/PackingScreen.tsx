@@ -7,19 +7,22 @@ import { useResource } from '@/core/api/useResource';
 import { fs, radius, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { addPackage, closePackage, getPackJob, type PackJob } from './packing.model';
+import { closePackage, getPackJob, type PackJob } from './packing.model';
 
 /** Terminal — Packing (terminal-6-pack · UC-11). */
 export function PackingScreen() {
   const pack = useResource(getPackJob);
-  return <ResourceView resource={pack}>{(data) => <PackingView pack={data} reload={pack.reload} />}</ResourceView>;
+  return <ResourceView resource={pack}>{(data) => <PackingView pack={data} />}</ResourceView>;
 }
 
-function PackingView({ pack, reload }: { pack: PackJob; reload: () => void }) {
+function PackingView({ pack }: { pack: PackJob }) {
   const theme = useTheme();
   const t = useT();
   const styles = useThemedStyles(makeStyles);
   const [pending, setPending] = useState(false);
+  // Splitting an order across packages is a terminal-side affordance (the backend ships one shipment per
+  // order for now), so the package number is local UI state.
+  const [pkgNo, setPkgNo] = useState(1);
 
   async function close() {
     setPending(true);
@@ -31,14 +34,8 @@ function PackingView({ pack, reload }: { pack: PackJob; reload: () => void }) {
     }
   }
 
-  async function addAnother() {
-    setPending(true);
-    try {
-      await addPackage();
-      reload();
-    } finally {
-      setPending(false);
-    }
+  function addAnother() {
+    setPkgNo((n) => n + 1);
   }
 
   return (
@@ -55,13 +52,13 @@ function PackingView({ pack, reload }: { pack: PackJob; reload: () => void }) {
       {/* Active package */}
       <View style={styles.pkg}>
         <Text style={styles.pkgCap}>{t('pack.active')}</Text>
-        <Text style={styles.pkgId}>{pack.pkg}</Text>
+        <Text style={styles.pkgId}>PKG {pkgNo}</Text>
       </View>
 
       <Text style={styles.h1}>{t('pack.heading')}</Text>
       <Card style={styles.items}>
         {pack.lines.map((li, i) => (
-          <View key={li.name} style={[styles.li, i < pack.lines.length - 1 && styles.liBorder]}>
+          <View key={`${li.name}-${li.lot}`} style={[styles.li, i < pack.lines.length - 1 && styles.liBorder]}>
             <View style={[styles.tick, li.done ? styles.tickDone : styles.tickTodo]}>
               <Text style={[styles.tickText, { color: li.done ? theme.status.available.fg : theme.color.inkFaint }]}>
                 {li.done ? '✓' : String(li.remaining ?? '')}
@@ -75,17 +72,6 @@ function PackingView({ pack, reload }: { pack: PackJob; reload: () => void }) {
           </View>
         ))}
       </Card>
-
-      <View style={styles.meas}>
-        <View style={styles.field}>
-          <Text style={styles.measLbl}>{t('pack.weight')}</Text>
-          <Text style={styles.measVal}>{pack.weight}</Text>
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.measLbl}>{t('pack.dimensions')}</Text>
-          <Text style={styles.measVal}>{pack.dimensions}</Text>
-        </View>
-      </View>
 
       <View style={styles.scanWrap}>
         <ScanField placeholder={t('pack.scan')} />
@@ -127,19 +113,6 @@ const makeStyles = (t: Theme) =>
     nmName: { fontSize: fs.sm, color: t.color.ink },
     nmLot: { fontSize: fs.xs, color: t.color.inkFaint, marginTop: 2 },
     q: { fontWeight: '800', fontVariant: ['tabular-nums'], color: t.color.ink },
-
-    meas: { flexDirection: 'row', gap: s[3], marginHorizontal: s[5] },
-    field: {
-      flex: 1,
-      backgroundColor: t.color.surface,
-      borderWidth: 1,
-      borderColor: t.color.line,
-      borderRadius: radius.sm,
-      paddingVertical: s[3],
-      paddingHorizontal: s[4],
-    },
-    measLbl: { fontSize: fs.xs, color: t.color.inkFaint },
-    measVal: { fontSize: fs.md, fontWeight: '700', color: t.color.ink, marginTop: 2 },
 
     scanWrap: { margin: s[5] },
   });

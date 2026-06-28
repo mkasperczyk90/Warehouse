@@ -5,6 +5,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, StatusBadge, type StatusVariant } from '@/shared/ui';
+import { humanRef } from '@/shared/format/ref';
 import { useReceiving, type ReceivingLine, type ReceivingLineStatus } from './inbound.model';
 import styles from './ReceivingScreen.module.css';
 
@@ -70,7 +71,7 @@ export function ReceivingScreen({ id }: { id?: string }) {
       </button>
 
       <div className={styles.head}>
-        <h2 className={styles.title}>{t('inbound.receiving.title', { id: r.id })}</h2>
+        <h2 className={styles.title}>{t('inbound.receiving.title', { id: humanRef('ASN', r.id) })}</h2>
         <div className={styles.sub}>
           {r.supplier} · {r.dockSlot}
         </div>

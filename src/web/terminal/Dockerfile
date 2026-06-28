@@ -1,8 +1,8 @@
 # Warehouse operator terminal (Expo, React Native Web) — static web export served by nginx.
 #
 # app.json sets web.output = "single", so `expo export` produces a single-page web
-# build in dist/. The backend is mocked with MSW (ADR-0006): the bundled worker
-# answers the app's `fetch` calls with fixtures, so this image runs standalone.
+# build in dist/. The terminal always calls the real Gateway: nginx proxies `/api`
+# to ${GATEWAY_UPSTREAM} (the operator badges in to get a token).
 # Build context is this directory:  docker build -t warehouse-terminal src/web/terminal
 
 # --- build stage ----------------------------------------------------------------
@@ -14,17 +14,11 @@ ENV EXPO_NO_TELEMETRY=1 CI=1
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Export the web build. `mock:init` generates public/mockServiceWorker.js
-# (gitignored); Expo copies the public/ dir into the export so MSW can start.
-# EXPO_PUBLIC_USE_MOCKS defaults to true (standalone, MSW-mocked preview). Build with
-# --build-arg EXPO_PUBLIC_USE_MOCKS=false to turn MSW off and have the app call the real Gateway.
-ARG EXPO_PUBLIC_USE_MOCKS=true
-ENV EXPO_PUBLIC_USE_MOCKS=$EXPO_PUBLIC_USE_MOCKS
 # Build version (image tag), available to the app as process.env.EXPO_PUBLIC_APP_VERSION.
 ARG VERSION=0.1.0
 ENV EXPO_PUBLIC_APP_VERSION=$VERSION
 COPY . .
-RUN npm run mock:init && npm run build:web
+RUN npm run build:web
 
 # --- runtime stage --------------------------------------------------------------
 FROM nginx:1.27-alpine AS runtime

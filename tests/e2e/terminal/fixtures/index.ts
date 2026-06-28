@@ -1,5 +1,6 @@
 import { test as base } from 'playwright-bdd';
 
+import { installApiMocks } from './apiMocks';
 import { GoodsReceiptPage } from '../e2e/pages/GoodsReceiptPage';
 import { LanguagePage } from '../e2e/pages/LanguagePage';
 import { LoginPage } from '../e2e/pages/LoginPage';
@@ -42,12 +43,17 @@ export const test = base.extend<TerminalFixtures>({
    * dedicated language test drives the in-app toggle to exercise Polish.
    *
    * The terminal also gates on a signed-in operator (badge scan), so we seed a
-   * stored session here — otherwise every screen test would land on the login
-   * screen. Scenarios tagged `@anonymous` opt out of the seed to drive the
-   * sign-in flow itself.
+   * stored session here — the persisted user (AuthContext re-arms the api seam's
+   * token + warehouse from it) plus the bearer token — otherwise every screen
+   * test would land on the login screen. Scenarios tagged `@anonymous` opt out
+   * of the seed to drive the sign-in flow itself.
+   *
+   * The app always calls the real Gateway, so we intercept `/api` with deterministic
+   * stubs (see apiMocks) before the first render fetches.
    */
   page: async ({ page }, use, testInfo) => {
     const authenticated = !testInfo.tags.includes('@anonymous');
+    await installApiMocks(page);
     await page.addInitScript((seedOperator) => {
       try {
         window.localStorage.setItem('wms-locale', 'en');
@@ -56,15 +62,19 @@ export const test = base.extend<TerminalFixtures>({
           window.localStorage.setItem(
             'wms-operator',
             JSON.stringify({
-              id: 'OP-1',
+              id: 'OP-7700',
               badge: '7700',
               name: 'M. Operator',
-              site: 'Cold-store · Wrocław WH-01',
+              role: 'operator',
+              email: '',
+              defaultWarehouseId: 'WH01',
               language: 'en',
             }),
           );
+          window.localStorage.setItem('wms-token', 'e2e-token');
         } else {
           window.localStorage.removeItem('wms-operator');
+          window.localStorage.removeItem('wms-token');
         }
       } catch {
         /* storage unavailable — fall back to app defaults */

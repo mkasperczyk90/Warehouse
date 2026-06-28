@@ -18,12 +18,6 @@ Feature: Completing tasks and the outbound chain
     Then the task hub is shown again
     And the "Move stock" pile shows "4"
 
-  Scenario: An inter-warehouse transfer also clears the move task
-    When the operator taps the "Move stock" pile
-    And the operator issues an inter-warehouse transfer
-    Then the task hub is shown again
-    And the "Move stock" pile shows "4"
-
   Scenario: The operator walks the outbound chain pick → pack → hub
     When the operator taps the "Pick" pile
     And the operator scans the location and the product

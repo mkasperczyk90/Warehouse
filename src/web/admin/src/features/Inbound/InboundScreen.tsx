@@ -6,6 +6,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, Modal, StatusBadge } from '@/shared/ui';
+import { humanRef } from '@/shared/format/ref';
 import {
   DOCKS,
   useAsnDetail,
@@ -192,7 +193,7 @@ export function InboundScreen() {
               onClick={() => setSelected(asn.id)}
             >
               <span className={styles.asnRow}>
-                <span className={styles.asnId}>{asn.id}</span>
+                <span className={styles.asnId}>{humanRef('ASN', asn.id)}</span>
                 <StatusBadge variant={asn.status} label={asn.statusLabel} />
               </span>
               <span className={styles.asnSup}>{asn.supplier}</span>
@@ -212,7 +213,7 @@ export function InboundScreen() {
             <div className={styles.detailHead}>
               <div>
                 <h2 className={styles.detailTitle}>
-                  {detail.data.id} — {detail.data.supplier}
+                  {humanRef('ASN', detail.data.id)} — {detail.data.supplier}
                 </h2>
                 <div className={styles.detailSub}>{detail.data.createdBy}</div>
               </div>

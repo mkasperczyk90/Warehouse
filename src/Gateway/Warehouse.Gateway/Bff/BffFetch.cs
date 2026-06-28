@@ -35,4 +35,18 @@ public sealed class BffFetch(IHttpClientFactory httpClientFactory, ILogger<BffFe
             return [];
         }
     }
+
+    /// <summary>Read a single JSON object best-effort (a failing source returns <c>default</c>).</summary>
+    public async Task<T?> GetAsync<T>(HttpClient client, string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await client.GetFromJsonAsync<T>(path, Json, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "BFF source {Path} failed; skipped.", path);
+            return default;
+        }
+    }
 }

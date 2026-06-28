@@ -77,6 +77,7 @@ internal static class InventorySeeder
     {
         Location("WH01-CR1-A03-R2-S1", "WH01", "CR1", TemperatureRange.Of(2, 6));
         Location("WH01-CR1-A01-R1-S4", "WH01", "CR1", TemperatureRange.Of(2, 6));
+        Location("WH01-CR1-PICKFACE-12", "WH01", "CR1", TemperatureRange.Of(2, 6)); // cold pick face (UC-06 move target)
         Location("WH01-STD-A07-R3-S2", "WH01", "STD", TemperatureRange.Ambient);
         Location("WH01-FZ1-B02-R4-S1", "WH01", "FZ1", TemperatureRange.Of(-25, -18));
         Location("WH01-QC-HOLD-02", "WH01", "QC", TemperatureRange.Ambient);

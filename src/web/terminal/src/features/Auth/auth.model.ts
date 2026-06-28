@@ -16,6 +16,30 @@ export interface CurrentOperator {
   language: Locale;
 }
 
-/** Resolve a scanned badge to an operator; rejects (ApiError 401) on unknown badge. */
-export const login = (badge: string): Promise<CurrentOperator> =>
-  api.post<CurrentOperator>('auth/login', { badge });
+/**
+ * The desk-user view the gateway shapes from the Keycloak token claims (same shape the admin gets).
+ * The terminal only needs a subset; it maps this onto {@link CurrentOperator} in the AuthContext.
+ */
+export interface CurrentUser {
+  id: string;
+  badge: string;
+  name: string;
+  role: string;
+  email: string;
+  /** Warehouse the operator works in — used to scope every request. */
+  defaultWarehouseId: string;
+  language: Locale;
+}
+
+/** What `POST auth/login` returns: the bearer token (Keycloak JWT, brokered by the gateway) + the user
+ *  shaped from its claims. The terminal stores the token and carries it on every request. */
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string | null;
+  expiresIn?: number;
+  user: CurrentUser;
+}
+
+/** Resolve a scanned badge to a token + user; rejects (ApiError 401) on unknown badge. */
+export const login = (badge: string): Promise<LoginResponse> =>
+  api.post<LoginResponse>('auth/login', { badge });

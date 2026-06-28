@@ -7,7 +7,7 @@ import { useResource } from '@/core/api/useResource';
 import { fs, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { confirmMove, getMoveTask, transferMove, type MoveTask } from './movement.model';
+import { confirmMove, getMoveTask, type MoveTask } from './movement.model';
 
 /** Terminal — Move stock (terminal-5-move · UC-06). The violet flow. */
 export function MovementScreen() {
@@ -22,12 +22,11 @@ function MovementView({ move }: { move: MoveTask }) {
   const [qty, setQty] = useState(move.qty);
   const [pending, setPending] = useState(false);
 
-  // Same write, two destinations: a local move, or an inter-warehouse transfer
-  // that leaves the goods InTransit until the destination receipt (UC-06).
-  async function commit(kind: 'move' | 'transfer') {
+  // Replenishment move within the warehouse (reserve → pick face) → one Move ledger entry.
+  async function commit() {
     setPending(true);
     try {
-      await (kind === 'move' ? confirmMove(qty) : transferMove(qty));
+      await confirmMove(qty);
       router.back();
     } catch {
       setPending(false);
@@ -40,10 +39,7 @@ function MovementView({ move }: { move: MoveTask }) {
       subtitle={t('move.task', { n: move.task, total: move.ofTasks })}
       accent={theme.color.move}
       actions={
-        <>
-          <BigActionButton label={t('move.confirm')} accent={theme.color.move} disabled={pending} onPress={() => commit('move')} />
-          <BigActionButton label={t('move.transfer')} kind="ghost" accent={theme.status.transit.fg} disabled={pending} onPress={() => commit('transfer')} />
-        </>
+        <BigActionButton label={t('move.confirm')} accent={theme.color.move} disabled={pending} onPress={commit} />
       }
     >
       {/* From → To legs */}

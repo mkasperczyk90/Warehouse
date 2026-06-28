@@ -9,7 +9,15 @@ import { api } from '@/core/api/client';
  */
 
 const WAREHOUSE = 'WH01';
-const DELIVERY_ID = 'ASN-2206';
+
+interface DeliverySummaryDto {
+  id: string;
+  warehouseCode: string;
+}
+
+// The confirm carries a deliveryId for the ledger reason + completion event; it isn't a lookup key, so
+// any of the warehouse's real delivery GUIDs serves as the reference. Resolved lazily from the backend.
+let deliveryRef: string | null = null;
 
 export interface PutAwayTask {
   task: number;
@@ -40,7 +48,7 @@ const BAYS: Pick<PutAwayTask, 'location' | 'why' | 'checks'>[] = [
     checks: ['Temperature compatible (cold room 2–6 °C)', 'Capacity & load limit OK'],
   },
   {
-    location: 'WH01-CR1-A05-R1-S3',
+    location: 'WH01-CR1-A01-R1-S4',
     why: 'Cold room · empty bay · 1.2 m³ free',
     checks: ['Temperature compatible (cold room 2–6 °C)', 'Capacity & load limit OK'],
   },
@@ -53,6 +61,10 @@ let current: PutAwayTaskDto | null = null;
 export const getPutAwayTask = async (): Promise<PutAwayTask> => {
   const tasks = await api.get<PutAwayTaskDto[]>(`inventory/put-away/tasks?warehouse=${WAREHOUSE}`);
   current = tasks[0] ?? null;
+  if (!deliveryRef) {
+    const deliveries = await api.get<DeliverySummaryDto[]>('logistics/deliveries');
+    deliveryRef = deliveries.find((d) => d.warehouseCode === WAREHOUSE)?.id ?? deliveries[0]?.id ?? null;
+  }
   const bay = BAYS[bayIndex];
   const chips = current ? [`${current.quantity} ${current.unit}`] : [];
   if (current?.batchNumber) chips.push(`Batch ${current.batchNumber}`);
@@ -73,7 +85,7 @@ export const getPutAwayTask = async (): Promise<PutAwayTask> => {
 export const confirmPutAway = async (): Promise<void> => {
   if (!current) return;
   await api.post<void>('inventory/put-away/confirm', {
-    deliveryId: DELIVERY_ID,
+    deliveryId: deliveryRef,
     warehouseCode: WAREHOUSE,
     sku: current.sku,
     batchNumber: current.batchNumber,

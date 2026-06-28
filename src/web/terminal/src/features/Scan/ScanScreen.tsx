@@ -4,10 +4,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BigActionButton, Card, Icon, ResourceView, ScanField, StatusBadge, TabScaffold } from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
-import { fs, radius, s } from '@/shared/theme/tokens';
+import { fs, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { getRecentScans, resolveScan, type ScanResult } from './scan.model';
+import { getRecentScans, recordScan, resolveScan, type ScanResult } from './scan.model';
 
 /** Terminal — Scan: the universal scan dispatcher. Scan anything → it routes. */
 export function ScanScreen() {
@@ -24,6 +24,7 @@ function ScanView({ initial }: { initial: ScanResult[] }) {
   const history = results.slice(1);
 
   const onScan = (code: string) => {
+    recordScan(code); // remember on-device so the history survives leaving the screen
     setResults((prev) => [resolveScan(code), ...prev]);
   };
 

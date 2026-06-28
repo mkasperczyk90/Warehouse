@@ -1,16 +1,37 @@
 /**
  * The single seam to the backend (the .NET Gateway).
  *
- * Like the admin panel (ADR-0006), the terminal calls `fetch` from day one. In
- * dev/test MSW intercepts these requests — on web through a Service Worker
- * (`mocks/browser`), on a real handheld through a request interceptor
- * (`mocks/native`) — and returns fixtures. In production MSW is off and the same
- * calls hit the real Gateway, so going live is turning the worker off, never a
- * rewrite. Every feature's data access flows through `api.get/post`.
+ * Like the admin panel (ADR-0006), the terminal calls `fetch` and always talks to
+ * the real Gateway (proxied at `/api` by nginx). The handheld badges in to get a
+ * Keycloak token, then carries it (plus the active warehouse) on every request so
+ * the gateway can authorise and scope the data. Every feature's data access flows
+ * through `api.get/post`.
  */
 
 /** Base path for the Gateway (YARP reverse proxy). */
 export const GATEWAY = '/api';
+
+/** Header the Gateway reads to scope every request to the active warehouse. */
+export const WAREHOUSE_HEADER = 'X-Warehouse-Id';
+
+/**
+ * The warehouse the handheld is working in. The terminal has no switcher — it is
+ * set once at sign-in from the operator's home warehouse (see `AuthContext`) so
+ * every request below carries it and the backend scopes the data.
+ */
+let activeWarehouseId: string | null = null;
+export function setActiveWarehouse(id: string | null) {
+  activeWarehouseId = id;
+}
+
+/**
+ * The bearer token from sign-in (Keycloak JWT, brokered by the gateway). Set once at login and on
+ * reload from storage (see `AuthContext`); every request below carries it so the gateway can authorise.
+ */
+let authToken: string | null = null;
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
 
 class ApiError extends Error {
   constructor(
@@ -27,9 +48,14 @@ class ApiError extends Error {
 export { ApiError };
 
 async function request<T>(method: string, resource: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (activeWarehouseId) headers[WAREHOUSE_HEADER] = activeWarehouseId;
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
   const res = await fetch(`${GATEWAY}/${resource}`, {
     method,
-    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    headers: Object.keys(headers).length ? headers : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 

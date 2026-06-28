@@ -1,6 +1,5 @@
 import type { Href } from 'expo-router';
 
-import { api } from '@/core/api/client';
 import { ROUTES } from '@/navigation/routes';
 import type { IconName } from '@/shared/ui';
 import type { StatusKey } from '@/shared/theme/tokens';
@@ -97,10 +96,34 @@ export function resolveScan(raw: string): ScanResult {
 }
 
 /**
- * Seeded scan history (newest first) for the empty terminal. The Gateway returns
- * the raw codes; the dispatcher resolves each one to its entity client-side.
+ * Recent-scan history is per-device UI state (not domain data), so it lives in this handheld's local
+ * storage — it starts empty and fills as the operator scans. The raw codes are stored; the dispatcher
+ * resolves each one to its entity client-side.
  */
-export const getRecentScans = async (): Promise<ScanResult[]> => {
-  const codes = await api.get<string[]>('scan/recent');
-  return codes.map(resolveScan);
-};
+const RECENT_KEY = 'wms-recent-scans';
+const RECENT_MAX = 8;
+
+function readCodes(): string[] {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(RECENT_KEY) : null;
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Remember a scanned code at the top of this device's history (deduplicated, capped). */
+export function recordScan(code: string): void {
+  const trimmed = code.trim();
+  if (!trimmed) return;
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const next = [trimmed, ...readCodes().filter((c) => c !== trimmed)].slice(0, RECENT_MAX);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* private mode / storage unavailable — history just won't persist */
+  }
+}
+
+/** This device's recent scans (newest first), each resolved to its entity. */
+export const getRecentScans = async (): Promise<ScanResult[]> => readCodes().map(resolveScan);

@@ -14,5 +14,5 @@ Feature: Put away goods (UC-04)
 
   Scenario: A full location proposes another legal bay
     When the operator reports the location full
-    Then the proposed location is "WH01-CR1-A05-R1-S3"
+    Then the proposed location is "WH01-CR1-A01-R1-S4"
     And the put-away check "Temperature compatible (cold room 2–6 °C)" passes

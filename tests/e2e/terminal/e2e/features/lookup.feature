@@ -18,7 +18,7 @@ Feature: Look up (read-only inquiry)
   Scenario: Filtering by entity kind
     When the operator filters by "Locations"
     Then "3 results" are listed
-    And "CR1-PICKFACE-12" is shown
+    And "WH01-CR1-PICKFACE-12" is shown
     And "Whole milk 3.2% — 1 L carton" is not shown
 
   Scenario: Blocked (QC) stock is clearly badged
