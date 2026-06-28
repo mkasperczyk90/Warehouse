@@ -71,7 +71,9 @@ export function ReceivingScreen({ id }: { id?: string }) {
       </button>
 
       <div className={styles.head}>
-        <h2 className={styles.title}>{t('inbound.receiving.title', { id: humanRef('ASN', r.id) })}</h2>
+        <h2 className={styles.title}>
+          {t('inbound.receiving.title', { id: humanRef('ASN', r.id) })}
+        </h2>
         <div className={styles.sub}>
           {r.supplier} · {r.dockSlot}
         </div>

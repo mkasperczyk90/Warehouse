@@ -54,12 +54,17 @@ jobs:
             ${{ matrix.e2e }}/package-lock.json
 
       # The webServer in playwright.config boots `npm run dev`/`web` from the web app dir,
-      # so the app needs its deps and the MSW worker present too.
+      # so the app needs its deps installed.
       - name: Install web app
         working-directory: ${{ matrix.web }}
-        run: |
-          npm ci
-          npm run mock:init
+        run: npm ci
+
+      # Admin still boots MSW for its e2e; the terminal drives the real api seam (Playwright
+      # route mocks) and has no `mock:init` script.
+      - name: Generate MSW worker (admin)
+        if: matrix.app == 'admin'
+        working-directory: ${{ matrix.web }}
+        run: npm run mock:init
 
       - name: Install e2e harness
         working-directory: ${{ matrix.e2e }}
