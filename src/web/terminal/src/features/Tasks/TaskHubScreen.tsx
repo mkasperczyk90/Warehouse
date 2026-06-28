@@ -9,11 +9,10 @@ import { fs, radius, s, shadow } from '@/shared/theme/tokens';
 import { useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
 import { useAuth } from '@/shared/auth/AuthContext';
-import { getOperator, getTasks, type Operator, type TaskTile } from './tasks.model';
+import { getTasks, type TaskTile } from './tasks.model';
 
 /** Terminal — Task hub (terminal-1-hub). The operator's landing screen. */
 export function TaskHubScreen() {
-  const operator = useResource(getOperator);
   const tasks = useResource(getTasks);
 
   // Re-read the piles whenever the hub regains focus, so a task confirmed in a
@@ -22,27 +21,20 @@ export function TaskHubScreen() {
   const reloadTasks = tasks.reload;
   useFocusEffect(useCallback(() => reloadTasks(), [reloadTasks]));
 
-  return (
-    <ResourceView resource={operator}>
-      {(op) => (
-        <ResourceView resource={tasks}>{(tk) => <TaskHubView operator={op} tasks={tk} />}</ResourceView>
-      )}
-    </ResourceView>
-  );
+  return <ResourceView resource={tasks}>{(tk) => <TaskHubView tasks={tk} />}</ResourceView>;
 }
 
-function TaskHubView({ operator, tasks }: { operator: Operator; tasks: TaskTile[] }) {
+function TaskHubView({ tasks }: { tasks: TaskTile[] }) {
   const insets = useSafeAreaInsets();
   const styles = useThemedStyles(makeStyles);
   const t = useT();
-  // Identity comes from the signed-in operator (badge sign-in); `operator/me`
-  // still drives live connectivity. Falls back to the server name/site if the
-  // session is somehow absent.
+  // Identity comes from the signed-in operator (badge sign-in) — the terminal has
+  // no separate `operator/me` read; the session is the source of truth.
   const { operator: account, signOut } = useAuth();
 
   // The floor has RF dead spots — tap the chip to simulate a signal drop.
   // Offline, confirmations queue on-device and sync when signal returns.
-  const [online, setOnline] = useState(operator.online);
+  const [online, setOnline] = useState(true);
   const queued = 3;
 
   return (
@@ -50,8 +42,8 @@ function TaskHubView({ operator, tasks }: { operator: Operator; tasks: TaskTile[
       {/* Identity / connectivity bar */}
       <View style={[styles.bar, { paddingTop: insets.top + s[4] }]}>
         <View style={styles.barLeft}>
-          <Text style={styles.who}>{account?.name ?? operator.name}</Text>
-          <Text style={styles.site}>{account?.site ?? operator.site}</Text>
+          <Text style={styles.who}>{account?.name}</Text>
+          <Text style={styles.site}>{account?.site}</Text>
         </View>
         <View style={styles.barRight}>
           <BarControls />

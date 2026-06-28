@@ -28,6 +28,3 @@ yarn-error.*
 
 # local env
 .env*.local
-
-# MSW generates this worker via `npm run mock:init`; it is environment-specific.
-public/mockServiceWorker.js

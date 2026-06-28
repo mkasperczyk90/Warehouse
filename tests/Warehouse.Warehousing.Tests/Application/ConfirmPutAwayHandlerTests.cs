@@ -1,6 +1,7 @@
 using Warehouse.SharedKernel.Domain;
 using Warehouse.SharedKernel.ValueObjects;
 using Warehouse.Warehousing.Inventory.Application.ConfirmPutAway;
+using Warehouse.Warehousing.Inventory.Application.Storage;
 using Warehouse.Warehousing.Inventory.Domain;
 using Warehouse.Warehousing.Inventory.Domain.Replicas;
 using Warehouse.Warehousing.Tests.TestDoubles;
@@ -32,7 +33,7 @@ public sealed class ConfirmPutAwayHandlerTests
 
     private static ConfirmPutAwayHandler Handler(
         FakeStockItemRepository stock, FakeProductSnapshotRepository products, FakeLocationSnapshotRepository locations) =>
-        new(stock, products, locations, new FakeStockLedger(), Outbox.Create());
+        new(stock, new StorageCompatibility(stock, products, locations), new FakeStockLedger(), Outbox.Create());
 
     [Fact]
     public async Task Hazardous_stock_cannot_be_put_away_to_a_non_hazmat_location()
@@ -59,7 +60,8 @@ public sealed class ConfirmPutAwayHandlerTests
         products.Seed(Product("ACID", hazardous: true));
         var locations = new FakeLocationSnapshotRepository();
         locations.Seed(Location($"{Warehouse}-HAZ1-A-01", "HAZ1", hazmatZone: true));
-        var handler = new ConfirmPutAwayHandler(stock, products, locations, ledger, Outbox.Create());
+        var handler = new ConfirmPutAwayHandler(
+            stock, new StorageCompatibility(stock, products, locations), ledger, Outbox.Create());
 
         await handler.HandleAsync(Command("ACID", $"{Warehouse}-HAZ1-A-01"));
 
@@ -92,7 +94,8 @@ public sealed class ConfirmPutAwayHandlerTests
         products.Seed(Product("MILK", hazardous: false, required: TemperatureRange.Of(2, 6)));
         var locations = new FakeLocationSnapshotRepository();
         locations.Seed(Location($"{Warehouse}-CHLD1-A-01", "CHLD1", hazmatZone: false, temp: TemperatureRange.Of(2, 6)));
-        var handler = new ConfirmPutAwayHandler(stock, products, locations, ledger, Outbox.Create());
+        var handler = new ConfirmPutAwayHandler(
+            stock, new StorageCompatibility(stock, products, locations), ledger, Outbox.Create());
 
         await handler.HandleAsync(Command("MILK", $"{Warehouse}-CHLD1-A-01"));
 
@@ -123,7 +126,8 @@ public sealed class ConfirmPutAwayHandlerTests
         products.Seed(Product("MILK", hazardous: false));
         var locations = new FakeLocationSnapshotRepository();
         locations.Seed(Location($"{Warehouse}-STD1-A-01", "STD1", hazmatZone: false));
-        var handler = new ConfirmPutAwayHandler(stock, products, locations, ledger, Outbox.Create());
+        var handler = new ConfirmPutAwayHandler(
+            stock, new StorageCompatibility(stock, products, locations), ledger, Outbox.Create());
 
         await handler.HandleAsync(Command("MILK", $"{Warehouse}-STD1-A-01"));
 

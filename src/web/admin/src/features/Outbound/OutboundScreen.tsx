@@ -6,6 +6,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
 
 import { DataTable, Modal, StatusBadge } from '@/shared/ui';
+import { humanRef } from '@/shared/format/ref';
 import {
   useCancelOrder,
   useCreateOrder,
@@ -145,7 +146,7 @@ export function OutboundScreen() {
               onClick={() => setSelected(so.id)}
             >
               <span className={styles.soRow}>
-                <span className={styles.soId}>{so.id}</span>
+                <span className={styles.soId}>{humanRef('SO', so.id)}</span>
                 <StatusBadge variant={so.status} label={so.statusLabel} />
               </span>
               <span className={styles.soCust}>{so.customer}</span>
@@ -165,7 +166,7 @@ export function OutboundScreen() {
             <div className={styles.detailHead}>
               <div>
                 <h2 className={styles.detailTitle}>
-                  {detail.data.id} — {detail.data.customer}
+                  {humanRef('SO', detail.data.id)} — {detail.data.customer}
                 </h2>
                 <div className={styles.detailSub}>{detail.data.subtitle}</div>
               </div>

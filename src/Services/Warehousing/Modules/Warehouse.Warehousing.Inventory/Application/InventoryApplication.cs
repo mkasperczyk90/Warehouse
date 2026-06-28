@@ -1,12 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Warehouse.Warehousing.Inventory.Application.AdjustStock;
 using Warehouse.Warehousing.Inventory.Application.AdjustStockStatus;
+using Warehouse.Warehousing.Inventory.Application.ConfirmMove;
 using Warehouse.Warehousing.Inventory.Application.ConfirmPutAway;
 using Warehouse.Warehousing.Inventory.Application.MovementsLedger;
+using Warehouse.Warehousing.Inventory.Application.ProposeMove;
 using Warehouse.Warehousing.Inventory.Application.ProposePutAway;
 using Warehouse.Warehousing.Inventory.Application.Quality;
 using Warehouse.Warehousing.Inventory.Application.StockOverview;
 using Warehouse.Warehousing.Inventory.Application.Stocktakes;
+using Warehouse.Warehousing.Inventory.Application.Storage;
 
 namespace Warehouse.Warehousing.Inventory.Application;
 
@@ -19,8 +22,11 @@ public static class InventoryApplication
 {
     public static IServiceCollection AddInventoryApplication(this IServiceCollection services)
     {
+        services.AddScoped<StorageCompatibility>();
         services.AddScoped<ProposePutAwayHandler>();
         services.AddScoped<ConfirmPutAwayHandler>();
+        services.AddScoped<ProposeMoveHandler>();
+        services.AddScoped<ConfirmMoveHandler>();
         services.AddScoped<StockOverviewHandler>();
         services.AddScoped<MovementsHandler>();
         services.AddScoped<MoveStockHandler>();

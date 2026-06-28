@@ -4,12 +4,6 @@ import { api } from '@/core/api/client';
 import { ROUTES } from '@/navigation/routes';
 import type { IconName } from '@/shared/ui';
 
-export interface Operator {
-  name: string;
-  site: string;
-  online: boolean;
-}
-
 export type TaskKind = 'receive' | 'putaway' | 'pick' | 'move';
 
 export interface TaskTile {
@@ -38,9 +32,9 @@ const TASK_VIEW: Record<TaskKind, { icon: IconName; color: string; route: Href }
   move: { icon: 'move', color: '#5f3dc4', route: ROUTES.move },
 };
 
-export const getOperator = (): Promise<Operator> => api.get<Operator>('operator/me');
-
 export const getTasks = async (): Promise<TaskTile[]> => {
-  const data = await api.get<TaskData[]>('tasks');
+  // The hub's work piles are aggregated across Inventory + Logistics by the gateway BFF (the only place
+  // that may fan out across services), scoped to the operator's warehouse via the X-Warehouse-Id header.
+  const data = await api.get<TaskData[]>('terminal/tasks');
   return data.map((d) => ({ ...d, title: d.kind, ...TASK_VIEW[d.kind] }));
 };

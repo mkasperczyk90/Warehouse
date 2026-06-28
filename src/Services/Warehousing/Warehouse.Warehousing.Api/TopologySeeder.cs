@@ -38,6 +38,7 @@ internal static class TopologySeeder
 
         AddLocation(site, "CR1", "WH01-CR1-A03-R2-S1");
         AddLocation(site, "CR1", "WH01-CR1-A01-R1-S4");
+        AddLocation(site, "CR1", "WH01-CR1-PICKFACE-12"); // cold pick face — replenishment target (UC-06)
         AddLocation(site, "STD", "WH01-STD-A07-R3-S2");
         AddLocation(site, "FZ1", "WH01-FZ1-B02-R4-S1");
         AddLocation(site, "QC", "WH01-QC-HOLD-02");

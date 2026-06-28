@@ -1,8 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // One PostgreSQL server, one database per service (ADR: database-per-service).
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume();
+// No data volume: each `dotnet run` starts on a fresh database so the per-service seeders re-run and
+// re-publish their integration events — the event-fed read replicas (catalog/topology snapshots) only
+// populate through those events, so a persisted volume from an earlier (broken-messaging) run would
+// leave them half-empty. Ephemeral is the right default for the local demo stack.
+var postgres = builder.AddPostgres("postgres");
 
 var masterDataDb = postgres.AddDatabase("masterdata");
 var warehouseDb = postgres.AddDatabase("warehouse");
@@ -53,16 +56,20 @@ var gateway = builder.AddProject<Projects.Warehouse_Gateway>("gateway")
     .WithEnvironment("Keycloak__ClientId", "warehouse-admin")
     .WithEnvironment("Keycloak__ClientSecret", "warehouse-admin-secret-dev");
 
-// Front-ends — MSW-mocked SPAs served by nginx, built from their own Dockerfiles (ADR-0004,
-// ADR-0006). They run standalone today (the mock worker answers fetch); the gateway reference is
-// the seam where a real API base URL attaches when MSW is switched off.
+// Front-ends — SPAs served by nginx, built from their own Dockerfiles (ADR-0004, ADR-0006). Both proxy
+// `/api` to the gateway (the `GATEWAY_UPSTREAM` the Dockerfile's nginx template expands). The admin still
+// ships MSW and is built with it switched OFF here (build arg); the terminal no longer uses MSW and always
+// calls the real gateway. Build-arg changes trigger an image rebuild on `dotnet run`.
 builder.AddDockerfile("admin", "../../web/admin")
+    .WithBuildArg("VITE_USE_MOCKS", "false")
     .WithReference(gateway)
+    .WithEnvironment("GATEWAY_UPSTREAM", gateway.GetEndpoint("http"))
     .WithHttpEndpoint(targetPort: 80)
     .WithExternalHttpEndpoints();
 
 builder.AddDockerfile("terminal", "../../web/terminal")
     .WithReference(gateway)
+    .WithEnvironment("GATEWAY_UPSTREAM", gateway.GetEndpoint("http"))
     .WithHttpEndpoint(targetPort: 80)
     .WithExternalHttpEndpoints();
 

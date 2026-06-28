@@ -46,6 +46,14 @@ public static class MessagingExtensions
 
         builder.UseWolverine(opts =>
         {
+            // Handler dependencies (the module repositories/ledgers/outbox) are deliberately `internal`
+            // to the Infrastructure layer. Wolverine 6 flipped the codegen default to
+            // ServiceLocationPolicy.NotAllowed, which then refuses to generate any handler whose concrete
+            // dependency is non-public — so EVERY cross-service event consumer (goods-receipt, picks,
+            // reservations, replica updaters) silently failed to build and never ran. Restore the 5.x
+            // behaviour: resolve those services from the container (service location) instead of inline.
+            opts.ServiceLocationPolicy = JasperFx.CodeGeneration.Model.ServiceLocationPolicy.AllowedButWarn;
+
             opts.PersistMessagesWithPostgresql(
                 builder.Configuration.GetConnectionString(messageStoreConnectionName)!, schemaName: MessageStoreSchema);
             opts.UseEntityFrameworkCoreTransactions();

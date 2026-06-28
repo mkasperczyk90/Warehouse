@@ -10,7 +10,9 @@
     "realm": [
       { "name": "manager", "description": "Desk manager" },
       { "name": "coordinator", "description": "Logistics coordinator" },
-      { "name": "inspector", "description": "Quality inspector" }
+      { "name": "inspector", "description": "Quality inspector" },
+      { "name": "operator", "description": "Warehouse operator (terminal)" },
+      { "name": "forklift", "description": "Forklift operator (terminal)" }
     ]
   },
   "clients": [
@@ -102,6 +104,26 @@
       "email": "inspector@warehouse.example",
       "attributes": { "badge": ["1003"], "default_warehouse": ["WH02"], "language": ["pl"] },
       "realmRoles": ["inspector"]
+    },
+    {
+      "username": "7700",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "W.",
+      "lastName": "Operator",
+      "email": "operator@warehouse.example",
+      "attributes": { "badge": ["7700"], "default_warehouse": ["WH01"], "language": ["en"] },
+      "realmRoles": ["operator"]
+    },
+    {
+      "username": "7701",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "J.",
+      "lastName": "Forklift",
+      "email": "forklift@warehouse.example",
+      "attributes": { "badge": ["7701"], "default_warehouse": ["WH01"], "language": ["en"] },
+      "realmRoles": ["forklift"]
     }
   ],
   "authenticationFlows": [

@@ -37,6 +37,7 @@ export class LookupPage {
   }
 
   async expectBadge(label: string) {
-    await expect(this.page.getByText(label)).toBeVisible();
+    // A product and its batch row can both carry the status, so match the first.
+    await expect(this.page.getByText(label).first()).toBeVisible();
   }
 }

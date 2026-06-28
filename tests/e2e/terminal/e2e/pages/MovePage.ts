@@ -29,8 +29,4 @@ export class MovePage {
   async confirm() {
     await this.page.getByRole('button', { name: /Confirm move/ }).click();
   }
-
-  async transfer() {
-    await this.page.getByRole('button', { name: /Inter-warehouse transfer/ }).click();
-  }
 }

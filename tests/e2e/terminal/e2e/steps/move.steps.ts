@@ -23,7 +23,3 @@ Then('the move check {string} passes', async ({ move }, text: string) => {
 When('the operator confirms the move', async ({ move }) => {
   await move.confirm();
 });
-
-When('the operator issues an inter-warehouse transfer', async ({ move }) => {
-  await move.transfer();
-});

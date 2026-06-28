@@ -214,8 +214,6 @@ Already captured in [`media/`](media/) — the GIFs above and below are these fi
 | [`golden-path-full.gif`](media/golden-path-full.gif) | **Canonical** full run, Admin + Terminal side by side (① → ⑩), Aspire / real backend | the one-clip story (embedded at the top) |
 | [`admin-golden-path.gif`](media/admin-golden-path.gif) · [`.mp4`](media/admin-golden-path.mp4) | Admin desk app only — the Coordinator / Manager / Inspector acts | slides, README, a focused admin loop |
 | [`terminal-golden-path.gif`](media/terminal-golden-path.gif) · [`.mp4`](media/terminal-golden-path.mp4) | Terminal handheld only — receive · put-away · pick · pack · move | the operator story on its own |
-| [`admin-walkthrough-real-backend.gif`](media/admin-walkthrough-real-backend.gif) · [`.webm`](media/admin-walkthrough-real-backend.webm) | Admin driven against the **real seeded backend** (MSW off) | proof the admin runs live, not just mocked |
-| [`frame-stock-view.png`](media/frame-stock-view.png) | A single Stock-view still (scene ⑥) | thumbnail / hero frame |
 
 **Admin only** &nbsp;|&nbsp; **Terminal only**
 

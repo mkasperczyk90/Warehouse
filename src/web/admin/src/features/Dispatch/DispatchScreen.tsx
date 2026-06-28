@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 
 import { Board, BoardColumn, Modal, StatusBadge } from '@/shared/ui';
+import { humanRef } from '@/shared/format/ref';
 import {
   CARRIERS,
   useAdvanceShipment,
@@ -92,7 +93,7 @@ export function DispatchScreen() {
         {pending ? (
           <>
             <p className={styles.dialogShip}>
-              {pending.id} · {pending.customer}
+              {humanRef('SHP', pending.id)} · {pending.customer}
             </p>
             <label className={styles.field}>
               <span className={styles.fieldLabel}>{t('dispatch.assign.carrier')}</span>
@@ -156,7 +157,7 @@ function ShipmentCard({
 }) {
   return (
     <div className={styles.ship}>
-      <div className={styles.id}>{ship.id}</div>
+      <div className={styles.id}>{humanRef('SHP', ship.id)}</div>
       <div className={styles.cust}>
         {ship.customer} · {ship.summary}
       </div>

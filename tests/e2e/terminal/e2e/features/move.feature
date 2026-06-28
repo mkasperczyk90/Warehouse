@@ -7,7 +7,7 @@ Feature: Move stock (UC-06)
     Given the operator opens the move screen
 
   Scenario: The move shows both legs and the compatibility checks
-    Then the move leg "CR1-A03-R2-S1" is shown
-    And the move leg "CR1-PICKFACE-12" is shown
-    And the move product "Whole milk 3.2% — 1 L" is shown
-    And the move check "Destination is a cold room (2–6 °C compatible)" passes
+    Then the move leg "WH01-CR1-A03-R2-S1" is shown
+    And the move leg "WH01-CR1-PICKFACE-12" is shown
+    And the move product "4006381333931" is shown
+    And the move check "Destination is temperature-compatible (same room)" passes

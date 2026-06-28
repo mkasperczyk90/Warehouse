@@ -1,13 +1,18 @@
 import { api } from '@/core/api/client';
 import type { StatusKey } from '@/shared/theme/tokens';
+import { humanRef } from '@/shared/format/ref';
 
 /*
- * UC-10 — Picking, talking to the Logistics service directly: GET the order's pick list
- * (`logistics/orders/{id}/pick-list`) and confirm/short a task. The backend deals in codes (no
- * product names), so those fall back to codes. The terminal works one pending task at a time.
+ * UC-10 — Picking, talking to the Logistics service directly: find an order released to the floor
+ * (status Picking), GET its pick list (`logistics/orders/{id}/pick-list`) and confirm/short a task.
+ * The backend keys orders by GUID and deals in product codes (no names), so those fall back to codes
+ * and a friendly ref. The terminal works one pending task at a time.
  */
 
-const ORDER_ID = 'SO-4471';
+interface OrderSummaryDto {
+  id: string;
+  status: string;
+}
 
 export interface PickStep {
   wave: string;
@@ -40,16 +45,27 @@ interface PickListDto {
   tasks: PickTaskDto[];
 }
 
-/** The task the terminal is currently on (so confirm/short know which sequence to post). */
+/** The order + task the terminal is currently on (so confirm/short know what to post). */
+let currentOrderId: string | null = null;
 let currentSequence: number | null = null;
 
 export const getPickStep = async (): Promise<PickStep> => {
-  const pl = await api.get<PickListDto>(`logistics/orders/${ORDER_ID}/pick-list`);
+  // Pick the first order released to the floor (Picking) — its FEFO pick list is planned by Inventory.
+  const orders = await api.get<OrderSummaryDto[]>('logistics/orders?status=Picking');
+  currentOrderId = orders[0]?.id ?? null;
+  if (!currentOrderId) {
+    currentSequence = null;
+    return {
+      wave: '—', order: '—', picked: 0, total: 0, location: '—',
+      sku: '—', product: '—', fefo: 'FEFO', fefoStatus: 'reserved', qty: 0, unit: 'ea',
+    };
+  }
+  const pl = await api.get<PickListDto>(`logistics/orders/${currentOrderId}/pick-list`);
   const task = pl.tasks.find((t) => t.status === 'Pending') ?? pl.tasks[0];
   currentSequence = task?.sequence ?? null;
   return {
-    wave: pl.orderId,
-    order: pl.orderId,
+    wave: humanRef('WAVE', pl.orderId),
+    order: humanRef('SO', pl.orderId),
     picked: pl.picked,
     total: pl.total,
     location: task?.location ?? '—',
@@ -67,8 +83,8 @@ export type ShortReason = 'shortAtLocation' | 'batchBlocked' | 'damaged';
 
 /** Confirm the pick (both scans landed) → hard allocation consumed in Inventory. */
 export const confirmPick = (): Promise<void> =>
-  api.post<void>(`logistics/orders/${ORDER_ID}/picks/${currentSequence}/confirm`);
+  api.post<void>(`logistics/orders/${currentOrderId}/picks/${currentSequence}/confirm`);
 
 /** Short pick → recorded (replanning onto another batch/location is the deferred wave optimiser). */
 export const shortPick = (reason: ShortReason): Promise<void> =>
-  api.post<void>(`logistics/orders/${ORDER_ID}/picks/${currentSequence}/short`, { reason });
+  api.post<void>(`logistics/orders/${currentOrderId}/picks/${currentSequence}/short`, { reason });
