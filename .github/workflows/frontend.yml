@@ -27,7 +27,7 @@ jobs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
       - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
         id: changes
         with:
           filters: |
@@ -56,6 +56,7 @@ jobs:
     needs: detect
     if: ${{ needs.detect.outputs.matrix != '{"include":[]}' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20 # a hung typecheck/build/test fails fast instead of burning the 6h default
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.detect.outputs.matrix) }}
@@ -103,7 +104,7 @@ jobs:
       # report) doesn't add a confusing "No test report files were found" error on top.
       - name: Publish test report
         if: ${{ !cancelled() && matrix.app == 'admin' && hashFiles(format('{0}/test-results/vitest-junit.xml', matrix.dir)) != '' }}
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         with:
           name: Frontend tests (admin)
           path: ${{ matrix.dir }}/test-results/vitest-junit.xml

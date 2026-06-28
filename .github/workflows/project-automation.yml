@@ -38,6 +38,10 @@ env:
 
 jobs:
   sync:
+    # Only act on PR activity: direct `pull_request` events, or a gate `workflow_run` that was
+    # itself triggered by a PR. This skips the no-op runs on every gate completion for pushes to
+    # main (a merge has no open PR), instead of starting a job just to exit 0.
+    if: ${{ github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Move linked issue

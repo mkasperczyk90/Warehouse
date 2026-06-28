@@ -25,6 +25,7 @@ jobs:
   e2e:
     name: ${{ matrix.app }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30 # browser suites can hang; fail fast instead of burning the 6h default
     permissions:
       contents: read
       checks: write          # let the test reporter publish a per-test Check run.
@@ -76,7 +77,7 @@ jobs:
       # annotates failures inline on the PR). Runs even when the suite fails.
       - name: Publish test report
         if: ${{ !cancelled() }}
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         with:
           name: E2E tests (${{ matrix.app }})
           path: ${{ matrix.e2e }}/test-results/junit.xml
