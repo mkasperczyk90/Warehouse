@@ -1,6 +1,10 @@
 name: Labeler
 
 # Applies area labels by changed paths (config in .github/labeler.yml).
+#
+# SECURITY: `pull_request_target` is required so labeling works on PRs from forks (the default
+# token is read/write in the base-repo context). actions/labeler only reads the PR's changed-file
+# list — it never checks out or runs PR code. Do NOT add `actions/checkout` of the PR head here.
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]

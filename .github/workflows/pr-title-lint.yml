@@ -2,6 +2,10 @@ name: PR title (Conventional Commits)
 
 # We squash-merge, so the PR title becomes the commit on main and feeds
 # release-please / the changelog. Enforce the Conventional Commits format.
+#
+# SECURITY: this uses `pull_request_target` (read/write token in the base-repo context) on
+# purpose — it only reads PR *metadata* (the title) and never checks out or runs PR code.
+# Do NOT add `actions/checkout` of the PR head here, or untrusted code would run with that token.
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
@@ -15,7 +19,7 @@ jobs:
     permissions:
       pull-requests: read
     steps:
-      - uses: amannn/action-semantic-pull-request@v5
+      - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825 # v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

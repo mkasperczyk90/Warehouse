@@ -34,7 +34,7 @@ jobs:
       backend: ${{ steps.changes.outputs.backend }}
     steps:
       - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
         id: changes
         with:
           filters: |
@@ -58,6 +58,7 @@ jobs:
     needs: detect
     if: ${{ needs.detect.outputs.backend == 'true' }}
     runs-on: ubuntu-latest # Docker is preinstalled here — the integration tests need it (Testcontainers).
+    timeout-minutes: 25 # a hung build/test fails fast instead of burning the 6h default
     permissions:
       contents: read
       checks: write # let the test reporter publish a per-test Check run.
@@ -117,7 +118,7 @@ jobs:
       # so you can see which tests broke without downloading the artifact. Runs even when tests fail.
       - name: Publish test report
         if: ${{ !cancelled() }}
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         with:
           name: Backend tests
           path: TestResults/**/*.trx
@@ -127,7 +128,7 @@ jobs:
       # Turn the cobertura output (from coverlet.collector) into a markdown table on the run's summary page.
       - name: Coverage summary
         if: ${{ !cancelled() }}
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        uses: danielpalme/ReportGenerator-GitHub-Action@049f7ec958c672fd31d5cc1cb01622dc8d2e23ab # 5
         with:
           reports: ${{ github.workspace }}/TestResults/**/coverage.cobertura.xml
           targetdir: ${{ github.workspace }}/coveragereport
@@ -149,6 +150,7 @@ jobs:
     name: Publish ${{ matrix.name }}
     needs: build-test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
