@@ -80,7 +80,10 @@ jobs:
         run: npm ci
 
       # Generates public/mockServiceWorker.js (gitignored) so the built bundle can boot MSW.
+      # Admin only — the terminal no longer mocks (it always calls the real Gateway), so it has
+      # no `mock:init` script.
       - name: Generate MSW worker
+        if: matrix.app == 'admin'
         run: npm run mock:init
 
       - name: Typecheck
