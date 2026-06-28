@@ -95,7 +95,7 @@ jobs:
             workflow_run)
               # Find the open PR for the workflow head sha.
               pr=$(gh api graphql -f owner="$owner" -f name="$repo_name" -f sha="$HEAD_SHA" -f query='
-                query($owner:String!,$name:String!,$sha:String!){
+                query($owner:String!,$name:String!,$sha:GitObjectID!){
                   repository(owner:$owner,name:$name){
                     object(oid:$sha){ ... on Commit {
                       associatedPullRequests(first:10){ nodes{ number state } }
