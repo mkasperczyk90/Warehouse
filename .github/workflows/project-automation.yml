@@ -1,0 +1,163 @@
+name: Project automation
+
+# Moves the issue LINKED by a PR (via "Closes #N" / "Fixes #N") across the "Warehouse"
+# Projects v2 board, based on PR + CI state:
+#   - PR opened / marked ready (not draft) and links an issue  -> In Review
+#   - All required CI gates green on the PR head               -> Tests Passed
+#   - A CI gate failed on the PR head                          -> In Progress
+#
+# Built-in Project workflows still own the rest (enable them in the Project UI):
+#   - Item added to project        -> Todo
+#   - Item reopened                -> In Progress
+#   - Pull request merged / closed -> Done
+#
+# IMPORTANT — token: GITHUB_TOKEN cannot write user/org Projects v2. You MUST add a secret
+# named PROJECTS_PAT: a PAT with read/write access to your Projects (classic PAT with the
+# `project` scope, or a fine-grained PAT granting "Projects: Read and write").
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  workflow_run:
+    # These must match the `name:` of the gate workflows.
+    workflows: ["Backend", "Frontend", "E2E"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Serialize updates per PR so concurrent gate completions don't race on the field write.
+  group: project-automation-${{ github.event.pull_request.number || github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+env:
+  PROJECT_OWNER: mkasperczyk90   # user that owns the Project (use `organization(...)` below if it's an org)
+  PROJECT_TITLE: Warehouse
+  STATUS_FIELD: Status
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move linked issue
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_PAT }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          owner="$PROJECT_OWNER"
+          repo_name="${REPO#*/}"
+
+          # 1. Resolve the project node id by title (user-owned). For an org project,
+          #    swap `user(login:$login)` -> `organization(login:$login)`.
+          project_id=$(gh api graphql -f login="$owner" -f query='
+            query($login:String!){
+              user(login:$login){ projectsV2(first:50){ nodes{ id title } } }
+            }' | jq -r --arg t "$PROJECT_TITLE" \
+              '.data.user.projectsV2.nodes[] | select(.title==$t) | .id' | head -n1)
+          if [ -z "$project_id" ] || [ "$project_id" = "null" ]; then
+            echo "::error::Project '$PROJECT_TITLE' not found for '$owner'"; exit 1
+          fi
+
+          # 2. Resolve the Status single-select field id + its option ids.
+          fields_json=$(gh api graphql -f project="$project_id" -f query='
+            query($project:ID!){
+              node(id:$project){ ... on ProjectV2 {
+                fields(first:50){ nodes{
+                  ... on ProjectV2SingleSelectField { id name options{ id name } }
+                } } }
+            } }')
+          status_field_id=$(echo "$fields_json" | jq -r --arg f "$STATUS_FIELD" \
+            '.data.node.fields.nodes[] | select(.name==$f) | .id')
+          if [ -z "$status_field_id" ] || [ "$status_field_id" = "null" ]; then
+            echo "::error::Field '$STATUS_FIELD' not found on project"; exit 1
+          fi
+          opt_id() {
+            echo "$fields_json" | jq -r --arg f "$STATUS_FIELD" --arg o "$1" \
+              '.data.node.fields.nodes[] | select(.name==$f) | .options[] | select(.name==$o) | .id'
+          }
+
+          # 3. Decide target column + which PR to read linked issues from.
+          target=""
+          pr=""
+          case "$EVENT_NAME" in
+            pull_request)
+              pr="$PR_NUMBER"
+              if [ "$PR_DRAFT" = "true" ]; then echo "Draft PR; skipping"; exit 0; fi
+              target="In Review"
+              ;;
+            workflow_run)
+              # Find the open PR for the workflow head sha.
+              pr=$(gh api graphql -f owner="$owner" -f name="$repo_name" -f sha="$HEAD_SHA" -f query='
+                query($owner:String!,$name:String!,$sha:String!){
+                  repository(owner:$owner,name:$name){
+                    object(oid:$sha){ ... on Commit {
+                      associatedPullRequests(first:10){ nodes{ number state } }
+                    } } }
+                }' | jq -r '[.data.repository.object.associatedPullRequests.nodes[]
+                            | select(.state=="OPEN") | .number] | first // empty')
+              if [ -z "$pr" ]; then echo "No open PR for $HEAD_SHA; skipping"; exit 0; fi
+              # Read the combined check rollup on the PR head commit.
+              rollup=$(gh api graphql -f owner="$owner" -f name="$repo_name" -F number="$pr" -f query='
+                query($owner:String!,$name:String!,$number:Int!){
+                  repository(owner:$owner,name:$name){
+                    pullRequest(number:$number){
+                      commits(last:1){ nodes{ commit{ statusCheckRollup{ state } } } }
+                    } }
+                }' | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.state // "PENDING"')
+              echo "PR #$pr check rollup: $rollup"
+              case "$rollup" in
+                SUCCESS)      target="Tests Passed" ;;
+                FAILURE|ERROR) target="In Progress" ;;
+                *) echo "Rollup not final ($rollup); nothing to do yet"; exit 0 ;;
+              esac
+              ;;
+            *) echo "Unhandled event $EVENT_NAME"; exit 0 ;;
+          esac
+
+          opt=$(opt_id "$target")
+          if [ -z "$opt" ] || [ "$opt" = "null" ]; then
+            echo "::error::Status option '$target' not found on the board"; exit 1
+          fi
+
+          # 4. Issues that this PR closes (the ones the PR "marked").
+          issues=$(gh api graphql -f owner="$owner" -f name="$repo_name" -F number="$pr" -f query='
+            query($owner:String!,$name:String!,$number:Int!){
+              repository(owner:$owner,name:$name){
+                pullRequest(number:$number){
+                  closingIssuesReferences(first:20){ nodes{ id number } }
+                } }
+            }' | jq -r '.data.repository.pullRequest.closingIssuesReferences.nodes[].id')
+          if [ -z "$issues" ]; then
+            echo "PR #$pr links no issue (no Closes #N); skipping"; exit 0
+          fi
+
+          # 5. For each linked issue: ensure it's on the board, then set Status -> target.
+          for issue_id in $issues; do
+            item_id=$(gh api graphql -f issue="$issue_id" -f query='
+              query($issue:ID!){ node(id:$issue){ ... on Issue {
+                projectItems(first:20){ nodes{ id project{ id } } }
+              } } }' | jq -r --arg p "$project_id" \
+                '.data.node.projectItems.nodes[] | select(.project.id==$p) | .id' | head -n1)
+            if [ -z "$item_id" ] || [ "$item_id" = "null" ]; then
+              item_id=$(gh api graphql -f project="$project_id" -f content="$issue_id" -f query='
+                mutation($project:ID!,$content:ID!){
+                  addProjectV2ItemById(input:{projectId:$project,contentId:$content}){ item{ id } }
+                }' | jq -r '.data.addProjectV2ItemById.item.id')
+            fi
+            gh api graphql -f project="$project_id" -f item="$item_id" \
+                           -f field="$status_field_id" -f opt="$opt" -f query='
+              mutation($project:ID!,$item:ID!,$field:ID!,$opt:String!){
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$project, itemId:$item, fieldId:$field,
+                  value:{ singleSelectOptionId:$opt }
+                }){ projectV2Item{ id } }
+              }' >/dev/null
+            echo "Moved linked issue ($issue_id) -> '$target'"
+          done
