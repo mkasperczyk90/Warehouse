@@ -16,6 +16,17 @@ backend is .NET 10 / Aspire; the front is a data-dense admin SPA and a scanner-f
 
 ---
 
+## Demo — the golden path, end to end
+
+![The full golden path — Admin desk app and Operator terminal side by side, from defining a product (①) to the dispatch ledger (⑩), running on the real backend](docs/media/golden-path-full.gif)
+
+One actor per act, Admin and Terminal side by side: define a product → announce & receive a delivery →
+QC → put-away → stock → order → pick/pack → dispatch → ledger. Full click-by-click script and per-app
+recordings in the **[demo walkthrough](docs/demo-walkthrough.md)** (one-page cue card:
+[demo-walkthrough-onepager.md](docs/demo-walkthrough-onepager.md)).
+
+---
+
 ## Why it's interesting
 
 - **Microservices from day one, but only three of them.** Five bounded contexts, deliberately grouped
@@ -72,6 +83,63 @@ flowchart TB
 Inside each service the contexts stay **separate modules with separate schemas**, so the logical model is
 still 5 contexts — only the deployment count is 3. If a boundary proves wrong, you move a module, not a
 tangle of code. Full reasoning in [`docs/02-bounded-contexts.md`](docs/02-bounded-contexts.md).
+
+---
+
+## How it's built
+
+The system is layered the way the problem is layered — strategic design first, then services, then the
+plumbing that keeps them honest.
+
+### Domain-driven, domain-first
+
+The domain was modeled **before any framework choice** — ubiquitous language, subdomains, and invariants
+([`docs/01-domain-overview.md`](docs/01-domain-overview.md)) came first; the code expresses that model,
+not the other way around. Strategic design draws the **5 bounded contexts** and their context map; tactical
+design uses **archetypes** — Coad's color set (🟨 *Moment-Interval* for events like `StockMovement` and
+`GoodsReceipt`, 🟩 *Party-Place-Thing*, 🟦 *Description* for catalog types, 🟥 *Role*) layered over
+Arlow & Neustadt patterns — so every aggregate reads the same way
+([`docs/04-domain-model.md`](docs/04-domain-model.md)). Business rules live in the **domain layer as hard
+invariants** — temperature/capacity compatibility, never-negative stock, no double-sell — enforced inside
+the aggregate, not in a controller. Stock itself is an **append-only ledger**: `StockMovement` is immutable,
+on-hand is a *projection*, and a correction is a reversing entry — never an `UPDATE`
+([ADR-0002](docs/adr/0002-stock-as-append-only-ledger.md)).
+
+### Microservices from day one — but only three
+
+Five contexts are deployed as **three services**, grouped by *consistency needs and rate of change* rather
+than one-service-per-context dogma ([ADR-0001](docs/adr/0001-microservices-from-day-one.md)). Each service
+**owns its PostgreSQL database**; nobody reaches into another's tables. A service that needs another's data
+keeps a small **read replica kept fresh by events**, so the floor keeps working even when masterdata is a
+few seconds behind or briefly down ([ADR-0003](docs/adr/0003-replicas-over-cross-service-queries.md)). The
+**API gateway / BFF** (YARP) is the single seam clients talk to, with **Keycloak** badge-scan auth in front.
+
+### Async-first, with a transactional Outbox/Inbox
+
+Services integrate only through **versioned, past-tense events** on RabbitMQ — never synchronous
+cross-service calls. The event is written **in the same transaction as the aggregate** (transactional
+**Outbox**), so there's no dual-write and no "publish-after-save" lost-event bug; consumers are
+**idempotent via an Inbox**, so a redelivered or duplicated message is a no-op, and poison messages land in
+a DLQ. Wolverine provides the mediator, messaging, and the EF/Postgres outbox in one. Contracts are
+**additive-only** so producers and consumers version independently.
+
+### Clean Architecture with vertical slices
+
+Inside each module the layering is strict — **Domain → Application → Infrastructure**, dependencies point
+inward, the domain knows nothing of EF or HTTP. The `Application` layer is organized as **vertical slices**
+(one folder per use case: command/handler/validation together) rather than horizontal `Services/`
+folders, so a feature is a cohesive unit you can read top to bottom
+([ADR-0007](docs/adr/0007-vertical-slices-in-application-layer.md)). **Architecture tests** fail the build
+if a dependency points the wrong way. Persistence is EF Core with owned value objects, strongly-typed IDs,
+and `xmin` optimistic concurrency.
+
+### Two purpose-built React front-ends
+
+A **data-dense admin SPA** (Vite + React 19 + TypeScript strict, TanStack Router/Query/Table, RHF + Zod)
+for the desk roles, and a **scanner-first operator terminal** (Expo / React Native Web — large touch
+targets, scan-to-route flows) for the floor. Both talk to the gateway through **one API seam**, mocked at
+the **network boundary with MSW** — so going live is *turning the mock off*, never a rewrite
+([ADR-0006](docs/adr/0006-mock-at-the-network-boundary.md)).
 
 ---
 
