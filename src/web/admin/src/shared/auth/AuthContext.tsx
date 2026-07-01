@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import i18n from '@/shared/i18n/i18n';
 import { api, setActiveWarehouse, setAuthToken, setTokenRefresher } from '@/core/api/client';
 import { refreshSession, revokeSession } from '@/features/Auth/auth.model';
@@ -86,7 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (badge: string) => {
-    const { accessToken, refreshToken, user: u } = await api.post<LoginResponse>('auth/login', { badge });
+    const {
+      accessToken,
+      refreshToken,
+      user: u,
+    } = await api.post<LoginResponse>('auth/login', { badge });
     refreshTokenRef.current = refreshToken ?? null;
     persistTokens(accessToken, refreshToken);
     persist(u);

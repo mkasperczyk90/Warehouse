@@ -67,7 +67,12 @@ class ApiError extends Error {
 
 export { ApiError };
 
-async function request<T>(method: string, resource: string, body?: unknown, retry = true): Promise<T> {
+async function request<T>(
+  method: string,
+  resource: string,
+  body?: unknown,
+  retry = true,
+): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (activeWarehouseId) headers[WAREHOUSE_HEADER] = activeWarehouseId;
