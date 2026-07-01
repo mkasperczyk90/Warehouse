@@ -36,7 +36,11 @@ export function SearchField({
         clearButtonMode="while-editing"
       />
       {value.length > 0 && (
-        <Pressable onPress={() => onChangeText('')} hitSlop={12} accessibilityLabel={t('a11y.clearSearch')}>
+        <Pressable
+          onPress={() => onChangeText('')}
+          hitSlop={12}
+          accessibilityLabel={t('a11y.clearSearch')}
+        >
           <Text style={styles.clear}>×</Text>
         </Pressable>
       )}

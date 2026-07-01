@@ -46,7 +46,14 @@ export function ResourceView<T>({
 
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: s[4], padding: s[5], backgroundColor: t.color.canvas },
+    center: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: s[4],
+      padding: s[5],
+      backgroundColor: t.color.canvas,
+    },
     loadText: { fontSize: fs.sm, color: t.color.inkFaint },
     errText: { fontSize: fs.md, color: t.color.ink, textAlign: 'center' },
     retry: {

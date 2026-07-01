@@ -1,6 +1,6 @@
 {
   "name": "warehouse-admin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
-    "@tanstack/react-query": "^5.62.0",
+    "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-router": "^1.95.0",
     "@tanstack/react-table": "^8.20.0",
     "i18next": "^24.2.0",
@@ -40,13 +40,13 @@
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^15.15.0",
     "jsdom": "^29.1.1",
     "msw": "^2.7.0",
-    "prettier": "^3.8.4",
+    "prettier": "^3.9.4",
     "typescript": "^5.7.0",
-    "typescript-eslint": "^8.62.0",
+    "typescript-eslint": "^8.62.1",
     "vite": "^6.0.0",
     "vitest": "^4.1.9"
   },

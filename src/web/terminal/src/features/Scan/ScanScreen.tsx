@@ -2,7 +2,15 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { BigActionButton, Card, Icon, ResourceView, ScanField, StatusBadge, TabScaffold } from '@/shared/ui';
+import {
+  BigActionButton,
+  Card,
+  Icon,
+  ResourceView,
+  ScanField,
+  StatusBadge,
+  TabScaffold,
+} from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
 import { fs, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
@@ -46,7 +54,9 @@ function ScanView({ initial }: { initial: ScanResult[] }) {
                 <Text style={styles.resultCode}>{latest.code}</Text>
               </View>
             </View>
-            <Text style={styles.resultSub}>{latest.kind === 'unknown' ? t('scan.unknownSub') : latest.subtitle}</Text>
+            <Text style={styles.resultSub}>
+              {latest.kind === 'unknown' ? t('scan.unknownSub') : latest.subtitle}
+            </Text>
             {latest.status && (
               <View style={styles.badgeRow}>
                 <StatusBadge kind={latest.status.kind} label={t(`status.${latest.status.kind}`)} />
@@ -71,7 +81,10 @@ function ScanView({ initial }: { initial: ScanResult[] }) {
             <Text style={styles.h1}>{t('scan.recent')}</Text>
             <Card style={styles.list}>
               {history.map((r, i) => (
-                <View key={`${r.code}-${i}`} style={[styles.row, i < history.length - 1 && styles.rowBorder]}>
+                <View
+                  key={`${r.code}-${i}`}
+                  style={[styles.row, i < history.length - 1 && styles.rowBorder]}
+                >
                   <View style={styles.rowIcon}>
                     <Icon name={r.icon} size={26} color={theme.color.inkFaint} />
                   </View>
@@ -79,7 +92,9 @@ function ScanView({ initial }: { initial: ScanResult[] }) {
                     <Text style={styles.rowCode}>{r.code}</Text>
                     <Text style={styles.rowKind}>{t(r.titleKey)}</Text>
                   </View>
-                  {r.status && <StatusBadge kind={r.status.kind} label={t(`status.${r.status.kind}`)} />}
+                  {r.status && (
+                    <StatusBadge kind={r.status.kind} label={t(`status.${r.status.kind}`)} />
+                  )}
                 </View>
               ))}
             </Card>
@@ -99,7 +114,12 @@ const makeStyles = (t: Theme) =>
     resultHead: { flexDirection: 'row', alignItems: 'center', gap: s[4] },
     resultIcon: { width: 48, alignItems: 'center' },
     resultText: { flex: 1 },
-    resultKind: { fontSize: fs.xs, color: t.color.inkFaint, textTransform: 'uppercase', letterSpacing: 1 },
+    resultKind: {
+      fontSize: fs.xs,
+      color: t.color.inkFaint,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
     resultCode: { fontSize: fs.xl, fontWeight: '800', color: t.color.ink, marginTop: 2 },
     resultSub: { fontSize: fs.sm, color: t.color.inkSoft, marginTop: s[3] },
     badgeRow: { marginTop: s[3] },
@@ -116,7 +136,13 @@ const makeStyles = (t: Theme) =>
       marginBottom: s[2],
     },
     list: { marginHorizontal: s[5] },
-    row: { flexDirection: 'row', alignItems: 'center', gap: s[4], paddingVertical: s[4], paddingHorizontal: s[5] },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: s[4],
+      paddingVertical: s[4],
+      paddingHorizontal: s[5],
+    },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: t.color.lineSoft },
     rowIcon: { width: 32, alignItems: 'center' },
     rowText: { flex: 1 },

@@ -40,7 +40,8 @@ export const en: Record<string, string> = {
   // task hub
   'hub.tasksHeading': 'Tasks assigned to you',
   'hub.scanStart': 'Scan a barcode to start…',
-  'hub.offline': 'Working offline — confirmations are saved on this device and sync when signal returns.',
+  'hub.offline':
+    'Working offline — confirmations are saved on this device and sync when signal returns.',
   'hub.queued': '{n} queued',
 
   // task tiles (by kind)

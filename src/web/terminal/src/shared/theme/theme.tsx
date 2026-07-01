@@ -51,7 +51,11 @@ interface ThemeContextValue {
   toggle: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ theme: lightTheme, hc: false, toggle: () => {} });
+const ThemeContext = createContext<ThemeContextValue>({
+  theme: lightTheme,
+  hc: false,
+  toggle: () => {},
+});
 
 const STORAGE_KEY = 'wms-hc';
 
