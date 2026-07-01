@@ -67,20 +67,29 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /** The persisted session — the full user (so the warehouse survives a reload) + both tokens. */
-function readStored(): { user: CurrentUser; token: string | null; refreshToken: string | null } | null {
+function readStored(): {
+  user: CurrentUser;
+  token: string | null;
+  refreshToken: string | null;
+} | null {
   try {
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (!raw) return null;
     const user = JSON.parse(raw) as CurrentUser;
     const token = typeof localStorage !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-    const refreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_KEY) : null;
+    const refreshToken =
+      typeof localStorage !== 'undefined' ? localStorage.getItem(REFRESH_KEY) : null;
     return { user, token, refreshToken };
   } catch {
     return null;
   }
 }
 
-function persist(user: CurrentUser | null, token?: string | null, refreshToken?: string | null): void {
+function persist(
+  user: CurrentUser | null,
+  token?: string | null,
+  refreshToken?: string | null,
+): void {
   try {
     if (typeof localStorage === 'undefined') return;
     if (user) {
