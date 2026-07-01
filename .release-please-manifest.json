@@ -1,7 +1,7 @@
 {
   "src/web/admin": "0.2.0",
   "src/Gateway/Warehouse.Gateway": "0.2.0",
-  "src/web/terminal": "0.2.0",
+  "src/web/terminal": "0.3.0",
   "src/Services/Warehousing": "0.1.0",
   "src/Services/Logistics": "0.1.0",
   "src/Services/MasterData": "0.1.0"
