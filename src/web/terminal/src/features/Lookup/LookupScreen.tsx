@@ -1,12 +1,26 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Card, Icon, QuantityWithUnit, ResourceView, SearchField, StatusBadge, TabScaffold } from '@/shared/ui';
+import {
+  Card,
+  Icon,
+  QuantityWithUnit,
+  ResourceView,
+  SearchField,
+  StatusBadge,
+  TabScaffold,
+} from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
 import { fs, radius, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { getLookupIndex, KIND_FILTERS, searchLookup, type LookupKind, type LookupRow } from './lookup.model';
+import {
+  getLookupIndex,
+  KIND_FILTERS,
+  searchLookup,
+  type LookupKind,
+  type LookupRow,
+} from './lookup.model';
 
 /** Terminal — Look up: read-only inquiry over products, locations and batches. */
 export function LookupScreen() {
@@ -40,7 +54,9 @@ function LookupView({ index }: { index: LookupRow[] }) {
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
             >
-              <Text style={[styles.filterLabel, on && styles.filterLabelOn]}>{t(`lookup.filter.${f.key}`)}</Text>
+              <Text style={[styles.filterLabel, on && styles.filterLabelOn]}>
+                {t(`lookup.filter.${f.key}`)}
+              </Text>
             </Pressable>
           );
         })}
@@ -95,11 +111,22 @@ const makeStyles = (t: Theme) =>
     filterLabelOn: { color: '#fff' },
 
     scroll: { paddingBottom: s[5] },
-    count: { fontSize: fs.xs, color: t.color.inkFaint, marginHorizontal: s[5], marginVertical: s[2] },
+    count: {
+      fontSize: fs.xs,
+      color: t.color.inkFaint,
+      marginHorizontal: s[5],
+      marginVertical: s[2],
+    },
     empty: { fontSize: fs.sm, color: t.color.inkFaint, margin: s[5] },
 
     list: { marginHorizontal: s[5] },
-    row: { flexDirection: 'row', alignItems: 'center', gap: s[4], paddingVertical: s[4], paddingHorizontal: s[5] },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: s[4],
+      paddingVertical: s[4],
+      paddingHorizontal: s[5],
+    },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: t.color.lineSoft },
     rowIcon: { width: 32, alignItems: 'center' },
     rowText: { flex: 1 },

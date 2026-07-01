@@ -2,17 +2,34 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { BigActionButton, Card, CheckRow, Chip, ResourceView, ScanField, ScreenScaffold } from '@/shared/ui';
+import {
+  BigActionButton,
+  Card,
+  CheckRow,
+  Chip,
+  ResourceView,
+  ScanField,
+  ScreenScaffold,
+} from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
 import { fs, radius, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { confirmPutAway, getPutAwayTask, proposeAnotherBay, type PutAwayTask } from './putaway.model';
+import {
+  confirmPutAway,
+  getPutAwayTask,
+  proposeAnotherBay,
+  type PutAwayTask,
+} from './putaway.model';
 
 /** Terminal — Put-away (terminal-3-putaway · UC-04). */
 export function PutAwayScreen() {
   const task = useResource(getPutAwayTask);
-  return <ResourceView resource={task}>{(data) => <PutAwayView task={data} reload={task.reload} />}</ResourceView>;
+  return (
+    <ResourceView resource={task}>
+      {(data) => <PutAwayView task={data} reload={task.reload} />}
+    </ResourceView>
+  );
 }
 
 function PutAwayView({ task, reload }: { task: PutAwayTask; reload: () => void }) {
@@ -49,8 +66,18 @@ function PutAwayView({ task, reload }: { task: PutAwayTask; reload: () => void }
       subtitle={t('putaway.task', { n: task.task, total: task.ofTasks })}
       actions={
         <>
-          <BigActionButton label={t('putaway.confirm')} accent={theme.status.available.fg} disabled={pending} onPress={confirm} />
-          <BigActionButton label={t('putaway.full')} kind="ghost" disabled={pending} onPress={proposeAnother} />
+          <BigActionButton
+            label={t('putaway.confirm')}
+            accent={theme.status.available.fg}
+            disabled={pending}
+            onPress={confirm}
+          />
+          <BigActionButton
+            label={t('putaway.full')}
+            kind="ghost"
+            disabled={pending}
+            onPress={proposeAnother}
+          />
         </>
       }
     >
@@ -90,7 +117,13 @@ const makeStyles = (t: Theme) =>
   StyleSheet.create({
     pallet: { margin: s[5], padding: s[5] },
     lpn: { fontSize: fs.xs, color: t.color.inkFaint },
-    product: { fontSize: fs.md, fontWeight: '700', color: t.color.ink, marginTop: 2, marginBottom: s[3] },
+    product: {
+      fontSize: fs.md,
+      fontWeight: '700',
+      color: t.color.ink,
+      marginTop: 2,
+      marginBottom: s[3],
+    },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: s[2] },
 
     propose: { marginHorizontal: s[5] },
@@ -110,7 +143,13 @@ const makeStyles = (t: Theme) =>
       paddingHorizontal: s[5],
       alignItems: 'center',
     },
-    addr: { fontSize: fs['2xl'], fontWeight: '800', color: t.status.available.fg, letterSpacing: 0.5, textAlign: 'center' },
+    addr: {
+      fontSize: fs['2xl'],
+      fontWeight: '800',
+      color: t.status.available.fg,
+      letterSpacing: 0.5,
+      textAlign: 'center',
+    },
     why: { fontSize: fs.sm, color: t.color.inkSoft, marginTop: s[2], textAlign: 'center' },
 
     checks: { margin: s[5], gap: s[2] },
