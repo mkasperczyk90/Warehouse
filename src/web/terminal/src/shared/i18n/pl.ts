@@ -40,7 +40,8 @@ export const pl: Record<string, string> = {
   // task hub
   'hub.tasksHeading': 'Twoje zadania',
   'hub.scanStart': 'Zeskanuj kod, aby rozpocząć…',
-  'hub.offline': 'Praca offline — potwierdzenia są zapisywane na urządzeniu i zsynchronizują się po odzyskaniu sieci.',
+  'hub.offline':
+    'Praca offline — potwierdzenia są zapisywane na urządzeniu i zsynchronizują się po odzyskaniu sieci.',
   'hub.queued': '{n} w kolejce',
 
   // task tiles (by kind)

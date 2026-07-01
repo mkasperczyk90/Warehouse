@@ -69,7 +69,12 @@ class ApiError extends Error {
 
 export { ApiError };
 
-async function request<T>(method: string, resource: string, body?: unknown, retry = true): Promise<T> {
+async function request<T>(
+  method: string,
+  resource: string,
+  body?: unknown,
+  retry = true,
+): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (activeWarehouseId) headers[WAREHOUSE_HEADER] = activeWarehouseId;
@@ -91,9 +96,11 @@ async function request<T>(method: string, resource: string, body?: unknown, retr
   if (!res.ok) {
     // Surface failures by their stable code (the same language the API returns).
     const payload = await res.json().catch(() => null);
-    const code = payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
+    const code =
+      payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
     const message =
-      (payload && typeof payload === 'object' && (payload as { message?: string }).message) || res.statusText;
+      (payload && typeof payload === 'object' && (payload as { message?: string }).message) ||
+      res.statusText;
     throw new ApiError(res.status, code, message);
   }
 
