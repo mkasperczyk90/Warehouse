@@ -12,7 +12,9 @@ export type TParams = Record<string, string | number>;
 
 function interpolate(template: string, params?: TParams): string {
   if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (_, k: string) => (k in params ? String(params[k]) : `{${k}}`));
+  return template.replace(/\{(\w+)\}/g, (_, k: string) =>
+    k in params ? String(params[k]) : `{${k}}`,
+  );
 }
 
 interface I18nContextValue {
@@ -63,11 +65,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     });
   }, []);
   const t = useCallback(
-    (key: string, params?: TParams) => interpolate(DICTS[locale][key] ?? DICTS.en[key] ?? key, params),
+    (key: string, params?: TParams) =>
+      interpolate(DICTS[locale][key] ?? DICTS.en[key] ?? key, params),
     [locale],
   );
 
-  const value = useMemo<I18nContextValue>(() => ({ locale, setLocale, toggle, t }), [locale, setLocale, toggle, t]);
+  const value = useMemo<I18nContextValue>(
+    () => ({ locale, setLocale, toggle, t }),
+    [locale, setLocale, toggle, t],
+  );
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 

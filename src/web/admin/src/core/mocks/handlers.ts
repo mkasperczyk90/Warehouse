@@ -1632,11 +1632,26 @@ export const handlers = [
     // Mirrors the gateway broker: a bearer token (fake in dev) + the desk user from its claims.
     return HttpResponse.json({
       accessToken: `dev.${user.id}.token`,
-      refreshToken: null,
+      refreshToken: `dev.${user.id}.refresh`,
       expiresIn: 3600,
       user: toCurrentUser(user),
     });
   }),
+  // Silent renew: hand back a fresh (still fake) token pair for the user encoded in the refresh token.
+  http.post('/api/auth/refresh', async ({ request }) => {
+    const { refreshToken } = (await request.json()) as { refreshToken: string };
+    const id = refreshToken.replace(/^dev\./, '').replace(/\.refresh$/, '');
+    const user = users[id];
+    if (!user) return new HttpResponse(null, { status: 401 });
+    return HttpResponse.json({
+      accessToken: `dev.${user.id}.token`,
+      refreshToken: `dev.${user.id}.refresh`,
+      expiresIn: 3600,
+      user: toCurrentUser(user),
+    });
+  }),
+  // Sign-out: nothing to revoke in the mock.
+  http.post('/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
   http.get('/api/profile/:id', ({ params }) => {
     const user = users[params.id as string];
     return user ? HttpResponse.json(user) : new HttpResponse(null, { status: 404 });

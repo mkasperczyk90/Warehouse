@@ -53,7 +53,9 @@ function TaskHubView({ tasks }: { tasks: TaskTile[] }) {
             accessibilityRole="button"
             accessibilityLabel={t('a11y.toggleConnectivity')}
           >
-            <Text style={styles.netText}>● {online ? t('common.online') : t('common.offline')}</Text>
+            <Text style={styles.netText}>
+              ● {online ? t('common.online') : t('common.offline')}
+            </Text>
           </Pressable>
           <Pressable
             style={styles.logout}
@@ -86,7 +88,11 @@ function TaskHubView({ tasks }: { tasks: TaskTile[] }) {
           {tasks.map((task) => (
             <Pressable
               key={task.kind}
-              style={({ pressed }) => [styles.task, { backgroundColor: task.color }, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.task,
+                { backgroundColor: task.color },
+                pressed && styles.pressed,
+              ]}
               onPress={() => router.push(task.route)}
               accessibilityRole="button"
             >
@@ -126,7 +132,12 @@ const makeStyles = (t: Theme) =>
     barRight: { flexDirection: 'row', alignItems: 'center', gap: s[3] },
     who: { color: '#fff', fontSize: fs.md, fontWeight: '700' },
     site: { color: '#fff', opacity: 0.85, fontSize: fs.xs, marginTop: 2 },
-    net: { backgroundColor: 'rgba(255,255,255,0.18)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: radius.pill },
+    net: {
+      backgroundColor: 'rgba(255,255,255,0.18)',
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: radius.pill,
+    },
     netOff: { backgroundColor: t.status.transit.fg },
     netText: { color: '#fff', fontSize: fs.xs },
     logout: {
@@ -149,7 +160,12 @@ const makeStyles = (t: Theme) =>
       borderBottomColor: t.status.transit.fg,
     },
     syncText: { flex: 1, color: t.status.transit.fg, fontSize: fs.sm, fontWeight: '600' },
-    syncQ: { backgroundColor: t.status.transit.fg, borderRadius: radius.pill, paddingVertical: 2, paddingHorizontal: 10 },
+    syncQ: {
+      backgroundColor: t.status.transit.fg,
+      borderRadius: radius.pill,
+      paddingVertical: 2,
+      paddingHorizontal: 10,
+    },
     syncQText: { color: '#fff', fontSize: fs.xs, fontWeight: '700' },
 
     scroll: { paddingBottom: s[5] },

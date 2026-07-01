@@ -1,7 +1,7 @@
 # Warehouse Operator Terminal
 
 The **Operator terminal** front end — a React Native (Expo) app for floor staff on a
-rugged handheld: *one hand, gloves, cold room, glare*. Scanner-first, huge tap targets
+rugged handheld: _one hand, gloves, cold room, glare_. Scanner-first, huge tap targets
 (≥48 px), one task at a time, zero prose.
 
 It implements the terminal screens from the design pass
@@ -46,22 +46,22 @@ data getter) + `index.ts` (public API). Cross-feature imports go through the fea
 
 ### A note on `app/` vs `navigation/`
 
-expo-router is file-based: the tree under `src/app/` *is* the router. So the route files
+expo-router is file-based: the tree under `src/app/` _is_ the router. So the route files
 stay thin (a one-line re-export) and `navigation/routes.ts` holds the typed path map
 (`ROUTES.pack`) so features navigate by name instead of bare string literals.
 
 ## Screens & navigation
 
-| Route | Feature screen | Use case | Prototype |
-|---|---|---|---|
-| `/` | `Tasks/TaskHubScreen` | landing | `terminal-1-hub` |
-| `/receive` | `Receiving/ReceiveScreen` | UC-02 | `terminal-2-receive` |
-| `/putaway` | `PutAway/PutAwayScreen` | UC-04 | `terminal-3-putaway` |
-| `/pick` | `Picking/PickingScreen` | UC-10 | `terminal-4-pick` |
-| `/move` | `Movement/MovementScreen` | UC-06 | `terminal-5-move` |
-| `/pack` | `Packing/PackingScreen` | UC-11 | `terminal-6-pack` |
-| `/scan` | `Scan/ScanScreen` | — | Scan tab |
-| `/lookup` | `Lookup/LookupScreen` | — | Look up tab |
+| Route      | Feature screen            | Use case | Prototype            |
+| ---------- | ------------------------- | -------- | -------------------- |
+| `/`        | `Tasks/TaskHubScreen`     | landing  | `terminal-1-hub`     |
+| `/receive` | `Receiving/ReceiveScreen` | UC-02    | `terminal-2-receive` |
+| `/putaway` | `PutAway/PutAwayScreen`   | UC-04    | `terminal-3-putaway` |
+| `/pick`    | `Picking/PickingScreen`   | UC-10    | `terminal-4-pick`    |
+| `/move`    | `Movement/MovementScreen` | UC-06    | `terminal-5-move`    |
+| `/pack`    | `Packing/PackingScreen`   | UC-11    | `terminal-6-pack`    |
+| `/scan`    | `Scan/ScanScreen`         | —        | Scan tab             |
+| `/lookup`  | `Lookup/LookupScreen`     | —        | Look up tab          |
 
 Navigation mirrors the operator clickpath: the hub launches each task, and tasks loop
 back to the hub when done (`/pick` flows on to `/pack`).
@@ -72,10 +72,10 @@ The bottom nav switches between three top-level roots; `router.navigate` gives t
 behaviour (returning to a root already in history rather than stacking duplicates):
 
 - **Tasks** — the hub: today's task piles.
-- **Scan** — *“I have a physical thing, what do I do with it?”* A context-free scanner
+- **Scan** — _“I have a physical thing, what do I do with it?”_ A context-free scanner
   that resolves any code (ASN / order / EAN / LPN / location) and dispatches to the
   matching task.
-- **Look up** — *“I want to know something.”* Read-only, keyboard-driven search over
+- **Look up** — _“I want to know something.”_ Read-only, keyboard-driven search over
   products (stock + ATP), locations (capacity, room type) and batches (status, BBE/FEFO).
 - **More** — no screen yet, so it stays dimmed and inert.
 
@@ -91,8 +91,8 @@ that encode domain stock status** (never decoration). The shared primitives in
 - `BigActionButton` — confirm / exception / alternative; 56 px tap floor.
 - `Stepper`, `Chip`, `CheckRow`, `Card`, `TopBar`, `BottomNav`, `ScreenScaffold`.
 
-The two **green check rows** on put-away / move make the *environment-compatibility
-invariant* visible; FEFO shows as a batch/BBE badge on picking.
+The two **green check rows** on put-away / move make the _environment-compatibility
+invariant_ visible; FEFO shows as a batch/BBE badge on picking.
 
 ## Running
 

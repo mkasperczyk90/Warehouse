@@ -33,6 +33,28 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+/**
+ * Silent renew: `AuthContext` registers a function that exchanges the stored refresh token for a fresh
+ * access token (via `POST auth/refresh`) and returns it, or null when the refresh token is gone/expired.
+ * When a call 401s on an expired token, the seam calls this once and retries — the operator never sees it
+ * (no getting kicked to the badge screen mid-shift).
+ */
+type TokenRefresher = () => Promise<string | null>;
+let tokenRefresher: TokenRefresher | null = null;
+export function setTokenRefresher(fn: TokenRefresher | null) {
+  tokenRefresher = fn;
+}
+
+// Single-flight: many requests can 401 at once (a token expires mid-screen); they share one renew.
+let refreshInFlight: Promise<string | null> | null = null;
+function refreshOnce(): Promise<string | null> {
+  if (!tokenRefresher) return Promise.resolve(null);
+  refreshInFlight ??= tokenRefresher().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
 class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -47,7 +69,12 @@ class ApiError extends Error {
 
 export { ApiError };
 
-async function request<T>(method: string, resource: string, body?: unknown): Promise<T> {
+async function request<T>(
+  method: string,
+  resource: string,
+  body?: unknown,
+  retry = true,
+): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (activeWarehouseId) headers[WAREHOUSE_HEADER] = activeWarehouseId;
@@ -59,12 +86,21 @@ async function request<T>(method: string, resource: string, body?: unknown): Pro
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  // Expired access token → renew once and replay. Skip for the auth endpoints themselves (login/refresh/
+  // logout) so the refresh call can't recurse, and only when we actually had a token to renew.
+  if (res.status === 401 && retry && authToken && !resource.startsWith('auth/')) {
+    const renewed = await refreshOnce();
+    if (renewed) return request<T>(method, resource, body, false);
+  }
+
   if (!res.ok) {
     // Surface failures by their stable code (the same language the API returns).
     const payload = await res.json().catch(() => null);
-    const code = payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
+    const code =
+      payload && typeof payload === 'object' ? (payload as { code?: string }).code : undefined;
     const message =
-      (payload && typeof payload === 'object' && (payload as { message?: string }).message) || res.statusText;
+      (payload && typeof payload === 'object' && (payload as { message?: string }).message) ||
+      res.statusText;
     throw new ApiError(res.status, code, message);
   }
 

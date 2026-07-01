@@ -12,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// Zero-trust: validate the Keycloak JWT here too (not just at the gateway). The fallback policy makes every
+// business endpoint require an authenticated warehouse role; the gateway forwards the caller's bearer.
+builder.AddWarehouseJwtAuth(requireAuthenticatedByDefault: true);
+
 // Logistics owns its own database ("logistics", ADR: database-per-service). Retry is disabled: command
 // handlers open their own transaction via the Wolverine outbox (SaveChangesAndFlushMessagesAsync), which
 // an Npgsql retrying execution strategy refuses ("does not support user-initiated transactions").
@@ -54,6 +58,9 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapDefaultEndpoints();
 
 // Dev convenience: apply migrations on startup. Production uses a migration step in the pipeline.
@@ -70,6 +77,6 @@ app.MapInboundEndpoints();
 app.MapOutboundEndpoints();
 app.MapDispatchEndpoints();
 
-app.MapGet("/", () => "Warehouse Logistics API");
+app.MapGet("/", () => "Warehouse Logistics API").AllowAnonymous();
 
 app.Run();
