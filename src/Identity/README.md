@@ -55,12 +55,51 @@ Or do it by hand:
    A protected call without the token should be `401`; with `Authorization: Bearer <accessToken>` it should
    pass through.
 
+## Token validation
+
+The gateway validates **signature, issuer and audience** (`src/Gateway/Program.cs`):
+
+- **Authority** is the *resolved* Keycloak realm URL, injected by the AppHost as `Keycloak__Authority`
+  (e.g. `http://localhost:<port>/realms/warehouse`). It must be host-reachable, not the logical
+  `http://keycloak` service-discovery name: JwtBearer's metadata/JWKS backchannel does **not** run through
+  Aspire service discovery (only `IHttpClientFactory` clients do), so the logical name fails to resolve and
+  metadata never loads ("signature key not found").
+- **Issuer** is validated against the metadata issuer. Because the badge broker mints its tokens from the
+  same `Keycloak__Authority`, the token's `iss` matches the metadata issuer — no manual `ValidIssuer` and
+  no dev signature shim needed.
+- **Audience** is pinned to the client id (`warehouse-admin`) via the realm's `oidc-audience-mapper`
+  (`realms/warehouse-realm.json`), which stamps `warehouse-admin` into the access token's `aud`.
+
+## Authorization (roles)
+
+The realm defines five roles, grouped by hub (`realms/warehouse-realm.json`, mirrored in
+`src/ServiceDefaults/Warehouse.ServiceDefaults/Auth/AppRoles.cs`):
+
+| Hub | Roles | May reach |
+|---|---|---|
+| Desk (admin) | `manager`, `coordinator`, `inspector` | `worklist`, `search`, `catalog`, `topology`, `dispatch` (+ shared) |
+| Terminal | `operator`, `forklift` | `terminal/tasks` (+ shared) |
+| Shared | any of the five | `inventory`, `logistics`, own `profile` |
+
+Keycloak nests realm roles under `realm_access.roles`, which JwtBearer does not map to role claims, so
+`KeycloakRolesClaimsTransformation` flattens the app's known roles into role claims. The gateway then pins
+a **Desk / Terminal / Staff** policy on each BFF endpoint and — per route — on the YARP proxy
+(`appsettings.json` `AuthorizationPolicy`). A signed-in terminal operator now gets `403` on desk-only
+endpoints, and vice-versa.
+
+## Zero-trust: per-service validation
+
+The JWT wiring is shared — `AddWarehouseJwtAuth` in `Warehouse.ServiceDefaults` — so the gateway **and**
+every backend service (`masterdata`/`warehousing`/`logistics`) validate signature + issuer + audience the
+same way. The services call it with `requireAuthenticatedByDefault: true`, which sets a **fallback policy**:
+every business endpoint requires an authenticated warehouse role, so a service validates the token itself
+instead of trusting the gateway. Infra endpoints (`/health`, `/alive`, `/version`, `/`) are marked
+anonymous. The AppHost injects the same `Keycloak__Authority` + `Keycloak__ClientId` into each service and
+`WaitFor(keycloak)`. Direct calls carry the bearer through YARP; the gateway's BFF fan-out (`BffFetch`)
+forwards it explicitly. Fine-grained desk-vs-terminal role routing stays at the gateway; the services
+enforce the "must be authenticated warehouse staff" floor.
+
 ## Known follow-ups
 
-- **Issuer validation** is off in the gateway dev config (Keycloak's advertised issuer differs from the
-  internal service-discovery host). Pin `TokenValidationParameters.ValidIssuer` once a stable public URL
-  fronts Keycloak.
 - **`keycloak.version`** in the SPI `pom.xml` must match the container image tag in the AppHost — bump both
   together.
-- **Authorization policies** (role-based) and **per-service token validation** (zero-trust) are not wired
-  yet — today the gateway gates and services trust it.

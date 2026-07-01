@@ -1,3 +1,5 @@
+import { api } from '@/core/api/client';
+
 /** The three desk roles (terminal operators sign in on the handheld, not here). */
 export type UserRole = 'manager' | 'coordinator' | 'inspector';
 
@@ -22,3 +24,11 @@ export interface LoginResponse {
   expiresIn?: number;
   user: CurrentUser;
 }
+
+/** Exchange a refresh token for a fresh access token (silent renew). Same shape as login. */
+export const refreshSession = (refreshToken: string): Promise<LoginResponse> =>
+  api.post<LoginResponse>('auth/refresh', { refreshToken });
+
+/** End the Keycloak session so the refresh token can't be renewed after sign-out (best-effort). */
+export const revokeSession = (refreshToken: string): Promise<void> =>
+  api.post<void>('auth/logout', { refreshToken });

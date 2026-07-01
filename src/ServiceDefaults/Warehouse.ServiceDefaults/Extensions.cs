@@ -114,21 +114,22 @@ public static class Extensions
         // See https://aka.ms/aspire/healthchecks for details before enabling these endpoints in non-development environments.
         if (app.Environment.IsDevelopment())
         {
-            // All health checks must pass for app to be considered ready to accept traffic after starting
-            app.MapHealthChecks(HealthEndpointPath);
+            // All health checks must pass for app to be considered ready to accept traffic after starting.
+            // Anonymous: probes carry no token, and a service's zero-trust fallback policy must not gate them.
+            app.MapHealthChecks(HealthEndpointPath).AllowAnonymous();
 
             // Only health checks tagged with the "live" tag must pass for app to be considered alive
             app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
             {
                 Predicate = r => r.Tags.Contains("live")
-            });
+            }).AllowAnonymous();
         }
 
         // `/version` is safe to expose in every environment — it carries no secrets and
         // makes "what exactly is running in prod?" answerable. The version is stamped at
         // build time (Nerdbank.GitVersioning) into the informational version
         // (`1.2.3+<sha>`); the git sha / build time can also be injected via env.
-        app.MapGet("/version", () => Results.Json(VersionInfo.Current));
+        app.MapGet("/version", () => Results.Json(VersionInfo.Current)).AllowAnonymous();
 
         return app;
     }

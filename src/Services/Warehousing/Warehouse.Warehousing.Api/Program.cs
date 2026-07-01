@@ -16,6 +16,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// Zero-trust: validate the Keycloak JWT here too (not just at the gateway). The fallback policy makes every
+// business endpoint require an authenticated warehouse role; the gateway forwards the caller's bearer.
+builder.AddWarehouseJwtAuth(requireAuthenticatedByDefault: true);
+
 // Both contexts share the Warehousing database ("warehouse"), each in its own schema. Retry is disabled:
 // command handlers open their own transaction via the Wolverine outbox (SaveChangesAndFlushMessagesAsync),
 // which an Npgsql retrying execution strategy refuses ("does not support user-initiated transactions").
@@ -70,6 +74,9 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapDefaultEndpoints();
 
 // Dev convenience: apply migrations on startup and seed a demo dataset. Production uses a migration
@@ -91,6 +98,6 @@ app.MapStockEndpoints();
 app.MapStocktakeEndpoints();
 app.MapQualityEndpoints();
 
-app.MapGet("/", () => "Warehouse Warehousing API");
+app.MapGet("/", () => "Warehouse Warehousing API").AllowAnonymous();
 
 app.Run();

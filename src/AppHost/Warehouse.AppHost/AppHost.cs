@@ -34,17 +34,31 @@ var keycloak = builder.AddContainer("keycloak", "quay.io/keycloak/keycloak", "26
     // not merely until the container is running.
     .WithHttpHealthCheck("/realms/warehouse/.well-known/openid-configuration", endpointName: "http");
 
+// Each service validates the Keycloak JWT itself (zero-trust), so it needs the same resolved realm URL
+// (Keycloak__Authority) + audience (Keycloak__ClientId) the gateway uses, and must wait for Keycloak so
+// its OIDC metadata/JWKS is reachable.
+var keycloakAuthority = ReferenceExpression.Create($"{keycloak.GetEndpoint("http")}/realms/warehouse");
+
 var masterData = builder.AddProject<Projects.Warehouse_MasterData_Api>("masterdata-api")
     .WithReference(masterDataDb).WaitFor(masterDataDb)
-    .WithReference(rabbitmq).WaitFor(rabbitmq);
+    .WithReference(rabbitmq).WaitFor(rabbitmq)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "warehouse-admin")
+    .WaitFor(keycloak);
 
 var warehousing = builder.AddProject<Projects.Warehouse_Warehousing_Api>("warehousing-api")
     .WithReference(warehouseDb).WaitFor(warehouseDb)
-    .WithReference(rabbitmq).WaitFor(rabbitmq);
+    .WithReference(rabbitmq).WaitFor(rabbitmq)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "warehouse-admin")
+    .WaitFor(keycloak);
 
 var logistics = builder.AddProject<Projects.Warehouse_Logistics_Api>("logistics-api")
     .WithReference(logisticsDb).WaitFor(logisticsDb)
-    .WithReference(rabbitmq).WaitFor(rabbitmq);
+    .WithReference(rabbitmq).WaitFor(rabbitmq)
+    .WithEnvironment("Keycloak__Authority", keycloakAuthority)
+    .WithEnvironment("Keycloak__ClientId", "warehouse-admin")
+    .WaitFor(keycloak);
 
 // API gateway (YARP) fronts the three services and validates the Keycloak JWTs.
 var gateway = builder.AddProject<Projects.Warehouse_Gateway>("gateway")
@@ -52,7 +66,11 @@ var gateway = builder.AddProject<Projects.Warehouse_Gateway>("gateway")
     .WithReference(warehousing)
     .WithReference(logistics)
     .WithReference(keycloak.GetEndpoint("http")).WaitFor(keycloak)
-    .WithEnvironment("Keycloak__Realm", "warehouse")
+    // The *resolved* realm URL (host-reachable), not the logical 'http://keycloak' name: the gateway's
+    // JwtBearer metadata backchannel doesn't run through service discovery, and the broker mints tokens
+    // from this same URL so issuer + signature validation line up.
+    .WithEnvironment("Keycloak__Authority",
+        ReferenceExpression.Create($"{keycloak.GetEndpoint("http")}/realms/warehouse"))
     .WithEnvironment("Keycloak__ClientId", "warehouse-admin")
     .WithEnvironment("Keycloak__ClientSecret", "warehouse-admin-secret-dev");
 
