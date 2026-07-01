@@ -1,0 +1,41 @@
+name: Dependabot auto-merge
+
+# Enables GitHub's auto-merge on Dependabot PRs that are patch/minor bumps only.
+# Major bumps (npm-major group, and any single-dependency major) always require
+# manual review. `gh pr merge --auto` just flips the auto-merge flag — the actual
+# merge still waits for the branch protection ruleset's required status checks
+# (Backend gate, Frontend gate, CodeQL, Gitleaks) to pass.
+#
+# SECURITY: `pull_request_target` gives a read/write token, but this workflow only
+# reads PR metadata via dependabot/fetch-metadata and calls the GitHub API to merge —
+# it never checks out or runs the PR's code. Do NOT add `actions/checkout` of the PR
+# head here. Trigger is further restricted to the dependabot[bot] actor.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for patch/minor updates
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
