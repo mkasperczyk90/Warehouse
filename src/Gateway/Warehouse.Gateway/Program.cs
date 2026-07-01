@@ -1,38 +1,26 @@
 using Warehouse.Gateway.Auth;
 using Warehouse.Gateway.Bff;
+using Warehouse.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Identity: validate the Keycloak JWTs (issued by the 'keycloak' resource, realm 'warehouse'). Token
-// validation lives here at the edge; downstream services trust the gateway (blog #11 architecture). The
-// authority resolves through Aspire service discovery (the JwtBearer backchannel inherits ServiceDefaults'
-// handlers). Issuer validation is off in dev because Keycloak's advertised issuer differs from the internal
-// service-discovery host — pin a ValidIssuer once a stable public URL is in front.
-builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Keycloak:Authority"] ?? "http://keycloak/realms/warehouse";
-        options.RequireHttpsMetadata = false;
-        // The realm's badge Direct-Grant tokens carry no `aud` claim yet, so audience validation is off in
-        // dev (alongside issuer). For production, add an audience mapper to the realm and pin both here.
-        options.TokenValidationParameters.ValidateIssuer = false;
-        options.TokenValidationParameters.ValidateAudience = false;
-        // DEV-ONLY shim. In the Aspire stack Keycloak advertises its issuer/JWKS on a dynamic host port the
-        // gateway's metadata lookup can't align with, so signature validation fails ("signature key not
-        // found") — the open "stable Keycloak URL" follow-up (src/Identity/README.md). In Development we
-        // accept the brokered token without re-checking its signature; production keeps full validation.
-        if (builder.Environment.IsDevelopment())
-        {
-            options.TokenValidationParameters.SignatureValidator =
-                (token, _) => new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(token);
-        }
-    });
-builder.Services.AddAuthorization();
+// Identity: validate the Keycloak JWTs (signature + issuer + audience) and register the Desk/Terminal/Staff
+// role policies — shared wiring in ServiceDefaults so the gateway and the backend services agree. No
+// fallback policy here: the gateway gates explicitly (per-endpoint below + per-route in appsettings.json),
+// and /api/auth/login stays anonymous. The authority is the resolved Keycloak URL the AppHost injects; the
+// badge broker mints tokens from that same authority, so issuer + signature validation line up.
+builder.AddWarehouseJwtAuth();
 
-// Badge sign-in broker → Keycloak token endpoint (keeps the confidential client secret server-side).
-builder.Services.AddHttpClient(AuthBroker.KeycloakClient, c => c.BaseAddress = new Uri("http://keycloak/"));
+// The BFF fan-out forwards the caller's bearer to the services (which now validate it themselves), so it
+// needs the current request's HttpContext.
+builder.Services.AddHttpContextAccessor();
+
+// Badge sign-in broker → Keycloak token endpoint (keeps the confidential client secret server-side). The
+// broker posts to the same Keycloak__Authority the JwtBearer validates against (absolute URL), so the token
+// it mints and the token the gateway validates share one issuer.
+builder.Services.AddHttpClient(AuthBroker.KeycloakClient);
 builder.Services.AddScoped<AuthBroker>();
 
 // YARP reverse proxy. Routes/clusters come from configuration; cluster destinations are logical
@@ -70,12 +58,28 @@ app.MapPost("/api/auth/login", async (LoginRequest request, AuthBroker broker, C
     return result is null ? Results.Unauthorized() : Results.Ok(result);
 }).AllowAnonymous();
 
+// Silent renew — anonymous (the refresh token is the credential). The api seam calls this when a call
+// 401s on an expired access token, then retries; a rejected refresh token (expired/revoked) → 401.
+app.MapPost("/api/auth/refresh", async (RefreshRequest request, AuthBroker broker, CancellationToken ct) =>
+{
+    var result = await broker.RefreshAsync(request.RefreshToken, ct);
+    return result is null ? Results.Unauthorized() : Results.Ok(result);
+}).AllowAnonymous();
+
+// Sign-out — ends the Keycloak session (revokes the refresh token) so it can't be renewed after logout.
+// Anonymous and best-effort: possessing the refresh token authorises revoking it.
+app.MapPost("/api/auth/logout", async (RefreshRequest request, AuthBroker broker, CancellationToken ct) =>
+{
+    await broker.LogoutAsync(request.RefreshToken, ct);
+    return Results.NoContent();
+}).AllowAnonymous();
+
 // Work-queue landing — "what needs me now" aggregated across Inventory + Logistics (admin-10).
 app.MapGet("/api/worklist", async (HttpRequest request, WorklistService worklist, CancellationToken ct) =>
 {
     var warehouseId = request.Headers["X-Warehouse-Id"].FirstOrDefault();
     return Results.Ok(await worklist.BuildAsync(warehouseId, ct));
-}).RequireAuthorization();
+}).RequireAuthorization(AppRoles.DeskPolicy);
 
 // Terminal Task hub — the handheld operator's open work, aggregated across Inventory + Logistics and
 // scoped to the operator's warehouse (the terminal sends it as X-Warehouse-Id at the api seam).
@@ -83,14 +87,14 @@ app.MapGet("/api/terminal/tasks", async (HttpRequest request, TerminalTasksServi
 {
     var warehouseId = request.Headers["X-Warehouse-Id"].FirstOrDefault();
     return Results.Ok(await tasks.BuildAsync(warehouseId, ct));
-}).RequireAuthorization();
+}).RequireAuthorization(AppRoles.TerminalPolicy);
 
 // Global search — "where is X" across products, stock, inbound, orders and locations.
 app.MapGet("/api/search", async (string? q, HttpRequest request, SearchService search, CancellationToken ct) =>
 {
     var warehouseId = request.Headers["X-Warehouse-Id"].FirstOrDefault();
     return Results.Ok(await search.SearchAsync(q ?? string.Empty, warehouseId, ct));
-}).RequireAuthorization();
+}).RequireAuthorization(AppRoles.DeskPolicy);
 
 // Desk profile — identity from the token + editable prefs (admin Profile screen). The desk reads and
 // writes only its OWN profile, so the route id must match the token subject (else 404).
@@ -98,15 +102,17 @@ app.MapGet("/api/profile/{id}", (string id, HttpContext http, ProfileService pro
 {
     var profile = profiles.Build(BearerToken(http), id);
     return profile is null ? Results.NotFound() : Results.Ok(profile);
-}).RequireAuthorization();
+}).RequireAuthorization(AppRoles.StaffPolicy);
 
 app.MapPost("/api/profile/{id}", (string id, ProfilePrefsDto prefs, HttpContext http, ProfileService profiles) =>
 {
     var profile = profiles.Update(BearerToken(http), id, prefs);
     return profile is null ? Results.NotFound() : Results.Ok(profile);
-}).RequireAuthorization();
+}).RequireAuthorization(AppRoles.StaffPolicy);
 
-// Everything proxied to the services requires a valid token (the desk is authenticated at the edge).
+// Everything proxied to the services requires a valid token (baseline floor); each route additionally
+// pins a role policy via its "AuthorizationPolicy" in appsettings.json — shared services (inventory,
+// logistics) allow either hub (Staff), desk-only services (catalog, topology, dispatch) require Desk.
 app.MapReverseProxy().RequireAuthorization();
 
 app.Run();

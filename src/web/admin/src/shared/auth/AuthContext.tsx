@@ -1,10 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import i18n from '@/shared/i18n/i18n';
-import { api, setActiveWarehouse, setAuthToken } from '@/core/api/client';
+import { api, setActiveWarehouse, setAuthToken, setTokenRefresher } from '@/core/api/client';
+import { refreshSession, revokeSession } from '@/features/Auth/auth.model';
 import type { CurrentUser, LoginResponse } from '@/features/Auth/auth.model';
 
 const STORAGE_KEY = 'wh.currentUser';
 const TOKEN_KEY = 'wh.authToken';
+const REFRESH_KEY = 'wh.refreshToken';
 
 interface AuthContextValue {
   user: CurrentUser | null;
@@ -35,15 +37,33 @@ function persist(user: CurrentUser) {
   }
 }
 
+/** Store (or clear) the tokens: memory (api seam + the refresher's ref) and localStorage (reload-safe). */
+function persistTokens(accessToken: string | null, refreshToken: string | null | undefined) {
+  setAuthToken(accessToken);
+  try {
+    if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
+    else localStorage.removeItem(TOKEN_KEY);
+    if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
+    else localStorage.removeItem(REFRESH_KEY);
+  } catch {
+    /* private mode / quota — the session still works, it just won't survive a reload */
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // The current refresh token, held in a ref so the (stable) refresher always reads the latest — Keycloak
+  // rotates it on every renew.
+  const refreshTokenRef = useRef<string | null>(null);
+
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const stored = readStored();
     if (stored) {
       void i18n.changeLanguage(stored.language);
-      // Re-arm the api seam with the persisted token so refresh-safe sessions stay authorised.
+      // Re-arm the api seam with the persisted tokens so refresh-safe sessions stay authorised.
       try {
         const token = localStorage.getItem(TOKEN_KEY);
         if (token) setAuthToken(token);
+        refreshTokenRef.current = localStorage.getItem(REFRESH_KEY);
       } catch {
         /* ignore */
       }
@@ -51,29 +71,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored;
   });
 
-  const login = useCallback(async (badge: string) => {
-    const { accessToken, user: u } = await api.post<LoginResponse>('auth/login', { badge });
-    setAuthToken(accessToken);
+  const logout = useCallback(() => {
+    const refreshToken = refreshTokenRef.current;
+    if (refreshToken) void revokeSession(refreshToken).catch(() => {}); // best-effort session end
+    refreshTokenRef.current = null;
     try {
-      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.removeItem(STORAGE_KEY);
     } catch {
-      /* private mode / quota — the session still works, it just won't survive a reload */
+      /* ignore */
     }
+    persistTokens(null, null);
+    setActiveWarehouse(null);
+    setUser(null);
+  }, []);
+
+  const login = useCallback(async (badge: string) => {
+    const { accessToken, refreshToken, user: u } = await api.post<LoginResponse>('auth/login', { badge });
+    refreshTokenRef.current = refreshToken ?? null;
+    persistTokens(accessToken, refreshToken);
     persist(u);
     setUser(u);
   }, []);
 
-  const logout = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(TOKEN_KEY);
-    } catch {
-      /* ignore */
-    }
-    setAuthToken(null);
-    setActiveWarehouse(null);
-    setUser(null);
-  }, []);
+  // Silent renew: the api seam calls this when a request 401s on an expired access token. Rotate both
+  // tokens; if the refresh token is gone/expired, end the session (the next call then surfaces the 401).
+  useEffect(() => {
+    setTokenRefresher(async () => {
+      const refreshToken = refreshTokenRef.current;
+      if (!refreshToken) return null;
+      try {
+        const renewed = await refreshSession(refreshToken);
+        refreshTokenRef.current = renewed.refreshToken ?? null;
+        persistTokens(renewed.accessToken, renewed.refreshToken);
+        return renewed.accessToken;
+      } catch {
+        logout();
+        return null;
+      }
+    });
+    return () => setTokenRefresher(null);
+  }, [logout]);
 
   const updateUser = useCallback((u: CurrentUser) => {
     persist(u);

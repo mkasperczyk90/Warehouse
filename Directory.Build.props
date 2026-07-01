@@ -23,6 +23,14 @@
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
+  <!-- Suppress one NuGet audit advisory (NU1903) on Microsoft.OpenApi 2.0.0, pulled transitively by
+       Microsoft.AspNetCore.OpenApi. 2.0.0 is the latest release, so there is no fixed version to move to,
+       and TreatWarningsAsErrors would otherwise fail the build. Targeted by advisory URL so auditing stays
+       on for everything else; remove once a patched Microsoft.OpenApi ships. -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
+  </ItemGroup>
+
   <!-- Test projects: relax doc/analyzer noise (covers *.Tests and ArchitectureTests) -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <IsPackable>false</IsPackable>

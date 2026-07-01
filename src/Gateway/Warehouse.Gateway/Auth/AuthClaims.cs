@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Warehouse.ServiceDefaults;
 
 namespace Warehouse.Gateway.Auth;
 
@@ -10,8 +11,6 @@ namespace Warehouse.Gateway.Auth;
 /// </summary>
 internal static class AuthClaims
 {
-    private static readonly string[] DeskRoles = ["manager", "coordinator", "inspector"];
-
     public static CurrentUserDto ToUser(string accessToken)
     {
         var payload = DecodePayload(accessToken);
@@ -45,7 +44,8 @@ internal static class AuthClaims
     /// (e.g. the profile's phone and last-login time). Same no-signature-check caveat as <see cref="ToUser"/>.</summary>
     internal static JsonElement Payload(string accessToken) => DecodePayload(accessToken);
 
-    /// <summary>The first realm role that is one of the desk roles (Keycloak adds default roles too).</summary>
+    /// <summary>The caller's app role — the first realm role that is one of the app's known roles, desk or
+    /// terminal (Keycloak also adds default roles like <c>offline_access</c>, which we ignore).</summary>
     private static string ExtractRole(JsonElement payload)
     {
         if (payload.TryGetProperty("realm_access", out var realmAccess) &&
@@ -54,7 +54,7 @@ internal static class AuthClaims
         {
             foreach (var role in roles.EnumerateArray())
             {
-                if (role.GetString() is { } value && DeskRoles.Contains(value))
+                if (role.GetString() is { } value && AppRoles.All.Contains(value))
                 {
                     return value;
                 }

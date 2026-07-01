@@ -8,13 +8,23 @@ namespace Warehouse.Gateway.Bff;
 /// warehouse, and reads a JSON list best-effort (a failing source returns empty rather than throwing, so
 /// one slow service never fails the whole aggregate).
 /// </summary>
-public sealed class BffFetch(IHttpClientFactory httpClientFactory, ILogger<BffFetch> logger)
+public sealed class BffFetch(
+    IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<BffFetch> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public HttpClient Client(string name, string? warehouseId)
     {
         var client = httpClientFactory.CreateClient(name);
+
+        // Forward the caller's bearer so the service can validate it itself (zero-trust); the incoming
+        // request is authenticated (the BFF endpoints RequireAuthorization), so the header is present.
+        var authorization = httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();
+        if (!string.IsNullOrEmpty(authorization))
+        {
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorization);
+        }
+
         if (!string.IsNullOrWhiteSpace(warehouseId))
         {
             client.DefaultRequestHeaders.Add("X-Warehouse-Id", warehouseId);

@@ -51,6 +51,24 @@ public sealed class AuthClaimsTests
         Assert.Equal("coordinator", user.Role);
     }
 
+    [Fact]
+    public void ToUser_reads_a_terminal_role_too()
+    {
+        var token = Jwt(new
+        {
+            sub = "u-7700",
+            badge = "7700",
+            name = "W. Operator",
+            default_warehouse = "WH01",
+            language = "en",
+            realm_access = new { roles = new[] { "offline_access", "operator" } },
+        });
+
+        var user = AuthClaims.ToUser(token);
+
+        Assert.Equal("operator", user.Role);   // handheld floor role, not just the desk roles
+    }
+
     private static string Jwt(object payload)
     {
         var json = JsonSerializer.SerializeToUtf8Bytes(payload);
