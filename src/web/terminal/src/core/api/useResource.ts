@@ -18,7 +18,9 @@ export interface Resource<T> {
  * (the module-level `getX` getters are stable), so the effect runs once.
  */
 export function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
-  const [state, setState] = useState<{ data?: T; loading: boolean; error?: Error }>({ loading: true });
+  const [state, setState] = useState<{ data?: T; loading: boolean; error?: Error }>({
+    loading: true,
+  });
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
@@ -29,7 +31,11 @@ export function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
     fetcher().then(
       (data) => active && setState({ data, loading: false }),
       (error: unknown) =>
-        active && setState({ loading: false, error: error instanceof Error ? error : new Error(String(error)) }),
+        active &&
+        setState({
+          loading: false,
+          error: error instanceof Error ? error : new Error(String(error)),
+        }),
     );
     return () => {
       active = false;
