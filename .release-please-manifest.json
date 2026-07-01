@@ -4,5 +4,5 @@
   "src/web/terminal": "0.2.0",
   "src/Services/Warehousing": "0.1.0",
   "src/Services/Logistics": "0.1.0",
-  "src/Services/MasterData": "0.1.0"
+  "src/Services/MasterData": "0.2.0"
 }
