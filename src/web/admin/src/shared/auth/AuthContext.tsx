@@ -65,10 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshTokenRef = useRef<string | null>(null);
 
   const [user, setUser] = useState<CurrentUser | null>(() => {
+    return readStored();
+  });
+
+  // Restore persisted tokens and language on mount (side-effect, not during render).
+  useEffect(() => {
     const stored = readStored();
     if (stored) {
       void i18n.changeLanguage(stored.language);
-      // Re-arm the api seam with the persisted tokens so refresh-safe sessions stay authorised.
       try {
         const token = localStorage.getItem(TOKEN_KEY);
         if (token) setAuthToken(token);
@@ -77,8 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* ignore */
       }
     }
-    return stored;
-  });
+  }, []);
 
   const logout = useCallback(() => {
     const refreshToken = refreshTokenRef.current;

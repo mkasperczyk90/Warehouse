@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
@@ -84,14 +84,21 @@ export function TopologyScreen() {
   const [form, setForm] = useState<{ type: RoomType; tempMin: number; tempMax: number } | null>(
     null,
   );
+
+  // Sync room.data into form on change (after initial mount).
+  const prevKeyRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (room.data)
-      setForm({
-        type: room.data.type,
-        tempMin: room.data.tempMin,
-        tempMax: room.data.tempMax,
-      });
-  }, [room.data]);
+    if (!room.data) return;
+    const key = `${room.data.type}-${room.data.tempMin}-${room.data.tempMax}`;
+    if (prevKeyRef.current === key) return;
+    prevKeyRef.current = key;
+    setForm({
+      type: room.data.type,
+      tempMin: room.data.tempMin,
+      tempMax: room.data.tempMax,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: update only when values change, not on data ref change
+  }, [room.data?.type, room.data?.tempMin, room.data?.tempMax]);
 
   const [editLoc, setEditLoc] = useState<LocationRow | null>(null);
   const [editForm, setEditForm] = useState({ capacity: 0, loadLimit: 0 });
