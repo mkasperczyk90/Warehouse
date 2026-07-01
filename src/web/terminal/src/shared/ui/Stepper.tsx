@@ -36,7 +36,11 @@ export function Stepper({
         <Text style={styles.sign}>−</Text>
       </Pressable>
       {onPressValue ? (
-        <Pressable onPress={onPressValue} accessibilityRole="button" accessibilityLabel={t('a11y.enterQty')}>
+        <Pressable
+          onPress={onPressValue}
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.enterQty')}
+        >
           <Text style={[styles.num, styles.numTappable]}>{value}</Text>
         </Pressable>
       ) : (

@@ -45,7 +45,11 @@ export function BottomNav({ active }: { active: TabKey }) {
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive, disabled }}
           >
-            <Icon name={it.icon} size={24} color={isActive ? theme.color.brand : theme.color.inkFaint} />
+            <Icon
+              name={it.icon}
+              size={24}
+              color={isActive ? theme.color.brand : theme.color.inkFaint}
+            />
             <Text style={[styles.label, isActive && styles.onText]}>{t(`nav.${it.key}`)}</Text>
           </Pressable>
         );
