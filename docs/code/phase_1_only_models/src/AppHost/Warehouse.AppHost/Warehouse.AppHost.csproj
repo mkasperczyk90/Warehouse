@@ -1,0 +1,20 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.3">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>7b28f080-ae6c-4d2b-8a1a-880c73486818</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Gateway\Warehouse.Gateway\Warehouse.Gateway.csproj" />
+    <ProjectReference Include="..\..\Services\Warehousing\Warehouse.Warehousing.Api\Warehouse.Warehousing.Api.csproj" />
+    <ProjectReference Include="..\..\Services\Logistics\Warehouse.Logistics.Api\Warehouse.Logistics.Api.csproj" />
+    <ProjectReference Include="..\..\Services\MasterData\Warehouse.MasterData.Api\Warehouse.MasterData.Api.csproj" />
+  </ItemGroup>
+
+</Project>

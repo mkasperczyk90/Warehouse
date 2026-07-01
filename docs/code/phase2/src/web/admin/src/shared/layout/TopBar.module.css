@@ -1,0 +1,62 @@
+.top {
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--s-6);
+}
+
+/* Fixed width so the centred search bar doesn't shift when the breadcrumb
+   (which varies per page) changes length. Truncates the rare long crumb. */
+.crumb {
+  flex: 0 0 260px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+}
+
+.crumb b {
+  color: var(--ink);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.warehouse {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lang {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 4px var(--s-2);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--fs-xs);
+}

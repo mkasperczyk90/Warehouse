@@ -1,0 +1,55 @@
+.head {
+  margin-bottom: var(--s-5);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.headSub {
+  color: var(--ink-faint);
+  font-size: var(--fs-sm);
+  margin-top: 4px;
+  max-width: 720px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.sub {
+  color: var(--ink-faint);
+  font-size: var(--fs-xs);
+}
+
+.typeChip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--line-soft);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.pos {
+  color: var(--status-available);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.neg {
+  color: var(--status-blocked);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.state {
+  padding: var(--s-6) var(--s-5);
+  font-size: var(--fs-md);
+  color: var(--ink-faint);
+}

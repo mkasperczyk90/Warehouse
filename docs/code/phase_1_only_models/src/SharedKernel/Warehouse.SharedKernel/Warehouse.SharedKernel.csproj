@@ -1,0 +1,5 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pure domain primitives: no EF, no messaging, no ASP.NET - enforced by architecture tests. -->
+
+</Project>

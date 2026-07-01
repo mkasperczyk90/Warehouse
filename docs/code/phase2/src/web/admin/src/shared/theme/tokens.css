@@ -1,0 +1,73 @@
+/* ============================================================================
+   Warehouse WMS — Design tokens  (VENDORED — do not hand-edit)
+   Source of truth: docs/design/prototypes/tokens.css  (ADR-0005).
+   Keep in sync with the source; this is a derived copy so the admin app stays
+   buildable in isolation. Colour is never decoration — it encodes stock status.
+   ============================================================================ */
+
+:root {
+  /* --- Semantic status colours (must mean the same as the domain) --------- */
+  --status-available:    #2f9e44; /* on-hand, sellable        (green)  */
+  --status-available-bg: #ebfbee;
+  --status-reserved:     #1971c2; /* spoken-for soft/hard     (blue)   */
+  --status-reserved-bg:  #e7f5ff;
+  --status-blocked:      #e03131; /* QC hold — never shippable (red)   */
+  --status-blocked-bg:   #fff0f0;
+  --status-expired:      #a61e1e; /* past best-before     (dark red)   */
+  --status-expired-bg:   #ffe3e3;
+  --status-transit:      #f08c00; /* inter-warehouse move     (amber)  */
+  --status-transit-bg:   #fff4e6;
+
+  /* --- Neutral palette ---------------------------------------------------- */
+  --ink:        #1a1a1a;
+  --ink-soft:   #495057;
+  --ink-faint:  #868e96;
+  --line:       #dee2e6;
+  --line-soft:  #f1f3f5;
+  --surface:    #ffffff;
+  --canvas:     #f8f9fa;
+  --brand:      #364fc7; /* neutral indigo until a brand is chosen */
+  --brand-ink:  #ffffff;
+
+  /* --- Spacing scale (4px base) ------------------------------------------ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+
+  /* --- Radius / elevation ------------------------------------------------- */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.08);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.10);
+
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* --- Admin panel type scale (dense) -------------------------------------- */
+.admin {
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px;
+  --fs-lg: 18px; --fs-xl: 24px; --fs-2xl: 30px;
+  --tap: 36px;
+}
+
+/* The terminal's `.terminal` scale and `.hc` (glare) theme are intentionally
+   omitted: the admin panel is light-only at a desk (ADR-0004 / design plan §1). */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+/* --- Shared primitive: StatusBadge --------------------------------------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 10px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.8;
+  white-space: nowrap;
+}
+.badge::before { content:""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.badge--available { color: var(--status-available); background: var(--status-available-bg); }
+.badge--reserved  { color: var(--status-reserved);  background: var(--status-reserved-bg); }
+.badge--blocked   { color: var(--status-blocked);   background: var(--status-blocked-bg); }
+.badge--expired   { color: var(--status-expired);   background: var(--status-expired-bg); }
+.badge--transit   { color: var(--status-transit);   background: var(--status-transit-bg); }
+
+/* --- Shared primitive: QuantityWithUnit (never a bare number) ------------ */
+.qty { font-variant-numeric: tabular-nums; font-weight: 700; }
+.qty .unit { font-weight: 500; color: var(--ink-faint); margin-left: 3px; }
