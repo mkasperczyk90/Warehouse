@@ -56,8 +56,17 @@ export const getPickStep = async (): Promise<PickStep> => {
   if (!currentOrderId) {
     currentSequence = null;
     return {
-      wave: '—', order: '—', picked: 0, total: 0, location: '—',
-      sku: '—', product: '—', fefo: 'FEFO', fefoStatus: 'reserved', qty: 0, unit: 'ea',
+      wave: '—',
+      order: '—',
+      picked: 0,
+      total: 0,
+      location: '—',
+      sku: '—',
+      product: '—',
+      fefo: 'FEFO',
+      fefoStatus: 'reserved',
+      qty: 0,
+      unit: 'ea',
     };
   }
   const pl = await api.get<PickListDto>(`logistics/orders/${currentOrderId}/pick-list`);

@@ -69,9 +69,18 @@ export const getLookupIndex = async (): Promise<LookupRow[]> => {
   }));
 
   // One product row per SKU, summing available-to-promise across its locations.
-  const bySku = new Map<string, { name: string; atp: number; unit: string; locations: number; status: string }>();
+  const bySku = new Map<
+    string,
+    { name: string; atp: number; unit: string; locations: number; status: string }
+  >();
   for (const r of rows) {
-    const agg = bySku.get(r.sku) ?? { name: r.product, atp: 0, unit: r.unit, locations: 0, status: r.status };
+    const agg = bySku.get(r.sku) ?? {
+      name: r.product,
+      atp: 0,
+      unit: r.unit,
+      locations: 0,
+      status: r.status,
+    };
     agg.atp += r.atp;
     agg.locations += 1;
     if (r.status === 'blocked' || r.status === 'expired') agg.status = r.status;
@@ -99,7 +108,11 @@ export const getLookupIndex = async (): Promise<LookupRow[]> => {
 };
 
 /** Filter the index by free-text query and an optional kind. */
-export function searchLookup(rows: LookupRow[], query: string, kind: LookupKind | 'all'): LookupRow[] {
+export function searchLookup(
+  rows: LookupRow[],
+  query: string,
+  kind: LookupKind | 'all',
+): LookupRow[] {
   const q = query.trim().toLowerCase();
   return rows.filter((r) => {
     if (kind !== 'all' && r.kind !== kind) return false;

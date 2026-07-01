@@ -3,17 +3,36 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ROUTES } from '@/navigation/routes';
-import { ActionSheet, BigActionButton, Card, QuantityWithUnit, ResourceView, ScanField, ScreenScaffold, StatusBadge } from '@/shared/ui';
+import {
+  ActionSheet,
+  BigActionButton,
+  Card,
+  QuantityWithUnit,
+  ResourceView,
+  ScanField,
+  ScreenScaffold,
+  StatusBadge,
+} from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
 import { fs, radius, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { confirmPick, getPickStep, shortPick, type PickStep, type ShortReason } from './picking.model';
+import {
+  confirmPick,
+  getPickStep,
+  shortPick,
+  type PickStep,
+  type ShortReason,
+} from './picking.model';
 
 /** Terminal — Picking (terminal-4-pick · UC-10). */
 export function PickingScreen() {
   const pick = useResource(getPickStep);
-  return <ResourceView resource={pick}>{(data) => <PickingView pick={data} reload={pick.reload} />}</ResourceView>;
+  return (
+    <ResourceView resource={pick}>
+      {(data) => <PickingView pick={data} reload={pick.reload} />}
+    </ResourceView>
+  );
 }
 
 function PickingView({ pick, reload }: { pick: PickStep; reload: () => void }) {
@@ -71,7 +90,12 @@ function PickingView({ pick, reload }: { pick: PickStep; reload: () => void }) {
             onPress={confirm}
           />
           {/* routine exception — neutral, not a red alarm */}
-          <BigActionButton label={t('pick.short')} kind="ghost" disabled={pending} onPress={() => setSheetOpen(true)} />
+          <BigActionButton
+            label={t('pick.short')}
+            kind="ghost"
+            disabled={pending}
+            onPress={() => setSheetOpen(true)}
+          />
         </>
       }
     >
@@ -100,7 +124,12 @@ function PickingView({ pick, reload }: { pick: PickStep; reload: () => void }) {
         </View>
         <View style={styles.pickrow}>
           <Text style={styles.lbl}>{t('pick.qty')}</Text>
-          <QuantityWithUnit value={pick.qty} unit={pick.unit} size={fs['2xl']} tone={theme.color.brand} />
+          <QuantityWithUnit
+            value={pick.qty}
+            unit={pick.unit}
+            size={fs['2xl']}
+            tone={theme.color.brand}
+          />
         </View>
       </Card>
 
@@ -109,9 +138,14 @@ function PickingView({ pick, reload }: { pick: PickStep; reload: () => void }) {
           const done = i < scanned;
           const active = i === scanned;
           return (
-            <View key={st.label} style={[styles.step, active && styles.stepActive, done && styles.stepDone]}>
+            <View
+              key={st.label}
+              style={[styles.step, active && styles.stepActive, done && styles.stepDone]}
+            >
               <View style={[styles.dot, done && styles.dotDone]}>
-                <Text style={[styles.dotText, done && styles.dotTextDone]}>{done ? '✓' : String(i + 1)}</Text>
+                <Text style={[styles.dotText, done && styles.dotTextDone]}>
+                  {done ? '✓' : String(i + 1)}
+                </Text>
               </View>
               <View style={styles.stepTx}>
                 <Text style={styles.stepTitle}>{st.label}</Text>
@@ -134,7 +168,12 @@ function PickingView({ pick, reload }: { pick: PickStep; reload: () => void }) {
         title={t('pick.shortTitle')}
         options={[
           { key: 'shortAtLocation', label: t('pick.reason.shortAtLocation') },
-          { key: 'batchBlocked', label: t('pick.reason.batchBlocked'), hint: t('pick.reason.batchBlockedHint'), danger: true },
+          {
+            key: 'batchBlocked',
+            label: t('pick.reason.batchBlocked'),
+            hint: t('pick.reason.batchBlockedHint'),
+            danger: true,
+          },
           { key: 'damaged', label: t('pick.reason.damaged') },
         ]}
         onSelect={(k) => void short(k as ShortReason)}
@@ -157,7 +196,13 @@ const makeStyles = (t: Theme) =>
       borderBottomColor: t.color.line,
     },
     progLbl: { fontSize: fs.xs, color: t.color.inkFaint },
-    track: { flex: 1, height: 8, backgroundColor: t.color.line, borderRadius: radius.pill, overflow: 'hidden' },
+    track: {
+      flex: 1,
+      height: 8,
+      backgroundColor: t.color.line,
+      borderRadius: radius.pill,
+      overflow: 'hidden',
+    },
     fill: { height: '100%', backgroundColor: t.status.transit.fg },
 
     goloc: {
@@ -170,8 +215,19 @@ const makeStyles = (t: Theme) =>
       paddingHorizontal: s[5],
       alignItems: 'center',
     },
-    golocCap: { fontSize: fs.xs, color: t.status.transit.fg, textTransform: 'uppercase', letterSpacing: 1 },
-    golocAddr: { fontSize: fs['2xl'], fontWeight: '800', color: t.status.transit.fg, marginTop: s[2], textAlign: 'center' },
+    golocCap: {
+      fontSize: fs.xs,
+      color: t.status.transit.fg,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    golocAddr: {
+      fontSize: fs['2xl'],
+      fontWeight: '800',
+      color: t.status.transit.fg,
+      marginTop: s[2],
+      textAlign: 'center',
+    },
 
     item: { marginHorizontal: s[5] },
     head: { padding: s[5] },

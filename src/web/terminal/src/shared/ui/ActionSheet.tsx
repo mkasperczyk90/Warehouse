@@ -45,11 +45,17 @@ export function ActionSheet({
             {options.map((o) => (
               <Pressable
                 key={o.key}
-                style={({ pressed }) => [styles.option, o.danger && styles.optionDanger, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.option,
+                  o.danger && styles.optionDanger,
+                  pressed && styles.pressed,
+                ]}
                 onPress={() => onSelect(o.key)}
                 accessibilityRole="button"
               >
-                <Text style={[styles.optionLabel, o.danger && styles.optionLabelDanger]}>{o.label}</Text>
+                <Text style={[styles.optionLabel, o.danger && styles.optionLabelDanger]}>
+                  {o.label}
+                </Text>
                 {o.hint ? <Text style={styles.optionHint}>{o.hint}</Text> : null}
               </Pressable>
             ))}
