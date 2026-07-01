@@ -17,7 +17,12 @@ import { useResource } from '@/core/api/useResource';
 import { fs, radius, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
 import { useT } from '@/shared/i18n/i18n';
-import { confirmReceipt, getReceipt, type DiscrepancyReason, type Receipt } from './receiving.model';
+import {
+  confirmReceipt,
+  getReceipt,
+  type DiscrepancyReason,
+  type Receipt,
+} from './receiving.model';
 
 /** Terminal — Goods receipt (terminal-2-receive · UC-02). */
 export function ReceiveScreen() {
@@ -59,7 +64,12 @@ function ReceiveView({ receipt }: { receipt: Receipt }) {
             onPress={() => confirm()}
           />
           {/* a shortage/discrepancy is routine, not danger — neutral, not red */}
-          <BigActionButton label={t('receive.discrepancy')} kind="ghost" disabled={pending} onPress={() => setSheetOpen(true)} />
+          <BigActionButton
+            label={t('receive.discrepancy')}
+            kind="ghost"
+            disabled={pending}
+            onPress={() => setSheetOpen(true)}
+          />
         </>
       }
     >
@@ -82,7 +92,12 @@ function ReceiveView({ receipt }: { receipt: Receipt }) {
         <View style={styles.expected}>
           <Text style={styles.expectedLbl}>{t('receive.expected')}</Text>
           <Text style={styles.expectedLbl}>
-            <QuantityWithUnit value={receipt.expectedQty} unit={receipt.unit} size={fs.sm} tone={theme.status.transit.fg} />
+            <QuantityWithUnit
+              value={receipt.expectedQty}
+              unit={receipt.unit}
+              size={fs.sm}
+              tone={theme.status.transit.fg}
+            />
             {`  ${receipt.expectedNote}`}
           </Text>
         </View>
@@ -128,7 +143,12 @@ function ReceiveView({ receipt }: { receipt: Receipt }) {
         options={[
           { key: 'shortage', label: t('receive.reason.shortage') },
           { key: 'overage', label: t('receive.reason.overage') },
-          { key: 'damage', label: t('receive.reason.damage'), hint: t('receive.reason.damageHint'), danger: true },
+          {
+            key: 'damage',
+            label: t('receive.reason.damage'),
+            hint: t('receive.reason.damageHint'),
+            danger: true,
+          },
         ]}
         onSelect={(k) => {
           setSheetOpen(false);
