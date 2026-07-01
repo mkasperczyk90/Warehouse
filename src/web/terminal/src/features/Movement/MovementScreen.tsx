@@ -2,7 +2,16 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { BigActionButton, Card, CheckRow, Chip, ResourceView, ScanField, ScreenScaffold, Stepper } from '@/shared/ui';
+import {
+  BigActionButton,
+  Card,
+  CheckRow,
+  Chip,
+  ResourceView,
+  ScanField,
+  ScreenScaffold,
+  Stepper,
+} from '@/shared/ui';
 import { useResource } from '@/core/api/useResource';
 import { fs, s } from '@/shared/theme/tokens';
 import { useTheme, useThemedStyles, type Theme } from '@/shared/theme/theme';
@@ -39,7 +48,12 @@ function MovementView({ move }: { move: MoveTask }) {
       subtitle={t('move.task', { n: move.task, total: move.ofTasks })}
       accent={theme.color.move}
       actions={
-        <BigActionButton label={t('move.confirm')} accent={theme.color.move} disabled={pending} onPress={commit} />
+        <BigActionButton
+          label={t('move.confirm')}
+          accent={theme.color.move}
+          disabled={pending}
+          onPress={commit}
+        />
       }
     >
       {/* From → To legs */}
@@ -94,9 +108,20 @@ const makeStyles = (t: Theme) =>
 
     item: { marginHorizontal: s[5], padding: s[5] },
     sku: { fontSize: fs.xs, color: t.color.inkFaint },
-    product: { fontSize: fs.md, fontWeight: '700', color: t.color.ink, marginTop: 2, marginBottom: s[3] },
+    product: {
+      fontSize: fs.md,
+      fontWeight: '700',
+      color: t.color.ink,
+      marginTop: 2,
+      marginBottom: s[3],
+    },
     chips: { flexDirection: 'row', gap: s[2] },
-    qtyrow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: s[4] },
+    qtyrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: s[4],
+    },
     lbl: { fontSize: fs.sm, color: t.color.inkSoft },
 
     checks: { margin: s[5], gap: s[2] },

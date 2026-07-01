@@ -63,7 +63,8 @@ export const getPutAwayTask = async (): Promise<PutAwayTask> => {
   current = tasks[0] ?? null;
   if (!deliveryRef) {
     const deliveries = await api.get<DeliverySummaryDto[]>('logistics/deliveries');
-    deliveryRef = deliveries.find((d) => d.warehouseCode === WAREHOUSE)?.id ?? deliveries[0]?.id ?? null;
+    deliveryRef =
+      deliveries.find((d) => d.warehouseCode === WAREHOUSE)?.id ?? deliveries[0]?.id ?? null;
   }
   const bay = BAYS[bayIndex];
   const chips = current ? [`${current.quantity} ${current.unit}`] : [];

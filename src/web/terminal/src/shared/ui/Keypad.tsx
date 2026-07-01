@@ -77,12 +77,24 @@ export function Keypad({
             {KEYS.map((k) => (
               <Pressable
                 key={k}
-                style={({ pressed }) => [styles.key, k === 'ok' && styles.keyOk, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.key,
+                  k === 'ok' && styles.keyOk,
+                  pressed && styles.pressed,
+                ]}
                 onPress={() => press(k)}
                 accessibilityRole="button"
-                accessibilityLabel={k === 'del' ? t('a11y.backspace') : k === 'ok' ? t('a11y.confirmQty') : k}
+                accessibilityLabel={
+                  k === 'del' ? t('a11y.backspace') : k === 'ok' ? t('a11y.confirmQty') : k
+                }
               >
-                <Text style={[styles.keyText, k === 'ok' && styles.keyOkText, k === 'del' && styles.keyDelText]}>
+                <Text
+                  style={[
+                    styles.keyText,
+                    k === 'ok' && styles.keyOkText,
+                    k === 'del' && styles.keyDelText,
+                  ]}
+                >
                   {k === 'del' ? '⌫' : k === 'ok' ? '✓' : k}
                 </Text>
               </Pressable>

@@ -44,8 +44,18 @@ function PackingView({ pack }: { pack: PackJob }) {
       subtitle={t('pack.customer', { customer: pack.customer })}
       actions={
         <>
-          <BigActionButton label={t('pack.close')} accent={theme.status.available.fg} disabled={pending} onPress={close} />
-          <BigActionButton label={t('pack.add')} kind="ghost" disabled={pending} onPress={addAnother} />
+          <BigActionButton
+            label={t('pack.close')}
+            accent={theme.status.available.fg}
+            disabled={pending}
+            onPress={close}
+          />
+          <BigActionButton
+            label={t('pack.add')}
+            kind="ghost"
+            disabled={pending}
+            onPress={addAnother}
+          />
         </>
       }
     >
@@ -58,9 +68,17 @@ function PackingView({ pack }: { pack: PackJob }) {
       <Text style={styles.h1}>{t('pack.heading')}</Text>
       <Card style={styles.items}>
         {pack.lines.map((li, i) => (
-          <View key={`${li.name}-${li.lot}`} style={[styles.li, i < pack.lines.length - 1 && styles.liBorder]}>
+          <View
+            key={`${li.name}-${li.lot}`}
+            style={[styles.li, i < pack.lines.length - 1 && styles.liBorder]}
+          >
             <View style={[styles.tick, li.done ? styles.tickDone : styles.tickTodo]}>
-              <Text style={[styles.tickText, { color: li.done ? theme.status.available.fg : theme.color.inkFaint }]}>
+              <Text
+                style={[
+                  styles.tickText,
+                  { color: li.done ? theme.status.available.fg : theme.color.inkFaint },
+                ]}
+              >
                 {li.done ? '✓' : String(li.remaining ?? '')}
               </Text>
             </View>
@@ -91,7 +109,12 @@ const makeStyles = (t: Theme) =>
       padding: s[5],
       alignItems: 'center',
     },
-    pkgCap: { fontSize: fs.xs, color: t.status.reserved.fg, textTransform: 'uppercase', letterSpacing: 1 },
+    pkgCap: {
+      fontSize: fs.xs,
+      color: t.status.reserved.fg,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
     pkgId: { fontSize: fs.xl, fontWeight: '800', color: t.status.reserved.fg, marginTop: 2 },
 
     h1: {
@@ -103,11 +126,28 @@ const makeStyles = (t: Theme) =>
       marginBottom: s[2],
     },
     items: { marginHorizontal: s[5], marginBottom: s[4] },
-    li: { flexDirection: 'row', alignItems: 'center', gap: s[3], paddingVertical: s[4], paddingHorizontal: s[5] },
+    li: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: s[3],
+      paddingVertical: s[4],
+      paddingHorizontal: s[5],
+    },
     liBorder: { borderBottomWidth: 1, borderBottomColor: t.color.lineSoft },
-    tick: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    tick: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     tickDone: { backgroundColor: t.status.available.bg },
-    tickTodo: { backgroundColor: t.color.canvas, borderWidth: 1, borderColor: t.color.line, borderStyle: 'dashed' },
+    tickTodo: {
+      backgroundColor: t.color.canvas,
+      borderWidth: 1,
+      borderColor: t.color.line,
+      borderStyle: 'dashed',
+    },
     tickText: { fontWeight: '800', fontSize: fs.sm },
     nm: { flex: 1 },
     nmName: { fontSize: fs.sm, color: t.color.ink },
