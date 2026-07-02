@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/mkasperczyk90/Warehouse/compare/admin-v0.3.0...admin-v0.3.1) (2026-07-01)
+
+
+### 🐛 Bug Fixes
+
+* **admin:** drop deprecated baseUrl from tsconfig ([#58](https://github.com/mkasperczyk90/Warehouse/issues/58)) ([7a60fc6](https://github.com/mkasperczyk90/Warehouse/commit/7a60fc68e6d42a3e76f7ecfec2e7caae6b0fc3f3))
+
 ## [0.3.0](https://github.com/mkasperczyk90/Warehouse/compare/admin-v0.2.0...admin-v0.3.0) (2026-07-01)
 
 
