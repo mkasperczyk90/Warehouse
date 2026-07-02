@@ -64,22 +64,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // rotates it on every renew.
   const refreshTokenRef = useRef<string | null>(null);
 
-  const [user, setUser] = useState<CurrentUser | null>(() => {
-    return readStored();
-  });
+  const [user, setUser] = useState<CurrentUser | null>(() => readStored());
 
-  // Restore persisted tokens and language on mount (side-effect, not during render).
+  // Re-arm the api seam with the persisted tokens on mount, so a refresh-safe session stays
+  // authorised. Runs once — a ref can't be written during render, so this can't live in the
+  // useState initializer above.
   useEffect(() => {
     const stored = readStored();
-    if (stored) {
-      void i18n.changeLanguage(stored.language);
-      try {
-        const token = localStorage.getItem(TOKEN_KEY);
-        if (token) setAuthToken(token);
-        refreshTokenRef.current = localStorage.getItem(REFRESH_KEY);
-      } catch {
-        /* ignore */
-      }
+    if (!stored) return;
+    void i18n.changeLanguage(stored.language);
+    try {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) setAuthToken(token);
+      refreshTokenRef.current = localStorage.getItem(REFRESH_KEY);
+    } catch {
+      /* ignore */
     }
   }, []);
 

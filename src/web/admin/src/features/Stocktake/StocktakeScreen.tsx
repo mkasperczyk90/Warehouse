@@ -41,10 +41,7 @@ export function StocktakeScreen({ id }: { id?: string }) {
     setSeeded(true);
   }
 
-  const diffs = useMemo(
-    () => stocktake.data?.diffs ?? [],
-    [stocktake.data?.diffs],
-  );
+  const diffs = useMemo(() => stocktake.data?.diffs ?? [], [stocktake.data]);
   const selectedIds = useMemo(
     () => diffs.filter((d) => selected[d.id]).map((d) => d.id),
     [diffs, selected],
