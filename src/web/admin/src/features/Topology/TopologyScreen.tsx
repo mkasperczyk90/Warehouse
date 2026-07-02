@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
@@ -80,18 +80,15 @@ export function TopologyScreen() {
   const addRoom = useAddRoom();
   const queryClient = useQueryClient();
 
-  // Editable room fields, seeded when the room loads.
+  // Editable room fields, seeded when the room loads (reseeded when a different room loads).
   const [form, setForm] = useState<{ type: RoomType; tempMin: number; tempMax: number } | null>(
     null,
   );
-  useEffect(() => {
-    if (room.data)
-      setForm({
-        type: room.data.type,
-        tempMin: room.data.tempMin,
-        tempMax: room.data.tempMax,
-      });
-  }, [room.data]);
+  const [seededRoomId, setSeededRoomId] = useState<string | null>(null);
+  if (room.data && room.data.id !== seededRoomId) {
+    setForm({ type: room.data.type, tempMin: room.data.tempMin, tempMax: room.data.tempMax });
+    setSeededRoomId(room.data.id);
+  }
 
   const [editLoc, setEditLoc] = useState<LocationRow | null>(null);
   const [editForm, setEditForm] = useState({ capacity: 0, loadLimit: 0 });

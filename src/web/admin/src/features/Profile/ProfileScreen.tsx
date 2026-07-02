@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -21,16 +21,16 @@ export function ProfileScreen() {
   const [form, setForm] = useState<ProfilePrefs | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // Seed the editable form once the record arrives.
-  useEffect(() => {
-    if (profile.data) {
-      setForm({
-        phone: profile.data.phone,
-        defaultWarehouseId: profile.data.defaultWarehouseId,
-        language: profile.data.language,
-      });
-    }
-  }, [profile.data]);
+  // Seed the editable form once the record arrives (reseeded when a different profile loads).
+  const [seededProfileId, setSeededProfileId] = useState<string | null>(null);
+  if (profile.data && profile.data.id !== seededProfileId) {
+    setForm({
+      phone: profile.data.phone,
+      defaultWarehouseId: profile.data.defaultWarehouseId,
+      language: profile.data.language,
+    });
+    setSeededProfileId(profile.data.id);
+  }
 
   if (profile.isLoading || !form) return <p className={styles.state}>{t('state.loading')}</p>;
   if (profile.isError || !profile.data) return <p className={styles.state}>{t('state.error')}</p>;

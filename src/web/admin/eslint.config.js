@@ -27,6 +27,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // We don't use the React Compiler — this flags libraries (e.g. TanStack Table's
+      // `useReactTable()`) whose returned functions the compiler couldn't memoize, which is
+      // expected and not actionable without opting into the compiler.
+      'react-hooks/incompatible-library': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       // Allow intentionally-unused names prefixed with `_` (e.g. mutation `onError`(_e, _v, ctx)).
       '@typescript-eslint/no-unused-vars': [
