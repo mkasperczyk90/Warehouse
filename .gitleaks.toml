@@ -1,0 +1,15 @@
+title = "Warehouse gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secret defaults, not real credentials"
+regexes = [
+  # RabbitMQ's own built-in default dev credential (the stock `rabbitmq:3-management-alpine`
+  # image ships this account out of the box). Used only by the ephemeral ECS task's
+  # rabbitmq-init container (infra/terraform/environment/locals.tf) to call the management
+  # HTTP API on localhost and declare the CDC topic exchanges. Not a secret to rotate or leak -
+  # it's the image's own documented default, unrelated to any credential we control.
+  '''-u guest:guest''',
+]
