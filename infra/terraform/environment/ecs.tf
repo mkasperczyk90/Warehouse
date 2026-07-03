@@ -68,11 +68,25 @@ resource "aws_ecs_task_definition" "main" {
   family                   = "warehouse"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = var.task_cpu
-  memory                   = var.task_memory
+  cpu                      = local.effective_task_cpu
+  memory                   = local.effective_task_memory
   execution_role_arn       = aws_iam_role.task_execution.arn
   task_role_arn            = aws_iam_role.task.arn
   container_definitions    = jsonencode(local.containers)
+
+  # Task-scoped (Fargate ephemeral storage) volumes, one per Debezium instance, so a lone container
+  # restart doesn't lose its WAL offset (see each debezium-* container's mountPoints in locals.tf).
+  # Declared unconditionally: harmless when CDC is off (never mounted by any container in that case,
+  # since the 3 debezium-* containers themselves are gated on bi_lake_bucket_name in locals.tf).
+  volume {
+    name = "debezium-warehouse-data"
+  }
+  volume {
+    name = "debezium-logistics-data"
+  }
+  volume {
+    name = "debezium-masterdata-data"
+  }
 }
 
 resource "aws_security_group" "ecs_tasks" {
