@@ -151,9 +151,10 @@ the **network boundary with MSW** — so going live is *turning the mock off*, n
 | **Persistence** | EF Core 10 · PostgreSQL (database per service) · owned types for value objects · strongly-typed IDs · `xmin` optimistic concurrency |
 | **Messaging** | **Wolverine** (mediator + messaging + EF/Postgres outbox) · RabbitMQ · versioned past-tense contracts ([ADR & spike](docs/adr/README.md)) |
 | **Platform** | **.NET Aspire** orchestration (one `dotnet run` for the whole stack) · YARP gateway/BFF · **Keycloak** (badge-scan auth) · OpenTelemetry |
+| **Data / BI** (opt-in, [`docs/BI_Plan.md`](docs/BI_Plan.md)) | Event-driven Bronze export (Parquet to S3) · **Debezium** CDC-to-Bronze over Postgres logical replication (no Kafka — reuses RabbitMQ) · Keycloak Admin-API polling for identity data — all three feed the same S3 landing zone for a future Databricks Bronze/Silver/Gold lakehouse |
 | **Admin SPA** | Vite · React 19 · TypeScript (strict) · TanStack Router/Query/Table · React Hook Form + Zod · react-i18next (EN/PL) · MSW |
 | **Operator terminal** | Expo / React Native Web — large touch targets, scanner-first flows · MSW |
-| **Testing** | xUnit v3 · **Testcontainers** (real Postgres) · architecture tests · **playwright-bdd** e2e (admin + terminal) |
+| **Testing** | xUnit v3 · **Testcontainers** (Postgres, RabbitMQ, LocalStack) · architecture tests · **playwright-bdd** e2e (admin + terminal) |
 | **CI/CD** | GitHub Actions: build · test + coverage · Docker images + Trivy/SBOM · CodeQL · gitleaks · dependency review · AWS deploy |
 
 The front-end talks to the gateway through a single API seam and is mocked at the network boundary with
@@ -202,15 +203,17 @@ src/
   AppHost/            .NET Aspire orchestrator — runs the whole stack
   Gateway/            YARP API gateway / BFF + auth brokering
   Services/           warehouse · logistics · masterdata  (each: Domain/Application/Infrastructure modules)
+  CdcBridge/           worker: lands Debezium's CDC stream in the BI lake (docs/BI_Plan.md, opt-in)
+  IdentityBridge/      worker: polls Keycloak's Admin API into the BI lake (docs/BI_Plan.md, opt-in)
   SharedKernel/       archetype value objects + base types (no business logic)
   Contracts/          versioned, additive-only integration events
-  ServiceDefaults/    health checks, OpenTelemetry, resilience, messaging wiring
+  ServiceDefaults/    health checks, OpenTelemetry, resilience, messaging wiring, BI export (opt-in)
   Identity/           Keycloak realm + a custom badge Direct-Grant authenticator (Java SPI)
   web/admin/          desk SPA (Vite + React)
   web/terminal/       operator terminal (Expo / RN Web)
 tests/                unit · architecture · integration (Testcontainers) · e2e (playwright-bdd)
 infra/                Docker + AWS ephemeral-deploy infrastructure
-docs/                 domain model, bounded contexts, use cases, ADRs, design system
+docs/                 domain model, bounded contexts, use cases, ADRs, design system, BI/lakehouse plan
 ```
 
 ---
@@ -263,6 +266,8 @@ The design is written down as it was decided — start here to see *how* the sys
 | [`docs/cicd.md`](docs/cicd.md) | CI/CD & releases — versioning, what's published, the gate pattern |
 | [`docs/models/`](docs/models/README.md) | As-built model reference — one file per module |
 | [`docs/design/`](docs/design/README.md) | Design system, flows, actors, and the admin front-end plan |
+| [`docs/BI_Plan.md`](docs/BI_Plan.md) | Bronze/Silver/Gold lakehouse plan — the opt-in event-driven BI export, Debezium CDC-to-Bronze, and Keycloak Identity-bridge pipelines (all built and opt-in), plus the star schema and metrics catalog design |
+| [`docs/deploy.md`](docs/deploy.md) | Ephemeral AWS deploy — architecture, cost, one-time setup |
 
 ---
 

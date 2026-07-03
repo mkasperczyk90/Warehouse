@@ -28,9 +28,10 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
 # Task role: what the CONTAINERS themselves can call, via the AWS SDK default credential chain —
 # distinct from the execution role above (which is Fargate's own ECR-pull/logs identity). Every
 # container in this task shares one task role (single-task-namespace design, see locals.tf), so
-# this is scoped to exactly the one thing app code needs: writing Bronze exports to the BI lake's
-# `bronze/` prefix (docs/BI_Plan.md §11). Empty when `bi_lake_bucket_name` is unset — the role
-# still exists (containers get an identity) but with no permissions.
+# this is scoped to exactly what app code needs: writing Bronze exports to the BI lake's `bronze/`
+# prefix (event-driven, docs/BI_Plan.md §11) and `bronze-cdc/` prefix (Debezium CDC, via
+# Warehouse.CdcBridge — docs/BI_Plan.md, CDC section). Empty when `bi_lake_bucket_name` is unset —
+# the role still exists (containers get an identity) but with no permissions.
 resource "aws_iam_role" "task" {
   name               = "warehouse-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
@@ -45,7 +46,10 @@ data "aws_iam_policy_document" "task" {
       "s3:PutObject",
       "s3:AbortMultipartUpload",
     ]
-    resources = ["arn:aws:s3:::${var.bi_lake_bucket_name}/bronze/*"]
+    resources = [
+      "arn:aws:s3:::${var.bi_lake_bucket_name}/bronze/*",
+      "arn:aws:s3:::${var.bi_lake_bucket_name}/bronze-cdc/*",
+    ]
   }
 }
 
@@ -134,7 +138,8 @@ resource "aws_ecs_service" "main" {
     container_port   = local.port_terminal
   }
 
-  # Give the 10-container task time to boot before the ALB starts failing it.
+  # Give the multi-container task (now including 3 JVM-based Debezium Server instances for
+  # CDC-to-Bronze) time to boot before the ALB starts failing it.
   health_check_grace_period_seconds = 180
 
   depends_on = [
