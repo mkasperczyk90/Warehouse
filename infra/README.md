@@ -22,7 +22,7 @@ ALB ──:80──▶ admin SPA
 
 | Path | What |
 |------|------|
-| `terraform/bootstrap/` | Run **once**. S3 state bucket, GitHub OIDC + deploy IAM role, 7 ECR repos. |
+| `terraform/bootstrap/` | Run **once**. S3 state bucket, BI lake bucket, GitHub OIDC + deploy IAM role, 7 ECR repos. |
 | `terraform/environment/` | The ephemeral stack (VPC, ALB, ECS task/service). `apply` on up, `destroy` on down. |
 | `docker/keycloak/Dockerfile` | Keycloak image with the realm + Maven-built badge SPI baked in. |
 | `../.github/workflows/deploy-aws.yml` | Manual (`workflow_dispatch`) **up / down**. |
@@ -44,6 +44,7 @@ ALB ──:80──▶ admin SPA
    | `AWS_ROLE_ARN` | `deploy_role_arn` |
    | `TF_STATE_BUCKET` | `state_bucket` |
    | `AWS_REGION` | `aws_region` |
+   | `BI_LAKE_BUCKET` | `bi_lake_bucket` — Bronze landing zone for Databricks (docs/BI_Plan.md §11) |
 
 ## Daily use
 
@@ -86,3 +87,7 @@ Drop `task_cpu`/`task_memory` (e.g. 2048 / 8192) to cut compute ~40% at the cost
   default to MSW-mocked. The admin Profile screen (`/api/profile`) is served by the gateway from the
   token's claims with an in-memory prefs overlay (lost on restart — fine for a throwaway env).
 - The deploy IAM policy in bootstrap is broad-but-scoped for convenience; tighten for production.
+- **BI export is opt-in.** `warehousing-api` writes Bronze Parquet to the `BI_LAKE_BUCKET` bucket via
+  the task role — see [`docs/BI_Plan.md`](../docs/BI_Plan.md) §11. If that variable is unset the
+  environment stack still works exactly as before (`bi_lake_bucket_name` defaults to `""`, which
+  disables export in both Terraform and the app).

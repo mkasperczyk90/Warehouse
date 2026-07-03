@@ -15,3 +15,9 @@ variable "state_bucket_name" {
   type        = string
   default     = null
 }
+
+variable "bi_lake_bucket_name" {
+  description = "Override the S3 bucket name for the BI Bronze landing zone. Defaults to warehouse-bi-lake-<account-id>."
+  type        = string
+  default     = null
+}

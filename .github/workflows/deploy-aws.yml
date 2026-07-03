@@ -5,7 +5,8 @@ name: Deploy to AWS (manual)
 #   action=down -> `terraform destroy` (tears everything down to ~$0; ECR repos stay, storage is cents)
 #
 # One-time setup (see infra/README.md): run infra/terraform/bootstrap, then add the repo VARIABLES
-# AWS_ROLE_ARN, TF_STATE_BUCKET and AWS_REGION (Settings -> Secrets and variables -> Actions -> Variables).
+# AWS_ROLE_ARN, TF_STATE_BUCKET, AWS_REGION and BI_LAKE_BUCKET (Settings -> Secrets and variables ->
+# Actions -> Variables).
 on:
   workflow_dispatch:
     inputs:
@@ -127,7 +128,8 @@ jobs:
           terraform apply -auto-approve \
             -var="aws_region=${{ env.AWS_REGION }}" \
             -var="image_tag=${{ env.IMAGE_TAG }}" \
-            -var="allowed_cidr=${{ inputs.allowed_cidr }}"
+            -var="allowed_cidr=${{ inputs.allowed_cidr }}" \
+            -var="bi_lake_bucket_name=${{ vars.BI_LAKE_BUCKET }}"
 
       - name: Show URLs (up)
         if: inputs.action == 'up'
@@ -149,4 +151,5 @@ jobs:
           terraform destroy -auto-approve \
             -var="aws_region=${{ env.AWS_REGION }}" \
             -var="image_tag=${{ env.IMAGE_TAG }}" \
-            -var="allowed_cidr=${{ inputs.allowed_cidr }}"
+            -var="allowed_cidr=${{ inputs.allowed_cidr }}" \
+            -var="bi_lake_bucket_name=${{ vars.BI_LAKE_BUCKET }}"

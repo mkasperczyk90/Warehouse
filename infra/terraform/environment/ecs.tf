@@ -25,6 +25,37 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Task role: what the CONTAINERS themselves can call, via the AWS SDK default credential chain —
+# distinct from the execution role above (which is Fargate's own ECR-pull/logs identity). Every
+# container in this task shares one task role (single-task-namespace design, see locals.tf), so
+# this is scoped to exactly the one thing app code needs: writing Bronze exports to the BI lake's
+# `bronze/` prefix (docs/BI_Plan.md §11). Empty when `bi_lake_bucket_name` is unset — the role
+# still exists (containers get an identity) but with no permissions.
+resource "aws_iam_role" "task" {
+  name               = "warehouse-task"
+  assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
+}
+
+data "aws_iam_policy_document" "task" {
+  count = var.bi_lake_bucket_name != "" ? 1 : 0
+  statement {
+    sid    = "BiExportWrite"
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:AbortMultipartUpload",
+    ]
+    resources = ["arn:aws:s3:::${var.bi_lake_bucket_name}/bronze/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "task" {
+  count  = var.bi_lake_bucket_name != "" ? 1 : 0
+  name   = "warehouse-task-bi-export"
+  role   = aws_iam_role.task.id
+  policy = data.aws_iam_policy_document.task[0].json
+}
+
 resource "aws_ecs_cluster" "main" {
   name = "warehouse"
 }
@@ -36,6 +67,7 @@ resource "aws_ecs_task_definition" "main" {
   cpu                      = var.task_cpu
   memory                   = var.task_memory
   execution_role_arn       = aws_iam_role.task_execution.arn
+  task_role_arn            = aws_iam_role.task.arn
   container_definitions    = jsonencode(local.containers)
 }
 

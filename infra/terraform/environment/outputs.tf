@@ -1,10 +1,10 @@
 output "admin_url" {
-  description = "Admin panel (MSW-mocked SPA)."
+  description = "Admin panel (MSW off — calls the real Gateway in this task)."
   value       = "http://${aws_lb.main.dns_name}/"
 }
 
 output "terminal_url" {
-  description = "Operator terminal (MSW-mocked SPA)."
+  description = "Operator terminal (MSW off — calls the real Gateway in this task)."
   value       = "http://${aws_lb.main.dns_name}:8081/"
 }
 

@@ -25,6 +25,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
     <!-- Data access -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
     <!-- Pinned to unify the version Aspire's Npgsql integration pulls transitively (avoids MSB3277). -->
@@ -45,6 +46,10 @@
     <!-- API -->
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <!-- BI export (docs/BI_Plan.md §11): writes Bronze-ready Parquet to the S3 landing zone that
+         Databricks Auto Loader later reads. Only loaded where BiExport:BucketName is configured. -->
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.100.1" />
+    <PackageVersion Include="Parquet.Net" Version="6.0.3" />
     <!-- Tests -->
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.9" />
@@ -53,6 +58,9 @@
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
+    <!-- S3-compatible container for BiExport integration tests (docs/BI_Plan.md §11) — same release
+         train as Testcontainers.PostgreSql above, kept in lockstep to avoid a mixed-version Testcontainers core. -->
+    <PackageVersion Include="Testcontainers.LocalStack" Version="4.12.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>

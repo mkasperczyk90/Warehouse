@@ -14,6 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\SharedKernel\Warehouse.SharedKernel\Warehouse.SharedKernel.csproj" />
     <ProjectReference Include="..\..\..\..\Contracts\Warehouse.Contracts\Warehouse.Contracts.csproj" />
+    <!-- IBronzeExportWriter / BronzeEvent (docs/BI_Plan.md §11) — reusable across every service, not
+         module-specific, so it lives in the shared ServiceDefaults project rather than being
+         duplicated here. -->
+    <ProjectReference Include="..\..\..\..\ServiceDefaults\Warehouse.ServiceDefaults\Warehouse.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

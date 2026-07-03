@@ -102,6 +102,11 @@ locals {
         { name = "ASPNETCORE_HTTP_PORTS", value = tostring(local.port_masterdata) },
         { name = "ConnectionStrings__masterdata", value = "${local.pg_conn}masterdata" },
         { name = "ConnectionStrings__rabbitmq", value = local.rabbit_conn },
+        # Bronze export to the BI lake (docs/BI_Plan.md §11) — empty bucket name means the app
+        # disables the export consumer. Credentials come from the task role (aws_iam_role.task),
+        # not from these vars — the AWS SDK default credential chain picks it up automatically.
+        { name = "BiExport__BucketName", value = var.bi_lake_bucket_name },
+        { name = "BiExport__Region", value = var.aws_region },
       ])
       portMappings = [{ containerPort = local.port_masterdata }]
       dependsOn = [
@@ -118,6 +123,11 @@ locals {
         { name = "ASPNETCORE_HTTP_PORTS", value = tostring(local.port_warehousing) },
         { name = "ConnectionStrings__warehouse", value = "${local.pg_conn}warehouse" },
         { name = "ConnectionStrings__rabbitmq", value = local.rabbit_conn },
+        # Bronze export to the BI lake (docs/BI_Plan.md §11) — empty bucket name means the app
+        # disables the export consumer. Credentials come from the task role (aws_iam_role.task),
+        # not from these vars — the AWS SDK default credential chain picks it up automatically.
+        { name = "BiExport__BucketName", value = var.bi_lake_bucket_name },
+        { name = "BiExport__Region", value = var.aws_region },
       ])
       portMappings = [{ containerPort = local.port_warehousing }]
       dependsOn = [
@@ -134,6 +144,11 @@ locals {
         { name = "ASPNETCORE_HTTP_PORTS", value = tostring(local.port_logistics) },
         { name = "ConnectionStrings__logistics", value = "${local.pg_conn}logistics" },
         { name = "ConnectionStrings__rabbitmq", value = local.rabbit_conn },
+        # Bronze export to the BI lake (docs/BI_Plan.md §11) — empty bucket name means the app
+        # disables the export consumer. Credentials come from the task role (aws_iam_role.task),
+        # not from these vars — the AWS SDK default credential chain picks it up automatically.
+        { name = "BiExport__BucketName", value = var.bi_lake_bucket_name },
+        { name = "BiExport__Region", value = var.aws_region },
       ])
       portMappings = [{ containerPort = local.port_logistics }]
       dependsOn = [
