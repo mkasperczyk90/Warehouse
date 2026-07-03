@@ -1,0 +1,161 @@
+name: Wiki Changelog
+
+# Publishes each release's changelog to the repository's GitHub Wiki under Changelog/.
+# Triggers on new GitHub Releases (created by release-please, or manually).
+#
+# release-please here uses `separate-pull-requests: true` + `include-component-in-tag: true`
+# (release-please-config.json), so each component (admin, terminal, gateway, warehouse,
+# logistics, masterdata) gets its OWN release with a tag like `<component>-v<version>`, and
+# different components routinely land on the same version number at the same time (e.g.
+# `gateway-v0.2.0` and `admin-v0.2.0` released the same day). The wiki page — and the index
+# table row — MUST be keyed by component+version, not version alone, or same-day releases from
+# different components silently overwrite each other's changelog page.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  # `contents: write` is what lets the default GITHUB_TOKEN push to the wiki git repo
+  # (the wiki isn't a separate permission scope — it piggybacks on `contents`).
+  contents: write
+
+jobs:
+  publish-wiki:
+    name: Publish changelog to Wiki
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Wiki repo
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          persist-credentials: 'true'
+
+      - name: Parse tag into component + version
+        id: parsed
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # Tags are `<component>-v<version>` (e.g. admin-v1.2.0) or, for an unscoped
+          # release, plain `v<version>`.
+          if [[ "$TAG" =~ ^(.+)-v([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
+            COMPONENT="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+          elif [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+.*)$ ]]; then
+            COMPONENT=""
+            VERSION="${BASH_REMATCH[1]}"
+          else
+            COMPONENT=""
+            VERSION="$TAG"
+          fi
+
+          # Slug used for both the wiki page filename and the index row's identity.
+          if [ -n "$COMPONENT" ]; then
+            SLUG="${COMPONENT}-v${VERSION}"
+          else
+            SLUG="v${VERSION}"
+          fi
+
+          echo "component=${COMPONENT}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "slug=${SLUG}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog page
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          COMPONENT: ${{ steps.parsed.outputs.component }}
+          VERSION: ${{ steps.parsed.outputs.version }}
+          SLUG: ${{ steps.parsed.outputs.slug }}
+          TAG: ${{ steps.parsed.outputs.tag }}
+          CREATED_ON: ${{ github.event.release.created_at }}
+        run: |
+          set -euo pipefail
+
+          PAGE_FILE="wiki/Changelog/${SLUG}.md"
+          mkdir -p wiki/Changelog
+
+          RELEASE_DATE=$(date -u -d "${CREATED_ON}" +"%B %d, %Y" 2>/dev/null || date -u +"%B %d, %Y")
+          HEADING="Changelog"
+          if [ -n "$COMPONENT" ]; then HEADING="Changelog — ${COMPONENT} ${VERSION}"; else HEADING="Changelog ${VERSION}"; fi
+
+          {
+            echo '---'
+            echo "title: '${HEADING}'"
+            echo 'status: published'
+            echo "created_on: '${CREATED_ON}'"
+            echo '---'
+            echo ''
+            echo "# ${HEADING}"
+            echo ''
+            echo "**Release date:** ${RELEASE_DATE}"
+            echo ''
+            echo "**Tag:** \`${TAG}\`"
+            echo ''
+            echo '---'
+            echo ''
+            echo ''
+            echo "$RELEASE_BODY"
+          } > "$PAGE_FILE"
+
+      - name: Update changelog index
+        env:
+          COMPONENT: ${{ steps.parsed.outputs.component }}
+          VERSION: ${{ steps.parsed.outputs.version }}
+          SLUG: ${{ steps.parsed.outputs.slug }}
+          CREATED_ON: ${{ github.event.release.created_at }}
+        run: |
+          set -euo pipefail
+
+          INDEX_FILE="wiki/Changelog/index.md"
+          RELEASE_DATE=$(date -u -d "${CREATED_ON}" +"%Y-%m-%d" 2>/dev/null || date -u +"%Y-%m-%d")
+          COMPONENT_LABEL="${COMPONENT:-(unscoped)}"
+
+          if [ ! -f "$INDEX_FILE" ]; then
+            {
+              echo '---'
+              echo 'title: "Changelog"'
+              echo 'status: active'
+              echo '---'
+              echo ''
+              echo '# Changelog'
+              echo ''
+              echo 'Complete release history for the Warehouse project, one row per component release.'
+              echo ''
+              echo '| Component | Version | Date |'
+              echo '|-----------|---------|------|'
+            } > "$INDEX_FILE"
+          fi
+
+          # Idempotent: if this exact release (by slug) is already indexed — e.g. a re-run of
+          # this workflow — don't add a duplicate row.
+          if grep -qF "(Changelog/${SLUG}.md)" "$INDEX_FILE"; then
+            echo "Index already has an entry for ${SLUG}, skipping."
+            exit 0
+          fi
+
+          TABLE_ROW="| ${COMPONENT_LABEL} | [v${VERSION}](Changelog/${SLUG}.md) | ${RELEASE_DATE} |"
+
+          NEW_FILE=$(mktemp)
+          separator_line=$(grep -n '^|---' "$INDEX_FILE" | head -1 | cut -d: -f1)
+
+          if [ -z "$separator_line" ]; then
+            echo "Warning: Could not find table separator in index. Appending entry."
+            echo "$TABLE_ROW" >> "$INDEX_FILE"
+          else
+            head -n "$separator_line" "$INDEX_FILE" > "$NEW_FILE"
+            echo "$TABLE_ROW" >> "$NEW_FILE"
+            tail -n +"$((separator_line + 1))" "$INDEX_FILE" >> "$NEW_FILE"
+            mv "$NEW_FILE" "$INDEX_FILE"
+          fi
+
+      - name: Commit and push wiki changes
+        run: |
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "docs(changelog): add ${{ steps.parsed.outputs.slug }} changelog"
+          git push
