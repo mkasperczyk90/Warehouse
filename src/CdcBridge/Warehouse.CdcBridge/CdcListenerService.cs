@@ -52,6 +52,13 @@ public sealed class CdcListenerService(
 
     private async Task BindAndConsumeAsync(IChannel channel, string exchange, CancellationToken stoppingToken)
     {
+        // Declares the exchange itself rather than assuming rabbitmq-init already ran (idempotent —
+        // redeclaring an existing exchange with identical type/durability is a no-op in RabbitMQ).
+        // Removes a hard startup-ordering dependency: this bridge can now come up standalone (e.g. in
+        // local Aspire orchestration, where there's no rabbitmq-init step) without crashing on a
+        // bind-to-nonexistent-exchange error; in ECS it still matches what rabbitmq-init declares.
+        await channel.ExchangeDeclareAsync(exchange, "topic", durable: true, autoDelete: false, arguments: null, false, false, stoppingToken);
+
         var queueName = $"cdc-bridge.{exchange}";
         await channel.QueueDeclareAsync(queueName, true, false, false, null, false, false, stoppingToken);
         await channel.QueueBindAsync(queueName, exchange, "#", null, false, stoppingToken);
