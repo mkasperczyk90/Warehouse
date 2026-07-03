@@ -9,6 +9,9 @@
   <Folder Name="/src/Contracts/">
     <Project Path="src/Contracts/Warehouse.Contracts/Warehouse.Contracts.csproj" />
   </Folder>
+  <Folder Name="/src/IdentityBridge/">
+    <Project Path="src/IdentityBridge/Warehouse.IdentityBridge/Warehouse.IdentityBridge.csproj" />
+  </Folder>
   <Folder Name="/src/Gateway/">
     <Project Path="src/Gateway/Warehouse.Gateway/Warehouse.Gateway.csproj" />
   </Folder>
@@ -43,6 +46,7 @@
     <Project Path="tests/Warehouse.ArchitectureTests/Warehouse.ArchitectureTests.csproj" />
     <Project Path="tests/Warehouse.CdcBridge.IntegrationTests/Warehouse.CdcBridge.IntegrationTests.csproj" />
     <Project Path="tests/Warehouse.CdcBridge.Tests/Warehouse.CdcBridge.Tests.csproj" />
+    <Project Path="tests/Warehouse.IdentityBridge.Tests/Warehouse.IdentityBridge.Tests.csproj" />
     <Project Path="tests/Warehouse.Gateway.Tests/Warehouse.Gateway.Tests.csproj" />
     <Project Path="tests/Warehouse.Logistics.IntegrationTests/Warehouse.Logistics.IntegrationTests.csproj" />
     <Project Path="tests/Warehouse.Logistics.Tests/Warehouse.Logistics.Tests.csproj" />

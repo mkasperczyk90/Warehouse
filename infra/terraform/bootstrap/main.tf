@@ -46,6 +46,7 @@ locals {
     "warehouse-warehousing-api",
     "warehouse-logistics-api",
     "warehouse-cdc-bridge",
+    "warehouse-identity-bridge",
     "warehouse-admin",
     "warehouse-terminal",
     "warehouse-keycloak",

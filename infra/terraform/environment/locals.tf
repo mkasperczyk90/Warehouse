@@ -76,14 +76,16 @@ locals {
     { name = "DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS", value = "1000" },
   ]
 
-  # --- CDC-to-Bronze containers (docs/BI_Plan.md — CDC section) -----------------------------
-  # Only deployed when bi_lake_bucket_name is set (spliced into `containers` below) — 3 extra JVM
-  # processes (Debezium Server) plus the bridge worker is real Fargate cost that an ephemeral
-  # environment shouldn't pay for BiExport-only use. NOTE: Debezium image tag and the exact
-  # DEBEZIUM_* env var names follow its documented Quarkus/MicroProfile config-to-env convention
-  # (dots -> underscores, uppercase) but have not been exercised against a running container in
-  # this session — smoke-test against a real deploy before trusting this block.
-  cdc_containers = [
+  # --- Extra Bronze containers, gated on bi_lake_bucket_name (docs/BI_Plan.md) --------------
+  # CDC-to-Bronze (rabbitmq-init + 3x Debezium Server + cdc-bridge) plus identity-bridge (Keycloak
+  # Admin API poller — no CDC possible there, see identity-bridge's own comment below). Only
+  # deployed when bi_lake_bucket_name is set (spliced into `containers` below) — 4 extra JVM/worker
+  # processes is real Fargate cost an ephemeral environment shouldn't pay for BiExport-only use.
+  # NOTE: Debezium image tag and the exact DEBEZIUM_* env var names follow its documented
+  # Quarkus/MicroProfile config-to-env convention but have only been smoke-tested for a single
+  # table/instance (docs/BI_Plan.md's confidence note) — identity-bridge, by contrast, HAS been
+  # smoke-tested against a real Keycloak container with the actual realm import and worked first try.
+  bi_lake_extra_containers = [
     {
       # One-shot: declare the 3 CDC topic exchanges Debezium's RabbitMQ sink publishes onto. That
       # sink never declares its own exchange (only auto-creates a queue for the routing key), so
@@ -116,9 +118,13 @@ locals {
         # Bronze-CDC table scope (docs/BI_Plan.md): current-state/ledger tables only — NOT the
         # inventory.product_snapshots / location_snapshots replicas, which are already fed by
         # integration events from their owning service and would duplicate that data in Bronze.
+        # allocations + handling_units/handling_unit_lines promoted from "phase 2" after a direct
+        # ask from the Databricks team (StockAllocated/AllocationReleased/HandlingUnitMoved are real
+        # domain events with no event contract or consumer — CDC is their only path to Bronze).
         { name = "DEBEZIUM_SOURCE_TABLE_INCLUDE_LIST", value = join(",", [
           "inventory.stock_items", "inventory.stock_movements", "inventory.stock_reservations",
           "inventory.batches", "inventory.stocktakes", "inventory.stocktake_count_lines",
+          "inventory.allocations", "inventory.handling_units", "inventory.handling_unit_lines",
           "topology.warehouses", "topology.rooms", "topology.locations", "topology.docks",
         ]) },
       ])
@@ -175,10 +181,13 @@ locals {
         { name = "DEBEZIUM_SOURCE_SLOT_NAME", value = "debezium_masterdata" },
         { name = "DEBEZIUM_SOURCE_PUBLICATION_NAME", value = "debezium_masterdata" },
         # Bronze-CDC table scope: Partners has no integration events at all today, so this is the
-        # ONLY path these tables have into Bronze (docs/BI_Plan.md). catalog.product_types /
-        # product_unit_conversions deliberately excluded — low-value static lookups, phase 2.
+        # ONLY path these tables have into Bronze (docs/BI_Plan.md). product_types promoted from
+        # "phase 2" after a direct ask from the Databricks team — ProductStorageChanged (cold-chain/
+        # hazard fields) is a real domain event with no event contract or consumer, so CDC is its
+        # only path too. product_unit_conversions stays excluded — genuinely low-value static lookup.
         { name = "DEBEZIUM_SOURCE_TABLE_INCLUDE_LIST", value = join(",", [
           "partners.parties", "partners.party_roles", "partners.customer_shipping_addresses",
+          "catalog.product_types",
         ]) },
       ])
       dependsOn = [
@@ -206,6 +215,30 @@ locals {
       ]
       dependsOn = [
         { containerName = "rabbitmq-init", condition = "SUCCESS" },
+      ]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+    {
+      # Warehouse.IdentityBridge: polls Keycloak's Admin REST API (no CDC possible — Keycloak has no
+      # persistent DB in this stack, dev-mode storage only) and lands a BronzeUser snapshot per user
+      # under bronze/identity-service/UserSnapshot/ — same bucket/prefix shape as every other
+      # event-driven Bronze writer (docs/BI_Plan.md §5.4). Verified against a real Keycloak container
+      # with the actual warehouse-realm.json imported — see docs/BI_Plan.md's Identity source note.
+      name      = "identity-bridge"
+      image     = "${local.registry}/warehouse-identity-bridge:${var.image_tag}"
+      essential = false
+      environment = [
+        { name = "IdentityBridge__BucketName", value = var.bi_lake_bucket_name },
+        { name = "IdentityBridge__Region", value = var.aws_region },
+        { name = "IdentityBridge__KeycloakBaseUrl", value = "http://localhost:${local.port_keycloak}" },
+        { name = "IdentityBridge__Realm", value = "warehouse" },
+        # Dev bootstrap admin (matches KC_BOOTSTRAP_ADMIN_USERNAME/PASSWORD on the keycloak
+        # container below) — this ephemeral environment has no dedicated service-account client.
+        { name = "IdentityBridge__AdminUsername", value = "admin" },
+        { name = "IdentityBridge__AdminPassword", value = "admin" },
+      ]
+      dependsOn = [
+        { containerName = "keycloak", condition = "START" },
       ]
       logConfiguration = { logDriver = "awslogs", options = local.log_options }
     },
@@ -407,5 +440,5 @@ locals {
       portMappings     = [{ containerPort = local.port_terminal }]
       logConfiguration = { logDriver = "awslogs", options = local.log_options }
     },
-    ], var.bi_lake_bucket_name != "" ? local.cdc_containers : [])
+    ], var.bi_lake_bucket_name != "" ? local.bi_lake_extra_containers : [])
 }

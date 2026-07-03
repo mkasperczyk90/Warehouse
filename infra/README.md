@@ -91,8 +91,11 @@ Drop `task_cpu`/`task_memory` (e.g. 2048 / 8192) to cut compute ~40% at the cost
   the shared task role — see [`docs/BI_Plan.md`](../docs/BI_Plan.md) §11. If that variable is unset
   the environment stack still works exactly as before (`bi_lake_bucket_name` defaults to `""`, which
   disables export in both Terraform and the app).
-- **CDC-to-Bronze is also gated on `BI_LAKE_BUCKET`, and adds real cost when it's set.** Setting the
-  variable also deploys `rabbitmq-init` + 3 Debezium Server containers + `Warehouse.CdcBridge` (see
-  `docs/BI_Plan.md`'s CDC section) — 4 extra JVM/worker processes, which is why the default
-  `task_cpu`/`task_memory` doubled to 8192/16384. The Debezium side of this pipeline has been
-  configured from documentation but not smoke-tested against a live deploy in this repo yet.
+- **CDC-to-Bronze and Identity-bridge are also gated on `BI_LAKE_BUCKET`, and add real cost when
+  it's set.** Setting the variable also deploys `rabbitmq-init` + 3 Debezium Server containers +
+  `Warehouse.CdcBridge` + `Warehouse.IdentityBridge` (see `docs/BI_Plan.md`'s CDC and Identity-bridge
+  sections) — 5 extra containers, which is why the default `task_cpu`/`task_memory` doubled to
+  8192/16384. Confidence differs sharply between the two: `Warehouse.IdentityBridge` has been
+  smoke-tested end-to-end against a real Keycloak container (worked first try); the Debezium side of
+  CDC has only been smoke-tested for one table on one of its three instances — not a live deploy in
+  this repo yet, for either.
