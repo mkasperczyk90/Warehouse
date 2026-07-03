@@ -25,6 +25,9 @@ Rules we hold ourselves to:
 | [0007](0007-vertical-slices-in-application-layer.md) | Vertical slices inside the Application layer (one folder per use-case) | Accepted | [#13](../blog/13-repository-unit-of-work-and-events.md), [#18](../blog/18-the-admin-panel-architecture.md) |
 | [0008](0008-automated-per-component-releases.md) | Automated, per-component releases (release-please + SemVer) | Accepted | — |
 | [0009](0009-monorepo-ci-and-signed-images.md) | Monorepo CI — affected-only builds, aggregate gates, signed images | Accepted | — |
+| [0010](0010-bi-export-reuses-transactional-outbox.md) | BI Bronze export reuses the transactional outbox, per-event | Accepted | — |
+| [0011](0011-cdc-via-debezium-server-on-rabbitmq.md) | CDC for state without events: Debezium Server on RabbitMQ, not Kafka Connect | Accepted | — |
+| [0012](0012-identity-bronze-via-admin-api-polling.md) | Identity Bronze via Keycloak Admin API polling, not CDC or events | Accepted | — |
 
 The remaining Part I decisions (the `StockItem` aggregate over `Warehouse`, one-aggregate-per-site
 Topology, the small SharedKernel) are being captured the same way as the series continues.
