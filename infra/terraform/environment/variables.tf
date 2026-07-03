@@ -23,15 +23,24 @@ variable "allowed_cidr" {
 }
 
 variable "task_cpu" {
-  description = "Fargate task vCPU units for the whole stack (1024 = 1 vCPU). 8192 accounts for the 3 extra Debezium Server (JVM) containers added for CDC-to-Bronze; drop to 4096 if bi_lake_bucket_name/CDC is unused to save ~50%."
+  description = <<-EOT
+    Fargate task vCPU units for the whole stack (1024 = 1 vCPU). Left null (the default), this
+    auto-sizes to 8192 when bi_lake_bucket_name is set (the 3 extra Debezium Server JVM containers
+    added for CDC-to-Bronze need that headroom) or 4096 when it's not — see locals.tf's
+    effective_task_cpu. Set explicitly to override either default.
+  EOT
   type        = number
-  default     = 8192
+  default     = null
 }
 
 variable "task_memory" {
-  description = "Fargate task memory (MiB). Must be a valid pairing with task_cpu (8192 vCPU -> 16384..61440)."
+  description = <<-EOT
+    Fargate task memory (MiB). Must be a valid pairing with the effective task_cpu (4096 vCPU ->
+    8192..30720; 8192 vCPU -> 16384..61440). Left null (the default), auto-sizes alongside
+    task_cpu — see locals.tf's effective_task_memory. Set explicitly to override.
+  EOT
   type        = number
-  default     = 16384
+  default     = null
 }
 
 variable "log_retention_days" {
