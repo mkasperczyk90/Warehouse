@@ -11,5 +11,11 @@ regexes = [
   # rabbitmq-init container (infra/terraform/environment/locals.tf) to call the management
   # HTTP API on localhost and declare the CDC topic exchanges. Not a secret to rotate or leak -
   # it's the image's own documented default, unrelated to any credential we control.
-  '''-u guest:guest''',
+  '''guest:guest''',
+]
+
+# Belt-and-suspenders: the exact finding (by commit+path+rule+line), in case the regex above
+# doesn't match whichever substring gitleaks compares it against.
+commits = [
+  "2f7590836a9b837023193065602e47f4a9b9d589",
 ]
