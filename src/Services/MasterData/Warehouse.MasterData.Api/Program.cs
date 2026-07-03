@@ -13,6 +13,7 @@ using ExchangeType = Wolverine.RabbitMQ.ExchangeType;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddBiExport(); // BI export to the S3 Bronze landing zone (docs/BI_Plan.md §11) — no-op unless "BiExport:BucketName" is configured.
 
 // Zero-trust: validate the Keycloak JWT here too (not just at the gateway). The fallback policy makes every
 // business endpoint require an authenticated warehouse role; the gateway forwards the caller's bearer.
@@ -38,6 +39,15 @@ builder.AddWarehouseMessaging("masterdata", (opts, rabbit) =>
     // Broadcast catalog changes on a fanout exchange; each interested service binds its own queue.
     opts.PublishMessage<ProductDefinedV2>()
         .ToRabbitExchange("catalog", e => e.ExchangeType = ExchangeType.Fanout);
+
+    // BI export (docs/BI_Plan.md §11): a dedicated queue on the same "catalog" exchange this service
+    // already publishes to above — decoupled from any other service's own consumption of the stream,
+    // so a slow/backed-up export can never affect catalog delivery.
+    rabbit.BindExchange("catalog", ExchangeType.Fanout).ToQueue("masterdata.bi-export");
+    opts.ListenToRabbitQueue("masterdata.bi-export");
+
+    // BiExport consumer (ProductDefinedBiExportConsumer) lives in the Catalog module assembly.
+    opts.Discovery.IncludeAssembly(typeof(CatalogDbContext).Assembly);
 });
 
 var app = builder.Build();

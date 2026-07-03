@@ -27,6 +27,9 @@ event row and the aggregate change commit in **one transaction**, relayed after 
 `opts.PublishMessage<<Event>V1>().ToRabbitExchange("<exchange>", e => e.ExchangeType = ExchangeType.Fanout);`.
 One fanout exchange per producing context (`catalog`, `logistics`, `inventory`).
 
+> Consuming an event **purely to land a copy in the BI Bronze zone** (no domain writes, no
+> `IUnitOfWork`) is a different, simpler recipe — see `add-bi-export` instead of the steps below.
+
 ## 3. Consume it (receiving service)
 
 1. **`Application/Consumers/<Event>Consumer.cs`** (or a slice folder) — a class with

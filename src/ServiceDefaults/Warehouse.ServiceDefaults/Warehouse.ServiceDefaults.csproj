@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Warehouse.ServiceDefaults.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
     <!-- Shared Keycloak JWT validation (AddWarehouseJwtAuth): every service and the gateway validate
@@ -29,6 +33,11 @@
     <PackageReference Include="WolverineFx.RuntimeCompilation" />
     <!-- Adds a readiness health check for the RabbitMQ broker (AddRabbitMQClient in AddWarehouseMessaging). -->
     <PackageReference Include="Aspire.RabbitMQ.Client" />
+
+    <!-- BI export (AddBiExport, docs/BI_Plan.md §11): Bronze-ready Parquet on S3 for Databricks Auto
+         Loader. Opt-in like Messaging above — only activates for a service that calls AddBiExport(). -->
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Parquet.Net" />
   </ItemGroup>
 
 </Project>

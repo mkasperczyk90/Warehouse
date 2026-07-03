@@ -39,3 +39,13 @@ variable "log_retention_days" {
   type        = number
   default     = 1
 }
+
+variable "bi_lake_bucket_name" {
+  description = <<-EOT
+    Name of the durable BI Bronze landing bucket created by ../bootstrap (its `bi_lake_bucket`
+    output). Empty string disables BI export: the task role gets no S3 permission and
+    warehousing-api isn't given a bucket to write to (see docs/BI_Plan.md §11).
+  EOT
+  type        = string
+  default     = ""
+}

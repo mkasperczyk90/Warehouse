@@ -20,3 +20,8 @@ output "ecr_repository_urls" {
   description = "ECR repository URLs (images are pushed here by the workflow)."
   value       = { for name, repo in aws_ecr_repository.this : name => repo.repository_url }
 }
+
+output "bi_lake_bucket" {
+  description = "Set as the BI_LAKE_BUCKET repository variable for the deploy workflow (docs/BI_Plan.md §11)."
+  value       = aws_s3_bucket.bi_lake.id
+}

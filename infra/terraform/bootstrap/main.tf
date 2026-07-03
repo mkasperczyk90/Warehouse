@@ -37,7 +37,8 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  state_bucket = coalesce(var.state_bucket_name, "warehouse-tfstate-${data.aws_caller_identity.current.account_id}")
+  state_bucket   = coalesce(var.state_bucket_name, "warehouse-tfstate-${data.aws_caller_identity.current.account_id}")
+  bi_lake_bucket = coalesce(var.bi_lake_bucket_name, "warehouse-bi-lake-${data.aws_caller_identity.current.account_id}")
   # Images the deploy workflow builds + pushes (one ECR repo each).
   ecr_repos = [
     "warehouse-gateway",
@@ -73,6 +74,39 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "tfstate" {
 
 resource "aws_s3_bucket_public_access_block" "tfstate" {
   bucket                  = aws_s3_bucket.tfstate.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# --- BI lake landing bucket ------------------------------------------------------
+# Durable (lives in bootstrap, not the ephemeral environment stack) — the lake keeps growing across
+# `up`/`down` cycles, unlike the throwaway compute. Backend services write Bronze-ready Parquet here
+# (see docs/BI_Plan.md §11); Databricks Auto Loader reads from it. No Databricks resources are
+# provisioned here — this bucket is just the landing zone the app writes to.
+resource "aws_s3_bucket" "bi_lake" {
+  bucket = local.bi_lake_bucket
+}
+
+resource "aws_s3_bucket_versioning" "bi_lake" {
+  bucket = aws_s3_bucket.bi_lake.id
+  versioning_configuration {
+    status = "Suspended" # landing-zone files are immutable-by-convention (event_id in the key); no need to pay for versioning.
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "bi_lake" {
+  bucket = aws_s3_bucket.bi_lake.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "bi_lake" {
+  bucket                  = aws_s3_bucket.bi_lake.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true

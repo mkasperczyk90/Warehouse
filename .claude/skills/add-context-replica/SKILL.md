@@ -5,6 +5,9 @@ description: Add a local read replica (snapshot) of another bounded context's da
 
 # Add a context replica (event-fed snapshot)
 
+> Projecting an event into a local *domain* replica, below, is different from landing a copy of it
+> for BI/analytics — for the latter (no domain writes) see `add-bi-export`.
+
 Contexts never query each other; each keeps a **minimal local replica** of just the foreign data it needs,
 updated by integration events — eventual consistency is the accepted trade-off
 ([ADR-0003](../../../docs/adr/0003-replicas-over-cross-service-queries.md)). **Mirror existing replicas**:

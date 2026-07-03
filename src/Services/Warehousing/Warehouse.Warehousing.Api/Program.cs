@@ -15,6 +15,7 @@ using ExchangeType = Wolverine.RabbitMQ.ExchangeType;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddBiExport(); // BI export to the S3 Bronze landing zone (docs/BI_Plan.md §11) — no-op unless "BiExport:BucketName" is configured.
 
 // Zero-trust: validate the Keycloak JWT here too (not just at the gateway). The fallback policy makes every
 // business endpoint require an authenticated warehouse role; the gateway forwards the caller's bearer.
@@ -65,6 +66,14 @@ builder.AddWarehouseMessaging("warehouse", (opts, rabbit) =>
         .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
     opts.PublishMessage<PicksPlannedV1>()
         .ToRabbitExchange("inventory", e => e.ExchangeType = ExchangeType.Fanout);
+
+    // BI export (docs/BI_Plan.md §11): a second, dedicated queue on the same "inventory" exchange
+    // this service already publishes to above. Fully decoupled from the "warehousing.*" queues,
+    // which exist to consume OTHER services' streams — this one only ever sees Inventory's own
+    // events, purely so GoodsReceivedBiExportConsumer (and any sibling added later) can land a copy
+    // in the Bronze zone. No effect on delivery to Logistics if this queue is ever slow/backed up.
+    rabbit.BindExchange("inventory", ExchangeType.Fanout).ToQueue("warehousing.bi-export");
+    opts.ListenToRabbitQueue("warehousing.bi-export");
 
     // Inventory handlers (consumers + slices) live in the Inventory module assembly.
     opts.Discovery.IncludeAssembly(typeof(InventoryDbContext).Assembly);
