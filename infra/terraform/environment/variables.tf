@@ -23,15 +23,15 @@ variable "allowed_cidr" {
 }
 
 variable "task_cpu" {
-  description = "Fargate task vCPU units for the whole stack (1024 = 1 vCPU). 4096 keeps the 10-container boot snappy; drop to 2048 to save ~40%."
+  description = "Fargate task vCPU units for the whole stack (1024 = 1 vCPU). 8192 accounts for the 3 extra Debezium Server (JVM) containers added for CDC-to-Bronze; drop to 4096 if bi_lake_bucket_name/CDC is unused to save ~50%."
   type        = number
-  default     = 4096
+  default     = 8192
 }
 
 variable "task_memory" {
-  description = "Fargate task memory (MiB). Must be a valid pairing with task_cpu (4096 vCPU -> 8192..30720)."
+  description = "Fargate task memory (MiB). Must be a valid pairing with task_cpu (8192 vCPU -> 16384..61440)."
   type        = number
-  default     = 8192
+  default     = 16384
 }
 
 variable "log_retention_days" {

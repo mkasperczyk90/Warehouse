@@ -50,6 +50,10 @@
          Databricks Auto Loader later reads. Only loaded where BiExport:BucketName is configured. -->
     <PackageVersion Include="AWSSDK.S3" Version="4.0.100.1" />
     <PackageVersion Include="Parquet.Net" Version="6.0.3" />
+    <!-- CDC-to-Bronze (docs/BI_Plan.md — CDC section): Warehouse.CdcBridge consumes Debezium's raw
+         CDC JSON off RabbitMQ directly with the AMQP client (not Wolverine — these aren't typed
+         integration events) and lands it in the same S3 bucket under bronze-cdc/. -->
+    <PackageVersion Include="RabbitMQ.Client" Version="7.2.1" />
     <!-- Tests -->
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.9" />
@@ -61,6 +65,9 @@
     <!-- S3-compatible container for BiExport integration tests (docs/BI_Plan.md §11) — same release
          train as Testcontainers.PostgreSql above, kept in lockstep to avoid a mixed-version Testcontainers core. -->
     <PackageVersion Include="Testcontainers.LocalStack" Version="4.12.0" />
+    <!-- CdcBridge integration test: a real RabbitMQ container to prove the AMQP consumer wiring
+         (exchange/queue declare, bind, consume, ack) actually works, not just compiles. -->
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.12.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
