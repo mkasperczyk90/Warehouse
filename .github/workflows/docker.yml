@@ -67,6 +67,8 @@ jobs:
               - 'src/Services/Warehousing/**'
             logistics:
               - 'src/Services/Logistics/**'
+            cdcbridge:
+              - 'src/CdcBridge/**'
             admin:
               - 'src/web/admin/**'
             terminal:
@@ -83,6 +85,7 @@ jobs:
               masterdata:  { name: 'masterdata-api',  context: '.', dockerfile: 'src/Services/MasterData/Warehouse.MasterData.Api/Dockerfile' },
               warehousing: { name: 'warehousing-api', context: '.', dockerfile: 'src/Services/Warehousing/Warehouse.Warehousing.Api/Dockerfile' },
               logistics:   { name: 'logistics-api',   context: '.', dockerfile: 'src/Services/Logistics/Warehouse.Logistics.Api/Dockerfile' },
+              cdcbridge:   { name: 'cdc-bridge',       context: '.', dockerfile: 'src/CdcBridge/Warehouse.CdcBridge/Dockerfile' },
               admin:       { name: 'admin',           context: 'src/web/admin',    dockerfile: 'src/web/admin/Dockerfile' },
               terminal:    { name: 'terminal',        context: 'src/web/terminal', dockerfile: 'src/web/terminal/Dockerfile' },
             };
@@ -90,7 +93,7 @@ jobs:
             // because the service Dockerfiles build from the repo root with the shared props.
             const allBackend = t('pipeline') || t('shared_backend');
             const want = new Set();
-            for (const k of ['gateway', 'masterdata', 'warehousing', 'logistics']) if (allBackend || t(k)) want.add(k);
+            for (const k of ['gateway', 'masterdata', 'warehousing', 'logistics', 'cdcbridge']) if (allBackend || t(k)) want.add(k);
             for (const k of ['admin', 'terminal']) if (t('pipeline') || t(k)) want.add(k);
             const include = [...want].map((k) => map[k]);
             core.info('Images to build: ' + (include.map((i) => i.name).join(', ') || '(none)'));

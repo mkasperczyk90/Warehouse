@@ -28,17 +28,206 @@ locals {
     "awslogs-stream-prefix" = "warehouse"
   }
 
-  # Shared env for the four .NET backends.
+  # Shared env for the .NET backends.
   dotnet_common_env = [
     { name = "ASPNETCORE_ENVIRONMENT", value = "Development" },
   ]
 
-  containers = [
+  # CDC-to-Bronze (docs/BI_Plan.md — CDC section): each source database gets its own topic exchange,
+  # declared up front by rabbitmq-init (Debezium's RabbitMQ sink never declares the exchange itself —
+  # it only auto-creates a queue for the routing key — so publishing would fail against a missing
+  # exchange without this). One Debezium Server instance per database publishes onto its exchange with
+  # the table's own topic name as routing key; Warehouse.CdcBridge binds one "#" queue per exchange.
+  cdc_exchange_warehouse  = "cdc.warehouse"
+  cdc_exchange_logistics  = "cdc.logistics"
+  cdc_exchange_masterdata = "cdc.masterdata"
+  cdc_exchanges           = [local.cdc_exchange_warehouse, local.cdc_exchange_logistics, local.cdc_exchange_masterdata]
+  cdc_exchanges_spaced    = join(" ", local.cdc_exchanges)
+
+  # Shared Debezium Server sink config: all three instances publish to their own exchange (above) on
+  # the same RabbitMQ broker, as JSON (Debezium's native change-event envelope — op/before/after/source
+  # — is left untouched, see docs/BI_Plan.md, so it plugs directly into Databricks' APPLY CHANGES INTO
+  # without a custom transform).
+  debezium_rabbitmq_sink_env = [
+    { name = "DEBEZIUM_SINK_TYPE", value = "rabbitmq" },
+    { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_HOST", value = "localhost" },
+    { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_PORT", value = tostring(local.port_rabbitmq) },
+    { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_USERNAME", value = "guest" },
+    { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_PASSWORD", value = "guest" },
+    # The smoke test above showed this env var likely doesn't take effect as named (routing key
+    # arrived empty, matching the sink's "static"/unset-value default rather than a per-table topic
+    # name — probably a camelCase-to-env-var mapping mismatch: routingKey.source may need
+    # ROUTINGKEY_SOURCE, not ROUTING_KEY_SOURCE). Left as documented intent; harmless either way,
+    # since Warehouse.CdcBridge binds its queue with routing key "#" and never inspects the actual key.
+    { name = "DEBEZIUM_SINK_RABBITMQ_ROUTING_KEY_SOURCE", value = "topic" },
+    { name = "DEBEZIUM_FORMAT_VALUE", value = "json" },
+    # Without this, Debezium wraps every message as {"schema": {...}, "payload": {...}} (Kafka Connect
+    # JSON converter convention) — Warehouse.CdcBridge (and Databricks Auto Loader downstream) only
+    # wants the payload itself: {before, after, source, op, ts_ms}.
+    { name = "DEBEZIUM_FORMAT_VALUE_SCHEMAS_ENABLE", value = "false" },
+    # CONFIRMED REQUIRED by a local docker-compose smoke test (real Postgres + real Debezium Server +
+    # real RabbitMQ, not mocked): without an explicit offset file path, Debezium Server crashes on
+    # startup with "java.io.IOException: Is a directory" (it resolves the unset filename to the
+    # /debezium/data mount point itself). This is a source-side property in Debezium's own config
+    # namespace, but the value only needs to be a valid path inside each (isolated) container's own
+    # filesystem, so it's identical across all three instances — kept here rather than duplicated
+    # three times below.
+    { name = "DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME", value = "/debezium/data/offsets.dat" },
+    { name = "DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS", value = "1000" },
+  ]
+
+  # --- CDC-to-Bronze containers (docs/BI_Plan.md — CDC section) -----------------------------
+  # Only deployed when bi_lake_bucket_name is set (spliced into `containers` below) — 3 extra JVM
+  # processes (Debezium Server) plus the bridge worker is real Fargate cost that an ephemeral
+  # environment shouldn't pay for BiExport-only use. NOTE: Debezium image tag and the exact
+  # DEBEZIUM_* env var names follow its documented Quarkus/MicroProfile config-to-env convention
+  # (dots -> underscores, uppercase) but have not been exercised against a running container in
+  # this session — smoke-test against a real deploy before trusting this block.
+  cdc_containers = [
+    {
+      # One-shot: declare the 3 CDC topic exchanges Debezium's RabbitMQ sink publishes onto. That
+      # sink never declares its own exchange (only auto-creates a queue for the routing key), so
+      # without this step the first Debezium publish to a not-yet-existing exchange would fail.
+      name      = "rabbitmq-init"
+      image     = "rabbitmq:3-management-alpine"
+      essential = false
+      command = ["sh", "-c",
+        "for ex in ${local.cdc_exchanges_spaced}; do curl -sf -u guest:guest -X PUT -H content-type:application/json -d '{\"type\":\"topic\",\"durable\":true}' http://localhost:15672/api/exchanges/%2f/$ex; done; echo rabbitmq-init done"
+      ]
+      dependsOn        = [{ containerName = "rabbitmq", condition = "HEALTHY" }]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+    {
+      name      = "debezium-warehouse"
+      image     = "quay.io/debezium/server:2.7"
+      essential = false
+      environment = concat(local.debezium_rabbitmq_sink_env, [
+        { name = "DEBEZIUM_SINK_RABBITMQ_EXCHANGE", value = local.cdc_exchange_warehouse },
+        { name = "DEBEZIUM_SOURCE_CONNECTOR_CLASS", value = "io.debezium.connector.postgresql.PostgresConnector" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_HOSTNAME", value = "localhost" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PORT", value = tostring(local.port_postgres) },
+        { name = "DEBEZIUM_SOURCE_DATABASE_USER", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PASSWORD", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_DBNAME", value = "warehouse" },
+        { name = "DEBEZIUM_SOURCE_TOPIC_PREFIX", value = "warehouse" },
+        { name = "DEBEZIUM_SOURCE_PLUGIN_NAME", value = "pgoutput" },
+        { name = "DEBEZIUM_SOURCE_SLOT_NAME", value = "debezium_warehouse" },
+        { name = "DEBEZIUM_SOURCE_PUBLICATION_NAME", value = "debezium_warehouse" },
+        # Bronze-CDC table scope (docs/BI_Plan.md): current-state/ledger tables only — NOT the
+        # inventory.product_snapshots / location_snapshots replicas, which are already fed by
+        # integration events from their owning service and would duplicate that data in Bronze.
+        { name = "DEBEZIUM_SOURCE_TABLE_INCLUDE_LIST", value = join(",", [
+          "inventory.stock_items", "inventory.stock_movements", "inventory.stock_reservations",
+          "inventory.batches", "inventory.stocktakes", "inventory.stocktake_count_lines",
+          "topology.warehouses", "topology.rooms", "topology.locations", "topology.docks",
+        ]) },
+      ])
+      dependsOn = [
+        { containerName = "db-init", condition = "SUCCESS" },
+        { containerName = "rabbitmq-init", condition = "SUCCESS" },
+      ]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+    {
+      name      = "debezium-logistics"
+      image     = "quay.io/debezium/server:2.7"
+      essential = false
+      environment = concat(local.debezium_rabbitmq_sink_env, [
+        { name = "DEBEZIUM_SINK_RABBITMQ_EXCHANGE", value = local.cdc_exchange_logistics },
+        { name = "DEBEZIUM_SOURCE_CONNECTOR_CLASS", value = "io.debezium.connector.postgresql.PostgresConnector" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_HOSTNAME", value = "localhost" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PORT", value = tostring(local.port_postgres) },
+        { name = "DEBEZIUM_SOURCE_DATABASE_USER", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PASSWORD", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_DBNAME", value = "logistics" },
+        { name = "DEBEZIUM_SOURCE_TOPIC_PREFIX", value = "logistics" },
+        { name = "DEBEZIUM_SOURCE_PLUGIN_NAME", value = "pgoutput" },
+        { name = "DEBEZIUM_SOURCE_SLOT_NAME", value = "debezium_logistics" },
+        { name = "DEBEZIUM_SOURCE_PUBLICATION_NAME", value = "debezium_logistics" },
+        # Bronze-CDC table scope — NOT logistics.catalog_product_snapshots (a replica, see above).
+        { name = "DEBEZIUM_SOURCE_TABLE_INCLUDE_LIST", value = join(",", [
+          "logistics.inbound_deliveries", "logistics.inbound_delivery_lines",
+          "logistics.outbound_orders", "logistics.outbound_order_lines",
+          "logistics.pick_lists", "logistics.pick_tasks",
+          "logistics.shipments", "logistics.packages",
+        ]) },
+      ])
+      dependsOn = [
+        { containerName = "db-init", condition = "SUCCESS" },
+        { containerName = "rabbitmq-init", condition = "SUCCESS" },
+      ]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+    {
+      name      = "debezium-masterdata"
+      image     = "quay.io/debezium/server:2.7"
+      essential = false
+      environment = concat(local.debezium_rabbitmq_sink_env, [
+        { name = "DEBEZIUM_SINK_RABBITMQ_EXCHANGE", value = local.cdc_exchange_masterdata },
+        { name = "DEBEZIUM_SOURCE_CONNECTOR_CLASS", value = "io.debezium.connector.postgresql.PostgresConnector" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_HOSTNAME", value = "localhost" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PORT", value = tostring(local.port_postgres) },
+        { name = "DEBEZIUM_SOURCE_DATABASE_USER", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_PASSWORD", value = "postgres" },
+        { name = "DEBEZIUM_SOURCE_DATABASE_DBNAME", value = "masterdata" },
+        { name = "DEBEZIUM_SOURCE_TOPIC_PREFIX", value = "masterdata" },
+        { name = "DEBEZIUM_SOURCE_PLUGIN_NAME", value = "pgoutput" },
+        { name = "DEBEZIUM_SOURCE_SLOT_NAME", value = "debezium_masterdata" },
+        { name = "DEBEZIUM_SOURCE_PUBLICATION_NAME", value = "debezium_masterdata" },
+        # Bronze-CDC table scope: Partners has no integration events at all today, so this is the
+        # ONLY path these tables have into Bronze (docs/BI_Plan.md). catalog.product_types /
+        # product_unit_conversions deliberately excluded — low-value static lookups, phase 2.
+        { name = "DEBEZIUM_SOURCE_TABLE_INCLUDE_LIST", value = join(",", [
+          "partners.parties", "partners.party_roles", "partners.customer_shipping_addresses",
+        ]) },
+      ])
+      dependsOn = [
+        { containerName = "db-init", condition = "SUCCESS" },
+        { containerName = "rabbitmq-init", condition = "SUCCESS" },
+      ]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+    {
+      # Warehouse.CdcBridge: raw AMQP consumer of Debezium's CDC JSON, lands it under bronze-cdc/
+      # in the same BI lake bucket BiExport writes bronze/ to (docs/BI_Plan.md — CDC section).
+      name      = "cdc-bridge"
+      image     = "${local.registry}/warehouse-cdc-bridge:${var.image_tag}"
+      essential = false
+      environment = [
+        { name = "CdcBridge__BucketName", value = var.bi_lake_bucket_name },
+        { name = "CdcBridge__Region", value = var.aws_region },
+        { name = "CdcBridge__RabbitMqHost", value = "localhost" },
+        { name = "CdcBridge__RabbitMqPort", value = tostring(local.port_rabbitmq) },
+        { name = "CdcBridge__RabbitMqUsername", value = "guest" },
+        { name = "CdcBridge__RabbitMqPassword", value = "guest" },
+        { name = "CdcBridge__Exchanges__0", value = local.cdc_exchange_warehouse },
+        { name = "CdcBridge__Exchanges__1", value = local.cdc_exchange_logistics },
+        { name = "CdcBridge__Exchanges__2", value = local.cdc_exchange_masterdata },
+      ]
+      dependsOn = [
+        { containerName = "rabbitmq-init", condition = "SUCCESS" },
+      ]
+      logConfiguration = { logDriver = "awslogs", options = local.log_options }
+    },
+  ]
+
+  containers = concat([
     # --- infrastructure ---------------------------------------------------------
     {
       name      = "postgres"
       image     = "postgres:16-alpine"
       essential = true
+      # wal_level=logical + replication slots/senders: required for Debezium's CDC-to-Bronze pipeline
+      # (docs/BI_Plan.md — CDC section) to read the WAL via logical replication. postgres superuser
+      # already has REPLICATION privilege; a dedicated least-privilege replication role is a hardening
+      # item for any non-ephemeral use (see the file header note). Harmless to always set, even when
+      # CDC is unused.
+      command = [
+        "postgres",
+        "-c", "wal_level=logical",
+        "-c", "max_replication_slots=10",
+        "-c", "max_wal_senders=10",
+      ]
       environment = [
         { name = "POSTGRES_USER", value = "postgres" },
         { name = "POSTGRES_PASSWORD", value = "postgres" },
@@ -61,8 +250,15 @@ locals {
       environment = [
         { name = "PGPASSWORD", value = "postgres" },
       ]
+      # After creating the databases, also ensure one logical-replication PUBLICATION per database for
+      # Debezium's CDC-to-Bronze pipeline (harmless when CDC is unused — an unread publication costs
+      # nothing). FOR ALL TABLES (not an explicit table list) is deliberate: it doesn't need the app
+      # schemas to exist yet — those land later via each service's own EF migrations at startup — and
+      # it means adding a table to Bronze-CDC scope later is just a change to the relevant Debezium
+      # connector's table.include.list, no new migration/DDL step here. The actual Bronze-CDC table
+      # scoping happens entirely in Debezium (docs/BI_Plan.md — CDC section).
       command = ["sh", "-c",
-        "for db in masterdata warehouse logistics; do psql -h localhost -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname='$db'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE $db\"; done; echo db-init done"
+        "for db in masterdata warehouse logistics; do psql -h localhost -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname='$db'\" | grep -q 1 || psql -h localhost -U postgres -c \"CREATE DATABASE $db\"; done; for db in masterdata warehouse logistics; do psql -h localhost -U postgres -d \"$db\" -tc \"SELECT 1 FROM pg_publication WHERE pubname='debezium_$db'\" | grep -q 1 || psql -h localhost -U postgres -d \"$db\" -c \"CREATE PUBLICATION debezium_$db FOR ALL TABLES\"; done; echo db-init done"
       ]
       dependsOn        = [{ containerName = "postgres", condition = "HEALTHY" }]
       logConfiguration = { logDriver = "awslogs", options = local.log_options }
@@ -211,5 +407,5 @@ locals {
       portMappings     = [{ containerPort = local.port_terminal }]
       logConfiguration = { logDriver = "awslogs", options = local.log_options }
     },
-  ]
+    ], var.bi_lake_bucket_name != "" ? local.cdc_containers : [])
 }

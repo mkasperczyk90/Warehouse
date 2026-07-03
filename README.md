@@ -202,15 +202,16 @@ src/
   AppHost/            .NET Aspire orchestrator — runs the whole stack
   Gateway/            YARP API gateway / BFF + auth brokering
   Services/           warehouse · logistics · masterdata  (each: Domain/Application/Infrastructure modules)
+  CdcBridge/           worker: lands Debezium's CDC stream in the BI lake (docs/BI_Plan.md, opt-in)
   SharedKernel/       archetype value objects + base types (no business logic)
   Contracts/          versioned, additive-only integration events
-  ServiceDefaults/    health checks, OpenTelemetry, resilience, messaging wiring
+  ServiceDefaults/    health checks, OpenTelemetry, resilience, messaging wiring, BI export (opt-in)
   Identity/           Keycloak realm + a custom badge Direct-Grant authenticator (Java SPI)
   web/admin/          desk SPA (Vite + React)
   web/terminal/       operator terminal (Expo / RN Web)
 tests/                unit · architecture · integration (Testcontainers) · e2e (playwright-bdd)
 infra/                Docker + AWS ephemeral-deploy infrastructure
-docs/                 domain model, bounded contexts, use cases, ADRs, design system
+docs/                 domain model, bounded contexts, use cases, ADRs, design system, BI/lakehouse plan
 ```
 
 ---
@@ -263,6 +264,8 @@ The design is written down as it was decided — start here to see *how* the sys
 | [`docs/cicd.md`](docs/cicd.md) | CI/CD & releases — versioning, what's published, the gate pattern |
 | [`docs/models/`](docs/models/README.md) | As-built model reference — one file per module |
 | [`docs/design/`](docs/design/README.md) | Design system, flows, actors, and the admin front-end plan |
+| [`docs/BI_Plan.md`](docs/BI_Plan.md) | Bronze/Silver/Gold lakehouse plan — the opt-in BI export + CDC-to-Bronze pipeline, star schema, metrics catalog |
+| [`docs/deploy.md`](docs/deploy.md) | Ephemeral AWS deploy — architecture, cost, one-time setup |
 
 ---
 

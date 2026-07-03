@@ -44,7 +44,7 @@ ALB ──:80──▶ admin SPA
    | `AWS_ROLE_ARN` | `deploy_role_arn` |
    | `TF_STATE_BUCKET` | `state_bucket` |
    | `AWS_REGION` | `aws_region` |
-   | `BI_LAKE_BUCKET` | `bi_lake_bucket` — Bronze landing zone for Databricks (docs/BI_Plan.md §11) |
+   | `BI_LAKE_BUCKET` | `bi_lake_bucket` — Bronze landing zone for Databricks. Turns on both the event-driven BI export (§11) and the CDC-to-Bronze pipeline (Debezium + `Warehouse.CdcBridge`, docs/BI_Plan.md CDC section) |
 
 ## Daily use
 
@@ -87,7 +87,12 @@ Drop `task_cpu`/`task_memory` (e.g. 2048 / 8192) to cut compute ~40% at the cost
   default to MSW-mocked. The admin Profile screen (`/api/profile`) is served by the gateway from the
   token's claims with an in-memory prefs overlay (lost on restart — fine for a throwaway env).
 - The deploy IAM policy in bootstrap is broad-but-scoped for convenience; tighten for production.
-- **BI export is opt-in.** `warehousing-api` writes Bronze Parquet to the `BI_LAKE_BUCKET` bucket via
-  the task role — see [`docs/BI_Plan.md`](../docs/BI_Plan.md) §11. If that variable is unset the
-  environment stack still works exactly as before (`bi_lake_bucket_name` defaults to `""`, which
+- **BI export is opt-in.** All 3 backend APIs write Bronze Parquet to the `BI_LAKE_BUCKET` bucket via
+  the shared task role — see [`docs/BI_Plan.md`](../docs/BI_Plan.md) §11. If that variable is unset
+  the environment stack still works exactly as before (`bi_lake_bucket_name` defaults to `""`, which
   disables export in both Terraform and the app).
+- **CDC-to-Bronze is also gated on `BI_LAKE_BUCKET`, and adds real cost when it's set.** Setting the
+  variable also deploys `rabbitmq-init` + 3 Debezium Server containers + `Warehouse.CdcBridge` (see
+  `docs/BI_Plan.md`'s CDC section) — 4 extra JVM/worker processes, which is why the default
+  `task_cpu`/`task_memory` doubled to 8192/16384. The Debezium side of this pipeline has been
+  configured from documentation but not smoke-tested against a live deploy in this repo yet.
