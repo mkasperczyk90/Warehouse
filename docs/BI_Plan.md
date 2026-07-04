@@ -670,6 +670,15 @@ by construction, not by oversight, and adding an event purely to feed BI would c
 to an analytics concern it has no other reason to know about. CDC, scoped to exactly those tables, is
 the tool for that gap — see the dedicated section below.
 
+**Deliberate exception: `DeliveryAnnouncedV1`/`DockSlotAssignedV1`/`DeliveryArrivedV1`.** These three
+have no other-service consumer either — by the rule above they look like CDC territory
+(`logistics.inbound_deliveries` is already in the CDC table list, §below). They're event-driven
+anyway because, unlike a stock-ledger row, each one *is* a named business milestone with a clear
+"when" (ASN raised, dock booked, truck checked in) — cheaper for Silver to consume as a fact than to
+re-derive intent from a row diff, same reasoning that puts `GoodsReceiptConfirmed` in events rather
+than leaving it to CDC on `inbound_deliveries`. Worth revisiting if `logistics.inbound_deliveries`
+CDC ever gets verified end-to-end and the duplication stops paying for itself.
+
 ### Reference implementation (project side only — no Databricks resources)
 
 Scope, per the decision to prepare the app/infra side now and wire up Databricks itself later: land
