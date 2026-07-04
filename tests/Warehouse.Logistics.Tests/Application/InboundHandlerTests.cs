@@ -27,22 +27,24 @@ public sealed class InboundHandlerTests
         var deliveries = new FakeInboundDeliveryRepository();
         var catalog = new FakeCatalogProductReplica();
         catalog.Seed("SKU-1");
-        var uow = new FakeUnitOfWork();
-        var handler = new AnnounceDeliveryHandler(deliveries, catalog, uow);
+        var outbox = Outbox.Create();
+        var handler = new AnnounceDeliveryHandler(deliveries, catalog, outbox);
 
         var id = await handler.HandleAsync(AnnounceCommand());
 
         var saved = Assert.Single(deliveries.Saved);
         Assert.Equal(id, saved.Id.Value);
         Assert.Equal(DeliveryStatus.Announced, saved.Status);
-        Assert.Equal(1, uow.SaveCount);
+        var announced = outbox.PublishedMessage<DeliveryAnnouncedV1>();
+        Assert.Equal(id, announced.DeliveryId);
+        Assert.Equal("WH01", announced.WarehouseCode);
     }
 
     [Fact]
     public async Task AnnounceDelivery_rejects_an_unknown_sku_before_it_enters_receiving()
     {
         var deliveries = new FakeInboundDeliveryRepository();
-        var handler = new AnnounceDeliveryHandler(deliveries, new FakeCatalogProductReplica(), new FakeUnitOfWork());
+        var handler = new AnnounceDeliveryHandler(deliveries, new FakeCatalogProductReplica(), Outbox.Create());
 
         await Expect.DomainErrorAsync("delivery_unknown_sku", () => handler.HandleAsync(AnnounceCommand()));
         Assert.Empty(deliveries.Saved);
@@ -55,14 +57,17 @@ public sealed class InboundHandlerTests
         var deliveries = new FakeInboundDeliveryRepository();
         var delivery = Build.Delivery();
         deliveries.Seed(delivery);
-        var uow = new FakeUnitOfWork();
-        var handler = new AssignDockSlotHandler(deliveries, uow);
+        var outbox = Outbox.Create();
+        var handler = new AssignDockSlotHandler(deliveries, outbox);
         var from = DateTimeOffset.UtcNow.AddHours(2);
 
         await handler.HandleAsync(new AssignDockSlotCommand(delivery.Id.Value, "D-1", from, from.AddHours(1)));
 
         Assert.NotNull(delivery.Slot);
         Assert.Equal("D-1", delivery.Slot!.DockCode);
+        var assigned = outbox.PublishedMessage<DockSlotAssignedV1>();
+        Assert.Equal(delivery.Id.Value, assigned.DeliveryId);
+        Assert.Equal("D-1", assigned.DockCode);
     }
 
     [Fact]
@@ -73,7 +78,7 @@ public sealed class InboundHandlerTests
         deliveries.Seed(delivery);
         var from = DateTimeOffset.UtcNow.AddHours(2);
         deliveries.BookedSlots.Add(DockSlot.Of("D-1", from.AddMinutes(30), from.AddHours(2)));
-        var handler = new AssignDockSlotHandler(deliveries, new FakeUnitOfWork());
+        var handler = new AssignDockSlotHandler(deliveries, Outbox.Create());
 
         await Expect.DomainErrorAsync("dock_slot_conflict",
             () => handler.HandleAsync(new AssignDockSlotCommand(delivery.Id.Value, "D-1", from, from.AddHours(1))));
@@ -86,10 +91,12 @@ public sealed class InboundHandlerTests
         var deliveries = new FakeInboundDeliveryRepository();
         var delivery = Build.Delivery();
         deliveries.Seed(delivery);
+        var outbox = Outbox.Create();
 
-        await new RegisterArrivalHandler(deliveries, new FakeUnitOfWork())
+        await new RegisterArrivalHandler(deliveries, outbox)
             .HandleAsync(new RegisterArrivalCommand(delivery.Id.Value));
         Assert.Equal(DeliveryStatus.Arrived, delivery.Status);
+        Assert.Equal(delivery.Id.Value, outbox.PublishedMessage<DeliveryArrivedV1>().DeliveryId);
 
         await new StartReceivingHandler(deliveries, new FakeUnitOfWork())
             .HandleAsync(new StartReceivingCommand(delivery.Id.Value));
@@ -99,7 +106,7 @@ public sealed class InboundHandlerTests
     [Fact]
     public async Task RegisterArrival_for_a_missing_delivery_throws()
     {
-        var handler = new RegisterArrivalHandler(new FakeInboundDeliveryRepository(), new FakeUnitOfWork());
+        var handler = new RegisterArrivalHandler(new FakeInboundDeliveryRepository(), Outbox.Create());
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => handler.HandleAsync(new RegisterArrivalCommand(Guid.NewGuid())));
