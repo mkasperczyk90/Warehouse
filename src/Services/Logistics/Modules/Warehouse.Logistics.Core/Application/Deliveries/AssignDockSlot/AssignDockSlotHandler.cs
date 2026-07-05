@@ -1,15 +1,18 @@
+using Warehouse.Contracts.Logistics;
 using Warehouse.Logistics.Core.Application.Abstractions;
 using Warehouse.Logistics.Core.Domain;
 using Warehouse.Logistics.Core.Domain.Services;
-using Warehouse.SharedKernel.Application;
+using Warehouse.Logistics.Core.Infrastructure.Persistence;
+using Wolverine.EntityFrameworkCore;
 
 namespace Warehouse.Logistics.Core.Application.Deliveries.AssignDockSlot;
 
 /// <summary>
 /// Books the slot through <see cref="DockSchedulingService"/>, which enforces the cross-aggregate
-/// no-overlap rule (the booked slots at that dock come from the repository).
+/// no-overlap rule (the booked slots at that dock come from the repository). Announces the booking
+/// to Bronze via the transactional outbox (<see cref="DockSlotAssignedV1"/>).
 /// </summary>
-public sealed class AssignDockSlotHandler(IInboundDeliveryRepository deliveries, IUnitOfWork unitOfWork)
+public sealed class AssignDockSlotHandler(IInboundDeliveryRepository deliveries, IDbContextOutbox<LogisticsDbContext> outbox)
 {
     public async Task HandleAsync(AssignDockSlotCommand command, CancellationToken cancellationToken = default)
     {
@@ -24,6 +27,9 @@ public sealed class AssignDockSlotHandler(IInboundDeliveryRepository deliveries,
         DockSchedulingService.Schedule(delivery, slot, booked);
 
         deliveries.Update(delivery);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await outbox.PublishAsync(new DockSlotAssignedV1(
+            delivery.Id.Value, delivery.Warehouse.Code, slot.DockCode, slot.From, slot.To, DateTimeOffset.UtcNow));
+
+        await outbox.SaveChangesAndFlushMessagesAsync(cancellationToken);
     }
 }
