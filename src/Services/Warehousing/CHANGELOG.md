@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/mkasperczyk90/Warehouse/compare/warehouse-v0.2.0...warehouse-v0.3.0) (2026-07-05)
+
+
+### 🚀 Features
+
+* **bi-export:** land Bronze export for all published integration events ([#61](https://github.com/mkasperczyk90/Warehouse/issues/61)) ([eecbd51](https://github.com/mkasperczyk90/Warehouse/commit/eecbd5143f499240f449013634b05a56294ac404))
+
 ## [0.2.0](https://github.com/mkasperczyk90/Warehouse/compare/warehouse-v0.1.0...warehouse-v0.2.0) (2026-07-01)
 
 
