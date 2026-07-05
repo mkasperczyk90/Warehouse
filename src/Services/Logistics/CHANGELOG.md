@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/mkasperczyk90/Warehouse/compare/logistics-v0.3.0...logistics-v0.4.0) (2026-07-05)
+
+
+### 🚀 Features
+
+* **bi-export:** land the inbound delivery timeline in Bronze ([#70](https://github.com/mkasperczyk90/Warehouse/issues/70)) ([1a2ea3c](https://github.com/mkasperczyk90/Warehouse/commit/1a2ea3c725c6a1e77aba9a2afec10429a05d1dd4))
+
 ## [0.3.0](https://github.com/mkasperczyk90/Warehouse/compare/logistics-v0.2.0...logistics-v0.3.0) (2026-07-03)
 
 
