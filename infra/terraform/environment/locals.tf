@@ -8,6 +8,13 @@
 locals {
   registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
 
+  # Fargate task sizing auto-scales with whether CDC's 3 extra Debezium Server JVM containers are
+  # actually running, so leaving bi_lake_bucket_name unset doesn't silently keep paying for their
+  # headroom (var.task_cpu/task_memory default to null in variables.tf so this applies unless an
+  # explicit override is set).
+  effective_task_cpu    = coalesce(var.task_cpu, var.bi_lake_bucket_name != "" ? 8192 : 4096)
+  effective_task_memory = coalesce(var.task_memory, var.bi_lake_bucket_name != "" ? 16384 : 8192)
+
   # localhost ports inside the shared task namespace.
   port_postgres    = 5432
   port_rabbitmq    = 5672
@@ -54,12 +61,13 @@ locals {
     { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_PORT", value = tostring(local.port_rabbitmq) },
     { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_USERNAME", value = "guest" },
     { name = "DEBEZIUM_SINK_RABBITMQ_CONNECTION_PASSWORD", value = "guest" },
-    # The smoke test above showed this env var likely doesn't take effect as named (routing key
-    # arrived empty, matching the sink's "static"/unset-value default rather than a per-table topic
-    # name — probably a camelCase-to-env-var mapping mismatch: routingKey.source may need
-    # ROUTINGKEY_SOURCE, not ROUTING_KEY_SOURCE). Left as documented intent; harmless either way,
-    # since Warehouse.CdcBridge binds its queue with routing key "#" and never inspects the actual key.
-    { name = "DEBEZIUM_SINK_RABBITMQ_ROUTING_KEY_SOURCE", value = "topic" },
+    # Fixed per the smoke test's finding: the previous name (ROUTING_KEY_SOURCE) never took effect —
+    # delivered messages had an empty routing key. Quarkus/SmallRye's config-to-env-var mapping keeps
+    # a camelCase property segment (`routingKey`) as one token; it does not insert an underscore
+    # between "routing" and "key" the way a naive dots-to-underscores conversion would. Needs a
+    # re-run of the smoke test to confirm this corrected name actually takes effect; harmless either
+    # way, since Warehouse.CdcBridge binds its queue with routing key "#" and never inspects it.
+    { name = "DEBEZIUM_SINK_RABBITMQ_ROUTINGKEY_SOURCE", value = "topic" },
     { name = "DEBEZIUM_FORMAT_VALUE", value = "json" },
     # Without this, Debezium wraps every message as {"schema": {...}, "payload": {...}} (Kafka Connect
     # JSON converter convention) — Warehouse.CdcBridge (and Databricks Auto Loader downstream) only
@@ -128,6 +136,14 @@ locals {
           "topology.warehouses", "topology.rooms", "topology.locations", "topology.docks",
         ]) },
       ])
+      # Persists DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME on a task-scoped volume (declared in
+      # ecs.tf) instead of the container's own writable layer, so this instance's WAL position
+      # survives a lone container restart within the task's lifetime (a fresh container gets a fresh,
+      # empty writable layer — without this it would restart from scratch instead of resuming).
+      # Does not survive the whole task being replaced/redeployed; that's a separate, bigger gap.
+      mountPoints = [
+        { sourceVolume = "debezium-warehouse-data", containerPath = "/debezium/data", readOnly = false },
+      ]
       dependsOn = [
         { containerName = "db-init", condition = "SUCCESS" },
         { containerName = "rabbitmq-init", condition = "SUCCESS" },
@@ -158,6 +174,10 @@ locals {
           "logistics.shipments", "logistics.packages",
         ]) },
       ])
+      # See debezium-warehouse's identical mountPoints comment above.
+      mountPoints = [
+        { sourceVolume = "debezium-logistics-data", containerPath = "/debezium/data", readOnly = false },
+      ]
       dependsOn = [
         { containerName = "db-init", condition = "SUCCESS" },
         { containerName = "rabbitmq-init", condition = "SUCCESS" },
@@ -190,6 +210,10 @@ locals {
           "catalog.product_types",
         ]) },
       ])
+      # See debezium-warehouse's identical mountPoints comment above.
+      mountPoints = [
+        { sourceVolume = "debezium-masterdata-data", containerPath = "/debezium/data", readOnly = false },
+      ]
       dependsOn = [
         { containerName = "db-init", condition = "SUCCESS" },
         { containerName = "rabbitmq-init", condition = "SUCCESS" },
