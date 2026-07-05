@@ -40,6 +40,14 @@ builder.AddWarehouseMessaging("logistics", (opts, rabbit) =>
     // Announce inbound goods receipts and outbound order/dispatch facts to Inventory.
     opts.PublishMessage<GoodsReceiptConfirmedV1>()
         .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    // Delivery timeline facts (announced/dock-slot/arrived) have no other in-service consumer today —
+    // they only exist to feed BI export (docs/BI_Plan.md §5.3), same exchange as everything else here.
+    opts.PublishMessage<DeliveryAnnouncedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<DockSlotAssignedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
+    opts.PublishMessage<DeliveryArrivedV1>()
+        .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
     opts.PublishMessage<OutboundOrderPlacedV1>()
         .ToRabbitExchange("logistics", e => e.ExchangeType = ExchangeType.Fanout);
     opts.PublishMessage<OutboundOrderCancelledV1>()

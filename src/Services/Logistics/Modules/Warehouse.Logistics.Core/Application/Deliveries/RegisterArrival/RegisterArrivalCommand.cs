@@ -1,13 +1,16 @@
+using Warehouse.Contracts.Logistics;
 using Warehouse.Logistics.Core.Application.Abstractions;
 using Warehouse.Logistics.Core.Domain;
-using Warehouse.SharedKernel.Application;
+using Warehouse.Logistics.Core.Infrastructure.Persistence;
+using Wolverine.EntityFrameworkCore;
 
 namespace Warehouse.Logistics.Core.Application.Deliveries.RegisterArrival;
 
 /// <summary>UC-02 — the truck checked in at the dock.</summary>
 public sealed record RegisterArrivalCommand(Guid DeliveryId);
 
-public sealed class RegisterArrivalHandler(IInboundDeliveryRepository deliveries, IUnitOfWork unitOfWork)
+/// <summary>Announces the arrival to Bronze via the transactional outbox (<see cref="DeliveryArrivedV1"/>).</summary>
+public sealed class RegisterArrivalHandler(IInboundDeliveryRepository deliveries, IDbContextOutbox<LogisticsDbContext> outbox)
 {
     public async Task HandleAsync(RegisterArrivalCommand command, CancellationToken cancellationToken = default)
     {
@@ -17,6 +20,8 @@ public sealed class RegisterArrivalHandler(IInboundDeliveryRepository deliveries
 
         delivery.RegisterArrival();
         deliveries.Update(delivery);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await outbox.PublishAsync(new DeliveryArrivedV1(delivery.Id.Value, delivery.Warehouse.Code, DateTimeOffset.UtcNow));
+
+        await outbox.SaveChangesAndFlushMessagesAsync(cancellationToken);
     }
 }
