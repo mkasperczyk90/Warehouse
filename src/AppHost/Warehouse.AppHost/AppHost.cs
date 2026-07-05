@@ -11,8 +11,15 @@ var masterDataDb = postgres.AddDatabase("masterdata");
 var warehouseDb = postgres.AddDatabase("warehouse");
 var logisticsDb = postgres.AddDatabase("logistics");
 
-// Message broker for integration events (transactional outbox publishes here).
-var rabbitmq = builder.AddRabbitMQ("rabbitmq");
+// Message broker for integration events (transactional outbox publishes here). Pinned to guest/guest
+// (rather than Aspire's default auto-generated password) for two reasons: it matches the ECS
+// deployment's own RabbitMQ container (infra/terraform/environment/locals.tf — same default, never
+// overridden there either), and Warehouse.CdcBridge below reads RabbitMQ host/user/password as plain
+// CdcBridgeOptions config rather than an Aspire-injected connection string, so it needs a credential
+// it can default to without extra plumbing.
+var rabbitmqUser = builder.AddParameter("rabbitmq-username", "guest");
+var rabbitmqPassword = builder.AddParameter("rabbitmq-password", "guest", secret: true);
+var rabbitmq = builder.AddRabbitMQ("rabbitmq", rabbitmqUser, rabbitmqPassword);
 
 // Identity provider (Keycloak): hosts the 'warehouse' realm (roles + desk users) and the custom badge
 // Direct-Grant authenticator, so the desk's badge-scan sign-in issues real JWTs. Provisioned as a raw
@@ -90,5 +97,40 @@ builder.AddDockerfile("terminal", "../../web/terminal")
     .WithEnvironment("GATEWAY_UPSTREAM", gateway.GetEndpoint("http"))
     .WithHttpEndpoint(targetPort: 80)
     .WithExternalHttpEndpoints();
+
+// Bronze/BI workers (docs/BI_Plan.md §11 + CDC section) — the ECS deployment's other consumers of
+// the shared task role's S3 write access. Neither writes anything locally (BiExport/CdcBridge's S3
+// writer both no-op-by-omission without a configured bucket, the same "off by default" behaviour the
+// 3 APIs' own AddBiExport() call already has), but both are wired in so `dotnet run` on this AppHost
+// actually launches every service that ships, not just the ones with an HTTP endpoint to click on.
+//
+// identity-bridge only needs Keycloak, which is already here — its Admin API poll works for real
+// locally (AdminUsername/AdminPassword default to "admin"/"admin", matching this AppHost's own
+// KC_BOOTSTRAP_ADMIN_USERNAME/PASSWORD above).
+var identityBridge = builder.AddProject<Projects.Warehouse_IdentityBridge>("identity-bridge")
+    .WithEnvironment("IdentityBridge__KeycloakBaseUrl", keycloak.GetEndpoint("http"))
+    .WaitFor(keycloak);
+
+// cdc-bridge's actual data source (Debezium Server reading Postgres logical replication) is an ECS/
+// Terraform-only piece (infra/terraform/environment/locals.tf) — porting 3 Debezium JVM instances
+// plus wal_level=logical into local Aspire orchestration is a separate, bigger undertaking than
+// "launch every project", so it isn't done here. Still wired in (rather than left out entirely) so
+// the process itself starts and is exercised locally: it connects to RabbitMQ and declares/binds its
+// 3 CDC exchanges/queues itself now (CdcListenerService no longer assumes rabbitmq-init ran first),
+// then idles — harmlessly, since nothing publishes to those exchanges without Debezium.
+// CdcBridgeOptions binds RabbitMQ host/port/user/password as plain config, not an Aspire connection
+// string (WithReference alone would only inject ConnectionStrings__rabbitmq, which CdcBridgeOptions
+// doesn't read) — so host/port come from the resolved "tcp" endpoint explicitly, and user/password
+// reuse the same parameters the rabbitmq resource itself was pinned to above.
+var rabbitmqEndpoint = rabbitmq.GetEndpoint("tcp");
+var cdcBridge = builder.AddProject<Projects.Warehouse_CdcBridge>("cdc-bridge")
+    .WithReference(rabbitmq).WaitFor(rabbitmq)
+    .WithEnvironment("CdcBridge__RabbitMqHost", rabbitmqEndpoint.Property(EndpointProperty.Host))
+    .WithEnvironment("CdcBridge__RabbitMqPort", rabbitmqEndpoint.Property(EndpointProperty.Port))
+    .WithEnvironment("CdcBridge__RabbitMqUsername", rabbitmqUser)
+    .WithEnvironment("CdcBridge__RabbitMqPassword", rabbitmqPassword)
+    .WithEnvironment("CdcBridge__Exchanges__0", "cdc.warehouse")
+    .WithEnvironment("CdcBridge__Exchanges__1", "cdc.logistics")
+    .WithEnvironment("CdcBridge__Exchanges__2", "cdc.masterdata");
 
 builder.Build().Run();

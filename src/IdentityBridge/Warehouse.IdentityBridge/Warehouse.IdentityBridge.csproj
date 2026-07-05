@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <RootNamespace>Warehouse.IdentityBridge</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reuses AddBiExport()'s IBronzeExportWriter/BronzeEvent for the actual S3 write — this worker
+         only adds a Keycloak Admin API poller on top, no new writer/S3 code (docs/BI_Plan.md §5.4). -->
+    <ProjectReference Include="..\..\ServiceDefaults\Warehouse.ServiceDefaults\Warehouse.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

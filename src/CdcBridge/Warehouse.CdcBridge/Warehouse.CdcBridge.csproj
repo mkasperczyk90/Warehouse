@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <RootNamespace>Warehouse.CdcBridge</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="RabbitMQ.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AddServiceDefaults() only, for consistent telemetry/health-check wiring with every other
+         backend process — this worker does not use ServiceDefaults' messaging (Wolverine) or auth
+         helpers, since it talks to RabbitMQ as a raw AMQP consumer of Debezium's CDC stream, not as
+         a Wolverine node. -->
+    <ProjectReference Include="..\..\ServiceDefaults\Warehouse.ServiceDefaults\Warehouse.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

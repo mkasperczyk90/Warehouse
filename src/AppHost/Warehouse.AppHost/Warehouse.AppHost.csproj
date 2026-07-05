@@ -19,6 +19,8 @@
     <ProjectReference Include="..\..\Services\Warehousing\Warehouse.Warehousing.Api\Warehouse.Warehousing.Api.csproj" />
     <ProjectReference Include="..\..\Services\Logistics\Warehouse.Logistics.Api\Warehouse.Logistics.Api.csproj" />
     <ProjectReference Include="..\..\Services\MasterData\Warehouse.MasterData.Api\Warehouse.MasterData.Api.csproj" />
+    <ProjectReference Include="..\..\CdcBridge\Warehouse.CdcBridge\Warehouse.CdcBridge.csproj" />
+    <ProjectReference Include="..\..\IdentityBridge\Warehouse.IdentityBridge\Warehouse.IdentityBridge.csproj" />
   </ItemGroup>
 
 </Project>
