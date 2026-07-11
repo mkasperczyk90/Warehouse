@@ -229,7 +229,7 @@ cd src/web/admin && npm ci && npm run mock:init && npm run dev
 ```
 
 Prerequisites (.NET 10 SDK, Node 20, Docker), full build/test matrix, and the CI/CD details are in
-[`CONTRIBUTING.md`](CONTRIBUTING.md)
+[`CONTRIBUTING.md`](CONTRIBUTING.md),
 
 ---
 
