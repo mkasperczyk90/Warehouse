@@ -34,7 +34,7 @@ jobs:
       backend: ${{ steps.changes.outputs.backend }}
     steps:
       - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: changes
         with:
           filters: |
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup .NET (from global.json)
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -128,7 +128,7 @@ jobs:
       # Turn the cobertura output (from coverlet.collector) into a markdown table on the run's summary page.
       - name: Coverage summary
         if: ${{ !cancelled() }}
-        uses: danielpalme/ReportGenerator-GitHub-Action@049f7ec958c672fd31d5cc1cb01622dc8d2e23ab # 5
+        uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # 5
         with:
           reports: ${{ github.workspace }}/TestResults/**/coverage.cobertura.xml
           targetdir: ${{ github.workspace }}/coveragereport
@@ -167,7 +167,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup .NET (from global.json)
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
