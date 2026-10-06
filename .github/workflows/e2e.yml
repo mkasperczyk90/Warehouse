@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup Node 20
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -82,7 +82,7 @@ jobs:
       # annotates failures inline on the PR). Runs even when the suite fails.
       - name: Publish test report
         if: ${{ !cancelled() }}
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: E2E tests (${{ matrix.app }})
           path: ${{ matrix.e2e }}/test-results/junit.xml
